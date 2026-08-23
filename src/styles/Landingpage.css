@@ -246,7 +246,7 @@ body {
   font-weight: 700;
   color: var(--ink);
   margin-bottom: 20px;
-  font-family: "Fraunces", serif;
+  letter-spacing: 0;
 }
 
 .hero-title-accent {
@@ -560,7 +560,7 @@ body {
 
 @media (max-width: 480px) {
   .hero-title {
-    font-size: 36px;
+    font-size: 38px;
   }
 
   .float-card {
