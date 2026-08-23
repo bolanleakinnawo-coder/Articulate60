@@ -1,6 +1,17 @@
 :root {
-  /* Backgrounds */
-  --bg-primary: #0d0e10;
+  /* Light Theme */
+  --olive-deep: #3b4a2c;
+  --olive-deeper: #2e3a22;
+  --sage: #9cb185;
+  --sage-light: #eef1e5;
+  --sage-line: #d3dcc3;
+  --cream: #fbfaf6;
+  --ink: #272b21;
+  --ink-soft: #5b6350;
+  --white: #ffffff;
+
+  /* Dark theme */
+  --bg-primary: hsl(220, 10%, 6%);
   --bg-secondary: #181a16;
   --bg-card: #131513;
 
@@ -455,4 +466,395 @@ a {
     background: rgba(100, 103, 66, 0.2);
     color: var(--text-primary);
   }
+}
+
+.registration-page {
+  min-height: 100vh;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 40px 24px;
+}
+
+.registration-container {
+  width: 100%;
+  max-width: 460px;
+}
+
+.registration-header {
+  text-align: center;
+  margin-bottom: 36px;
+}
+
+.registration-step {
+  color: var(--olive-bright);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  margin-bottom: 14px;
+}
+
+.registration-header h1 {
+  font-size: 32px;
+  line-height: 1.2;
+  margin-bottom: 10px;
+}
+
+.registration-header p:last-child {
+  color: var(--text-secondary);
+  font-size: 15px;
+}
+
+.registration-options {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.registration-options > button {
+  width: 100%;
+  min-height: 52px;
+
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+
+  font-size: 14px;
+  font-weight: 500;
+
+  transition: all 0.2s ease;
+}
+
+.registration-options > button:hover {
+  background: var(--bg-card);
+  border-color: var(--olive-primary);
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+
+  margin: 10px 0;
+}
+
+.divider::before,
+.divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+.divider span {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.registration-options > button:last-child {
+  background: var(--olive-primary);
+  border-color: var(--olive-primary);
+  font-weight: 600;
+}
+
+.registration-options > button:last-child:hover {
+  background: var(--olive-bright);
+  border-color: var(--olive-bright);
+}
+
+.step-indicator {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 40px;
+}
+
+.step-item {
+  display: flex;
+  align-items: center;
+  flex: 1;
+}
+
+.step-item:last-child {
+  flex: 0;
+}
+
+.step-number {
+  width: 30px;
+  height: 30px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  border: 1px solid var(--border);
+  border-radius: 50%;
+
+  background: var(--bg-secondary);
+  color: var(--text-muted);
+
+  font-size: 12px;
+  font-weight: 600;
+
+  transition: 0.2s ease;
+}
+
+.step-number.active {
+  background: var(--olive-primary);
+  border-color: var(--olive-primary);
+  color: var(--text-primary);
+}
+
+.step-line {
+  height: 1px;
+  flex: 1;
+  margin: 0 8px;
+
+  background: var(--border);
+
+  transition: 0.2s ease;
+}
+
+.step-line.active {
+  background: var(--olive-primary);
+}
+
+.registration-step-content {
+  width: 100%;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.form-field label {
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.form-field input {
+  width: 100%;
+  min-height: 50px;
+  padding: 0 15px;
+
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+
+  color: var(--text-primary);
+  outline: none;
+  font-size: 14px;
+}
+
+.form-field input::placeholder {
+  color: var(--text-muted);
+}
+
+.form-field input:focus {
+  border-color: var(--olive-primary);
+}
+
+.form-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.back-button,
+.registration-next {
+  min-height: 50px;
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.back-button {
+  flex: 0 0 100px;
+
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+}
+
+.registration-next {
+  flex: 1;
+
+  border: 1px solid var(--olive-primary);
+  background: var(--olive-primary);
+  color: var(--text-primary);
+}
+
+.back-button:hover {
+  border-color: var(--olive-primary);
+  color: var(--text-primary);
+}
+
+.registration-next:hover {
+  background: var(--olive-bright);
+  border-color: var(--olive-bright);
+}
+
+.goal-options {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 30px;
+}
+
+.goal-option {
+  width: 100%;
+  min-height: 56px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 0 17px;
+
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+
+  text-align: left;
+  font-size: 14px;
+
+  transition: 0.2s ease;
+}
+
+.goal-option:hover {
+  border-color: var(--olive-primary);
+  background: var(--bg-card);
+}
+
+.option-check {
+  width: 22px;
+  height: 22px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 1px solid var(--border);
+  border-radius: 6px;
+
+  color: transparent;
+  font-size: 12px;
+}
+
+.goal-option.selected {
+  border-color: var(--olive-primary);
+  background: var(--olive-primary);
+}
+
+.goal-option.selected .option-check {
+  border-color: var(--text-primary);
+  color: var(--text-primary);
+}
+
+.practice-options {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 30px;
+}
+
+.practice-option {
+  width: 100%;
+  min-height: 80px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 16px 18px;
+
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+
+  color: var(--text-primary);
+
+  text-align: left;
+  transition: 0.2s ease;
+}
+
+.practice-option:hover {
+  border-color: var(--olive-primary);
+  background: var(--bg-card);
+}
+
+.practice-option h3 {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 5px;
+}
+
+.practice-option p {
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+.option-radio {
+  width: 20px;
+  height: 20px;
+
+  flex-shrink: 0;
+
+  border: 1px solid var(--border);
+  border-radius: 50%;
+}
+
+.success-step {
+  text-align: center;
+}
+
+.success-icon {
+  width: 64px;
+  height: 64px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  margin: 0 auto 28px;
+
+  border-radius: 50%;
+
+  background: var(--olive-primary);
+  color: var(--text-primary);
+
+  font-size: 26px;
+  font-weight: 600;
+}
+
+.success-step .registration-header {
+  margin-bottom: 30px;
+}
+
+.success-step .registration-next {
+  width: 100%;
+}
+
+.practice-option.selected {
+  border-color: var(--olive-primary);
+  background: var(--bg-card);
+}
+
+.option-radio.selected {
+  border-color: var(--olive-primary);
+  background: var(--olive-primary);
+  box-shadow: inset 0 0 0 4px var(--bg-card);
 }
