@@ -246,6 +246,7 @@ body {
   font-weight: 700;
   color: var(--ink);
   margin-bottom: 20px;
+  font-family: "Fraunces", serif;
 }
 
 .hero-title-accent {
