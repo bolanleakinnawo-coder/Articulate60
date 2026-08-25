@@ -1,4 +1,5 @@
 import { Target, ShieldCheck } from "lucide-react";
+import { Link } from "react-router-dom";
 import "../../styles/CTABanner.css";
 
 const CTABanner = () => {
@@ -15,9 +16,9 @@ const CTABanner = () => {
             <span className="ctab-accent">Start with one practice.</span>
           </h2>
 
-          <button className="ctab-btn">
+          <Link to="/register" className="ctab-btn">
             START YOUR FIRST PRACTICE <span className="arrow">→</span>
-          </button>
+          </Link>
 
           <p className="ctab-note">
             <ShieldCheck size={14} strokeWidth={1.8} />

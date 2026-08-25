@@ -13,27 +13,27 @@ import { NavLink } from "react-router-dom";
 const navigation = [
   {
     name: "Home",
-    path: "/",
+    path: "/app/home",
     icon: Home,
   },
   {
     name: "Practice",
-    path: "/practice",
+    path: "/app/practice",
     icon: Target,
   },
   {
     name: "Challenges",
-    path: "/challenges",
+    path: "/app/challenges",
     icon: Trophy,
   },
   {
     name: "Library",
-    path: "/library",
+    path: "/app/library",
     icon: BookOpen,
   },
   {
     name: "Profile",
-    path: "/profile",
+    path: "/app/profile",
     icon: User,
   },
 ];
@@ -55,7 +55,7 @@ export default function Sidebar() {
             <NavLink
               key={item.name}
               to={item.path}
-              end={item.path === "/"}
+              end={item.path === "/app/home"}
               className={({ isActive }) =>
                 `nav-item ${isActive ? "active" : ""}`
               }

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import logo from "../../assets/Articulate Logo.PNG";
 
 const NAV_LINKS = [
@@ -55,9 +56,9 @@ const Navbar = () => {
 
         <div className="navbar-actions">
           {isDesktop && (
-            <button className="btn-primary navbar-cta">
+            <Link to="/register" className="btn-primary navbar-cta">
               Start Practicing Free
-            </button>
+            </Link>
           )}
 
           <button
@@ -85,9 +86,9 @@ const Navbar = () => {
             </a>
           ))}
         </nav>
-        <button className="btn-primary navbar-mobile-cta">
+        <Link to="/register" className="btn-primary navbar-mobile-cta">
           Start Practicing Free
-        </button>
+        </Link>
       </div>
     </header>
   );

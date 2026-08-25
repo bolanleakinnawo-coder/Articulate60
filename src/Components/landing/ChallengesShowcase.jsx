@@ -22,7 +22,7 @@ const MORE_CHALLENGES = [
 
 const ChallengesShowcase = () => {
   return (
-    <section className="chs">
+    <section className="chs" id="challenges">
       <div className="chs-container">
         {/* LEFT: main featured challenge */}
         <div className="chs-main">

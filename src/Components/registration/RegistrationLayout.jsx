@@ -40,10 +40,9 @@ function RegistrationLayout() {
 
     try {
       const response = await axios.post(
-        "http://localhost:3001/user/signup",
+        `${import.meta.env.VITE_API_URL}/user/signup`,
         formData,
       );
-
       alert(response.data.message);
     } catch (error) {
       console.error(error);
@@ -92,8 +91,6 @@ function RegistrationLayout() {
         {currentStep === 5 && (
           <StepFive formData={formData} onSubmit={handleSubmit} />
         )}
-
-        
       </div>
     </main>
   );

@@ -2,11 +2,11 @@ import { Home, Target, Trophy, BookOpen, User } from "lucide-react";
 import { NavLink } from "react-router-dom";
 
 const navigation = [
-  { name: "Home", path: "/", icon: Home },
-  { name: "Practice", path: "/practice", icon: Target },
-  { name: "Challenges", path: "/challenges", icon: Trophy },
-  { name: "Library", path: "/library", icon: BookOpen },
-  { name: "Profile", path: "/profile", icon: User },
+  { name: "Home", path: "/app/home", icon: Home },
+  { name: "Practice", path: "/app/practice", icon: Target },
+  { name: "Challenges", path: "/app/challenges", icon: Trophy },
+  { name: "Library", path: "/app/library", icon: BookOpen },
+  { name: "Profile", path: "/app/profile", icon: User },
 ];
 
 export default function MobileNav() {
@@ -19,7 +19,7 @@ export default function MobileNav() {
           <NavLink
             key={item.name}
             to={item.path}
-            end={item.path === "/"}
+            end={item.path === "/app/home"}
             className={({ isActive }) =>
               `mobile-nav-link ${isActive ? "active" : ""}`
             }

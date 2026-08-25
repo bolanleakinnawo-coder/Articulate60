@@ -1,5 +1,6 @@
 import heroImg from "../../assets/hero2.jpeg";
 import { ShieldCheck } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const Hero = () => {
   return (
@@ -23,9 +24,9 @@ const Hero = () => {
           </p>
 
           <div className="hero-cta-group">
-            <button className="btn-primary">
+            <Link to="/register" className="btn-primary">
               START YOUR FIRST PRACTICE <span className="arrow">→</span>
-            </button>
+            </Link>
           </div>
 
           <p className="hero-note">

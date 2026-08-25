@@ -4,7 +4,7 @@ import libraryImg from "../../assets/Library.jpg"; // swap with your sourced ima
 
 const Library = () => {
   return (
-    <section className="lib">
+    <section className="lib" id="library">
       <div className="lib-container">
         <div className="lib-content">
           <div className="lib-icon">
