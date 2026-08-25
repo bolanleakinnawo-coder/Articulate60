@@ -1,6 +1,6 @@
 import { CheckCircle2 } from "lucide-react";
 import "../../styles/Completion.css";
-import certificateImg from "../../assets/certificATE.jpEg"; // swap with your sourced image
+import certificateImg from "../../assets/certificATE.jpeg";
 
 const CHECKLIST = [
   "Challenge completed",
