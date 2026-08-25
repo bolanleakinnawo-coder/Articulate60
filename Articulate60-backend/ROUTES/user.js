@@ -1,7 +1,7 @@
 const express = require("express");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const User = require("../MODELS/User");
+const User = require("../MODELS/User"); // adjust path/casing to match your actual folder
 
 const router = express.Router();
 
@@ -9,6 +9,11 @@ const EMAIL_REGEX = /^\S+@\S+\.\S+$/;
 const USERNAME_REGEX = /^[a-zA-Z0-9_]{3,20}$/;
 const PHONE_REGEX = /^\+?[0-9]{10,15}$/;
 
+const generateToken = (userId) => {
+  return jwt.sign({ id: userId }, process.env.JWT_SECRET, { expiresIn: "7d" });
+};
+
+// ---------- SIGNUP ----------
 router.post("/signup", async (req, res) => {
   try {
     const {
@@ -111,11 +116,7 @@ router.post("/signup", async (req, res) => {
       practiceFrequency,
     });
 
-    const token = jwt.sign(
-      { userId: newUser._id, username: newUser.username },
-      process.env.JWT_SECRET,
-      { expiresIn: "7d" },
-    );
+    const token = generateToken(newUser._id);
 
     res.status(201).json({
       message: "Account created successfully!",
@@ -125,6 +126,53 @@ router.post("/signup", async (req, res) => {
         fullName: newUser.fullName,
         username: newUser.username,
         email: newUser.email,
+      },
+    });
+  } catch (err) {
+    console.error(err);
+    res
+      .status(500)
+      .json({ message: "Something went wrong. Please try again." });
+  }
+});
+
+// ---------- LOGIN ----------
+router.post("/login", async (req, res) => {
+  try {
+    const { identifier, password } = req.body; // identifier = email or username
+
+    if (!identifier || !password) {
+      return res
+        .status(400)
+        .json({ message: "Email/username and password are required." });
+    }
+
+    const user = await User.findOne({
+      $or: [
+        { email: identifier.trim().toLowerCase() },
+        { username: identifier.trim() },
+      ],
+    });
+
+    if (!user) {
+      return res.status(401).json({ message: "Invalid credentials." });
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(401).json({ message: "Invalid credentials." });
+    }
+
+    const token = generateToken(user._id);
+
+    res.status(200).json({
+      message: "Login successful!",
+      token,
+      user: {
+        id: user._id,
+        fullName: user.fullName,
+        username: user.username,
+        email: user.email,
       },
     });
   } catch (err) {

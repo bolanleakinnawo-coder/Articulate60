@@ -1,0 +1,224 @@
+.core {
+  background: var(--olive-deeper);
+  padding: 60px 24px 70px;
+}
+
+.core-container {
+  max-width: 520px;
+  margin: 0 auto;
+}
+
+.core-badge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: var(--sage);
+  background: rgba(156, 177, 133, 0.15);
+  border: 1px solid rgba(156, 177, 133, 0.3);
+  padding: 6px 14px;
+  border-radius: 20px;
+  margin-bottom: 24px;
+}
+
+.core-heading {
+  font-size: 34px;
+  font-weight: 800;
+  line-height: 1.2;
+  color: var(--white);
+  letter-spacing: -0.5px;
+  margin-bottom: 20px;
+}
+
+.core-subtext {
+  font-size: 15px;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.65);
+  max-width: 340px;
+  margin-bottom: 48px;
+}
+
+.core-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  background: rgba(156, 177, 133, 0.12);
+  border: 1px solid rgba(156, 177, 133, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--sage);
+  flex-shrink: 0;
+}
+
+.core-step-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.core-number {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--sage);
+  color: var(--olive-deeper);
+  font-size: 11px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.core-title {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  color: var(--white);
+}
+
+.core-desc {
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+/* ---------- MOBILE TIMELINE (default, visible) ---------- */
+.core-timeline--desktop {
+  display: none;
+}
+
+.core-step {
+  display: flex;
+  gap: 20px;
+}
+
+.core-step-left {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.core-line--vertical {
+  width: 2px;
+  flex: 1;
+  min-height: 32px;
+  margin: 6px 0;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(156, 177, 133, 0.4) 0,
+    rgba(156, 177, 133, 0.4) 4px,
+    transparent 4px,
+    transparent 9px
+  );
+}
+
+.core-step-right {
+  flex: 1;
+  padding-bottom: 32px;
+}
+
+.core-desc {
+  max-width: 260px;
+}
+
+/* ---------- DESKTOP TIMELINE ---------- */
+@media (min-width: 900px) {
+  .core-container {
+    max-width: 1200px;
+  }
+
+  .core-badge {
+    display: table;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .core-heading,
+  .core-subtext {
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .core-heading br {
+    display: none;
+  }
+
+  .core-heading {
+    max-width: 640px;
+  }
+
+  .core-subtext {
+    max-width: 420px;
+    margin-bottom: 56px;
+  }
+
+  .core-timeline--mobile {
+    display: none;
+  }
+
+  .core-timeline--desktop {
+    display: block;
+  }
+
+  /* icon row: icon - line - icon - line - icon ... all in ONE flex row */
+  .core-icon-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+
+  .core-icon-node {
+    display: flex;
+    align-items: center;
+    flex: 1;
+  }
+
+  .core-icon-node .core-icon {
+    margin: 0 auto;
+  }
+
+  /* line sits between this icon and the next — takes remaining space in the flex row */
+  .core-line--horizontal {
+    flex: 1;
+    height: 2px;
+    background: repeating-linear-gradient(
+      to right,
+      rgba(156, 177, 133, 0.4) 0,
+      rgba(156, 177, 133, 0.4) 4px,
+      transparent 4px,
+      transparent 9px
+    );
+  }
+
+  /* last icon-node has no line, so it shouldn't take flex:1 growing space the same way */
+  .core-icon-node:last-child {
+    flex: 0 0 52px;
+  }
+
+  /* text row underneath, one column per step, matching icon row's proportions */
+  .core-text-row {
+    display: flex;
+    gap: 8px;
+  }
+
+  .core-text-col {
+    flex: 1;
+    text-align: center;
+    padding: 0 8px;
+  }
+
+  .core-text-row .core-step-header {
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .core-text-row .core-desc {
+    max-width: 190px;
+    margin: 0 auto;
+  }
+}

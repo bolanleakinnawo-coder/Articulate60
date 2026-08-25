@@ -77,7 +77,6 @@ function StepTwo({ onNext, onBack, formData, updateFormData }) {
       </div>
 
       <form className="registration-form" onSubmit={(e) => e.preventDefault()}>
-        {/* Full Name */}
         <div className="form-field">
           <label htmlFor="fullName">Full name</label>
           <input
@@ -85,13 +84,13 @@ function StepTwo({ onNext, onBack, formData, updateFormData }) {
             type="text"
             placeholder="Enter your full name"
             value={formData.fullName}
-            aria-invalid={Boolean(errors.fullName)}
             onChange={handleChange("fullName")}
           />
-          {errors.fullName && <p className="form-error">{errors.fullName}</p>}
+          {errors.fullName && (
+            <span className="field-error">{errors.fullName}</span>
+          )}
         </div>
 
-        {/* Username */}
         <div className="form-field">
           <label htmlFor="username">Username</label>
           <input
@@ -99,13 +98,13 @@ function StepTwo({ onNext, onBack, formData, updateFormData }) {
             type="text"
             placeholder="Choose a username"
             value={formData.username}
-            aria-invalid={Boolean(errors.username)}
             onChange={handleChange("username")}
           />
-          {errors.username && <p className="form-error">{errors.username}</p>}
+          {errors.username && (
+            <span className="field-error">{errors.username}</span>
+          )}
         </div>
 
-        {/* Email */}
         <div className="form-field">
           <label htmlFor="email">Email address</label>
           <input
@@ -113,13 +112,11 @@ function StepTwo({ onNext, onBack, formData, updateFormData }) {
             type="email"
             placeholder="Enter your email address"
             value={formData.email}
-            aria-invalid={Boolean(errors.email)}
             onChange={handleChange("email")}
           />
-          {errors.email && <p className="form-error">{errors.email}</p>}
+          {errors.email && <span className="field-error">{errors.email}</span>}
         </div>
 
-        {/* Phone Number */}
         <div className="form-field">
           <label htmlFor="phoneNumber">Phone number</label>
           <input
@@ -127,15 +124,13 @@ function StepTwo({ onNext, onBack, formData, updateFormData }) {
             type="tel"
             placeholder="Enter your phone number"
             value={formData.phoneNumber}
-            aria-invalid={Boolean(errors.phoneNumber)}
             onChange={handleChange("phoneNumber")}
           />
           {errors.phoneNumber && (
-            <p className="form-error">{errors.phoneNumber}</p>
+            <span className="field-error">{errors.phoneNumber}</span>
           )}
         </div>
 
-        {/* Password */}
         <div className="form-field">
           <label htmlFor="password">Password</label>
           <input
@@ -143,13 +138,13 @@ function StepTwo({ onNext, onBack, formData, updateFormData }) {
             type="password"
             placeholder="Create a password"
             value={formData.password}
-            aria-invalid={Boolean(errors.password)}
             onChange={handleChange("password")}
           />
-          {errors.password && <p className="form-error">{errors.password}</p>}
+          {errors.password && (
+            <span className="field-error">{errors.password}</span>
+          )}
         </div>
 
-        {/* Confirm Password */}
         <div className="form-field">
           <label htmlFor="confirmPassword">Confirm password</label>
           <input
@@ -157,15 +152,13 @@ function StepTwo({ onNext, onBack, formData, updateFormData }) {
             type="password"
             placeholder="Confirm your password"
             value={formData.confirmPassword}
-            aria-invalid={Boolean(errors.confirmPassword)}
             onChange={handleChange("confirmPassword")}
           />
           {errors.confirmPassword && (
-            <p className="form-error">{errors.confirmPassword}</p>
+            <span className="field-error">{errors.confirmPassword}</span>
           )}
         </div>
 
-        {/* Actions */}
         <div className="form-actions">
           <button type="button" className="back-button" onClick={onBack}>
             Back

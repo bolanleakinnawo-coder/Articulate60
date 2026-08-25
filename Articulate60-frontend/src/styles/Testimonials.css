@@ -1,0 +1,141 @@
+.testi {
+  background: var(--cream);
+  padding: 60px 24px 80px;
+}
+
+.testi-container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.testi-heading {
+  text-align: center;
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  color: var(--ink);
+  margin-bottom: 36px;
+}
+
+/* ---------- TRACK (always scrollable, mobile + desktop) ---------- */
+.testi-track {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  padding-bottom: 4px;
+}
+
+.testi-track::-webkit-scrollbar {
+  display: none;
+}
+
+.testi-card {
+  scroll-snap-align: start;
+  flex: 0 0 100%;
+  background: var(--white);
+  border: 1px solid var(--sage-line);
+  border-radius: 18px;
+  padding: 28px 26px;
+  box-shadow: 0 6px 20px rgba(59, 74, 44, 0.06);
+}
+
+.testi-quote-mark {
+  display: block;
+  font-size: 40px;
+  font-weight: 800;
+  color: #e8b84b;
+  line-height: 1;
+  margin-bottom: 8px;
+  font-family: Georgia, serif;
+}
+
+.testi-quote {
+  font-size: 15px;
+  line-height: 1.65;
+  color: var(--ink);
+  margin-bottom: 24px;
+}
+
+.testi-author {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.testi-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.testi-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.testi-role {
+  font-size: 12.5px;
+  color: var(--ink-soft);
+}
+
+/* ---------- DOTS ---------- */
+.testi-dots {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 24px;
+}
+
+.testi-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--sage-line);
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    width 0.2s ease;
+}
+
+.testi-dot.active {
+  background: var(--olive-deep);
+  width: 20px;
+  border-radius: 4px;
+}
+
+/* ---------- TABLET: show ~1.5 cards to hint scrollability ---------- */
+@media (min-width: 640px) {
+  .testi-card {
+    flex: 0 0 60%;
+  }
+}
+
+/* ---------- DESKTOP: show ~2.5–3 cards, still scrollable ---------- */
+@media (min-width: 900px) {
+  .testi-heading {
+    font-size: 24px;
+    margin-bottom: 44px;
+  }
+
+  .testi-card {
+    flex: 0 0 calc(33.333% - 11px);
+  }
+}
+
+
+@media (max-width: 500px) {
+  .testi-heading {
+    text-align: left;
+    font-size: 36px;
+    text-transform: capitalize;
+    line-height: 1;
+  }
+}

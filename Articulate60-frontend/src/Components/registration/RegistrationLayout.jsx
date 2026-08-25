@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 import StepIndicator from "./StepIndicator";
 import StepOne from "./StepOne";
 import StepTwo from "./StepTwo";
@@ -9,14 +9,9 @@ import StepFour from "./StepFour";
 import StepFive from "./StepFive";
 import StepSix from "./StepSix";
 
-const API_URL = import.meta.env.VITE_API_URL;
-
-console.log("API_URL is:", API_URL); // temporary debug line
-
 function RegistrationLayout() {
-  const [currentStep, setCurrentStep] = useState(1);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
+  const [currentStep, setCurrentStep] = useState(1);
 
   const [formData, setFormData] = useState({
     fullName: "",
@@ -49,27 +44,31 @@ function RegistrationLayout() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsSubmitting(true);
 
     try {
-      const response = await axios.post(`${API_URL}/user/signup`, formData);
-
-      localStorage.setItem("token", response.data.token);
-      localStorage.setItem("user", JSON.stringify(response.data.user));
-
-      navigate("/dashboard");
+      const response = await axios.post(
+        "http://localhost:3001/user/signup",
+        formData,
+      );
+      const currentUser = response.data.user || {
+        fullName: formData.fullName,
+        username: formData.username,
+        email: formData.email,
+      };
+      sessionStorage.setItem("token", response.data.token);
+      sessionStorage.setItem("user", JSON.stringify(currentUser));
+      navigate("/app/home", { state: { user: currentUser } });
     } catch (error) {
       console.error(error);
 
       if (error.response?.data?.errors) {
-        alert(Object.values(error.response.data.errors)[0]);
+        const firstError = Object.values(error.response.data.errors)[0];
+        alert(firstError);
       } else if (error.response?.data?.message) {
         alert(error.response.data.message);
       } else {
         alert("Something went wrong. Please try again.");
       }
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
@@ -117,7 +116,7 @@ function RegistrationLayout() {
         )}
 
         {currentStep === 6 && (
-          <StepSix onSubmit={handleSubmit} isSubmitting={isSubmitting} />
+          <StepSix formData={formData} onSubmit={handleSubmit} />
         )}
       </div>
     </main>
