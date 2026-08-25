@@ -11,7 +11,8 @@ const connectDB = require("./DB_CONFIG/db");
 const userRoutes = require("./ROUTES/user");
 
 const app = express();
-const port = 3001;
+
+const port = process.env.PORT || 3001;
 
 app.use(cors());
 app.use(express.json());
@@ -21,5 +22,5 @@ app.use("/user", userRoutes);
 connectDB();
 
 app.listen(port, () => {
-  console.log(`Server is running on http://localhost:${port}`);
+  console.log(`Server is running on port ${port}`);
 });
