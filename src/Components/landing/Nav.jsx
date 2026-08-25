@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import logo from "../../assets/Articulate Logo.PNG";
 
 const NAV_LINKS = [
   { label: "How It Works", href: "#how-it-works" },
@@ -10,6 +11,7 @@ const NAV_LINKS = [
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isDesktop, setIsDesktop] = useState(window.innerWidth > 860);
+  const [isScrolled, setIsScrolled] = useState(false);
 
   useEffect(() => {
     document.body.style.overflow = isOpen ? "hidden" : "";
@@ -28,11 +30,19 @@ const Navbar = () => {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+  useEffect(() => {
+    const handleScroll = () => setIsScrolled(window.scrollY > 12);
+
+    handleScroll();
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   return (
-    <header className="navbar">
+    <header className={`navbar ${isScrolled ? "scrolled" : ""}`}>
       <div className="navbar-container">
         <a href="/" className="navbar-logo">
-          ARTICULATE <span>60</span>
+          <img src={logo} alt="Articulate60" />
         </a>
 
         <nav className="navbar-links">

@@ -11,16 +11,20 @@
   --white: #ffffff;
 }
 
+html,
+body {
+  width: 100%;
+}
+
+#root {
+  overflow-x: clip;
+}
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
-html,
-body {
-  width: 100%;
-  overflow-x: hidden;
-}
+
 body {
   font-family:
     "Inter",
@@ -35,6 +39,11 @@ body {
   top: 0;
   z-index: 100;
   background: var(--cream);
+  transition: box-shadow 0.2s ease;
+}
+
+.navbar.scrolled {
+  box-shadow: 0 4px 18px rgba(39, 43, 33, 0.1);
 }
 
 .navbar-container {
@@ -50,16 +59,20 @@ body {
 
 /* ---------- LOGO ---------- */
 .navbar-logo {
-  font-size: 20px;
-  font-weight: 700;
-  color: var(--ink);
+  width: 152px;
+  height: 48px;
+  display: flex;
+  align-items: center;
   text-decoration: none;
   white-space: nowrap;
-  letter-spacing: -0.3px;
+  overflow: hidden;
 }
 
-.navbar-logo span {
-  color: var(--olive-deep);
+.navbar-logo img {
+  width: 300px;
+  max-width: none;
+  transform: translateX(-74px);
+  display: block;
 }
 
 /* ---------- DESKTOP LINKS ---------- */
@@ -99,8 +112,8 @@ body {
 
 /* shared button style (reuse if not already global) */
 .btn-primary {
-  background: var(--olive-deep);
-  color: var(--white);
+  background: #e8a93d;
+  color: var(--olive-deep);
   border: none;
   border-radius: 8px;
   font-weight: 600;
@@ -226,10 +239,10 @@ body {
   align-items: center;
   gap: 6px;
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 700;
   letter-spacing: 0.5px;
   color: var(--ink-soft);
-  background: beige;
+  background: #e9f1e1;
   border: 1px solid var(--sage-line);
   padding: 6px 14px;
   border-radius: 20px;
@@ -250,7 +263,7 @@ body {
 }
 
 .hero-title-accent {
-  color: var(--olive-deep);
+  color: #e8a93d;
 }
 
 .hero-subtext {
@@ -263,17 +276,17 @@ body {
 
 .hero-cta-group {
   display: flex;
-  gap: 14px;
-  margin-bottom: 40px;
+  gap: 12px;
+  margin-bottom: 5px;
 }
 
 .btn-primary {
-  background: var(--olive-deep);
-  color: var(--white);
+  background: #e8a93d;
+  color: var(--olive-deep);
   border: none;
   padding: 14px 24px;
   border-radius: 8px;
-  font-weight: 600;
+  font-weight: 700;
   font-size: 15px;
   cursor: pointer;
   display: flex;
@@ -576,6 +589,11 @@ body {
     left: -20px;
   }
 
+  .hero-note {
+ 
+  margin-bottom: 28px;
+}
+
   .practice-card {
     right: -20px;
     top: 45%;
@@ -850,7 +868,7 @@ body {
   align-items: center;
   justify-content: space-between;
   gap: 40px;
-  
+
   border: 1px solid #e8dcc4;
   border-radius: 20px;
   padding: 36px 44px;
@@ -1026,4 +1044,18 @@ body {
   .offer-price {
     font-size: 22px;
   }
+}
+
+.hero-note {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--ink-soft);
+  margin-top: 14px;
+}
+
+.hero-note svg {
+  color: var(--olive-deep);
+  flex-shrink: 0;
 }

@@ -1,0 +1,247 @@
+.chs {
+  background: var(--cream);
+  padding: 60px 24px 80px;
+}
+
+.chs-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+/* ---------- MAIN CARD (dark) ---------- */
+.chs-main {
+  background: var(--olive-deeper);
+  border-radius: 24px;
+  padding: 32px 24px;
+}
+
+.chs-badge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: var(--olive-deeper);
+  background: var(--sage);
+  padding: 6px 14px;
+  border-radius: 20px;
+  margin-bottom: 18px;
+}
+
+.chs-title {
+  font-size: 26px;
+  font-weight: 800;
+  line-height: 1.25;
+  color: var(--white);
+  letter-spacing: -0.4px;
+  margin-bottom: 14px;
+  max-width: 420px;
+}
+
+.chs-desc {
+  font-size: 14px;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.65);
+  max-width: 380px;
+  margin-bottom: 28px;
+}
+
+.chs-card {
+  background: var(--white);
+  border-radius: 18px;
+  padding: 28px 24px;
+  text-align: center;
+}
+
+.chs-stats {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 24px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--sage-line);
+}
+
+.chs-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  color: var(--olive-deep);
+}
+
+.chs-stat span {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  color: var(--ink-soft);
+  line-height: 1.3;
+}
+
+.chs-price {
+  font-size: 30px;
+  font-weight: 800;
+  color: var(--ink);
+  margin-bottom: 4px;
+}
+
+.chs-price-note {
+  font-size: 13px;
+  color: var(--ink-soft);
+  margin-bottom: 20px;
+}
+
+.chs-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: #e8a93d;
+  color: var(--olive-deeper);
+  border: none;
+  padding: 15px;
+  border-radius: 10px;
+  font-weight: 800;
+  font-size: 13px;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  margin-bottom: 16px;
+}
+
+.chs-btn:hover {
+  background: #dc9a2a;
+}
+
+.chs-availability {
+  font-size: 12px;
+  color: var(--ink-soft);
+}
+
+/* ---------- SIDE: more challenges ---------- */
+.chs-side-heading {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--ink);
+  margin-bottom: 20px;
+}
+
+.chs-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.chs-list-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: var(--white);
+  border: 1px solid var(--sage-line);
+  border-radius: 14px;
+  padding: 14px 16px;
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.chs-list-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(59, 74, 44, 0.08);
+}
+
+.chs-list-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: var(--sage-light);
+  color: var(--olive-deep);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.chs-list-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.chs-list-days {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  color: var(--ink-soft);
+}
+
+.chs-list-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.chs-list-arrow {
+  color: var(--ink-soft);
+  flex-shrink: 0;
+}
+
+.chs-see-all {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: transparent;
+  border: none;
+  color: var(--olive-deep);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  cursor: pointer;
+  width: 100%;
+  padding: 8px;
+}
+
+/* ---------- DESKTOP: two-column layout ---------- */
+@media (min-width: 900px) {
+  .chs-container {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 40px;
+  }
+
+  .chs-main {
+    flex: 1.4;
+    padding: 44px 40px;
+  }
+
+  .chs-title {
+    font-size: 32px;
+    max-width: 480px;
+  }
+
+  .chs-desc {
+    font-size: 15px;
+    max-width: 420px;
+  }
+
+  .chs-card {
+    max-width: 420px;
+  }
+
+  .chs-side {
+    flex: 1;
+    position: sticky;
+    top: 100px;
+  }
+}
