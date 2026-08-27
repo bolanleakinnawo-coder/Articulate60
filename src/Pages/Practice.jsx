@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { Sparkles, LayoutGrid, MessageCircle } from "lucide-react";
-import jarImg from "../assets/jar1.png";
+import jarImg from "../assets/jar.png";
 
 const MODES = [
   {
