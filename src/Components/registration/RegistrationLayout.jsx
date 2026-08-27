@@ -53,11 +53,9 @@ function RegistrationLayout() {
 
     try {
       const response = await axios.post(`${API_URL}/user/signup`, formData);
-
-      localStorage.setItem("token", response.data.token);
-      localStorage.setItem("user", JSON.stringify(response.data.user));
-
-      navigate("/dashboard");
+      sessionStorage.setItem("token", response.data.token);
+      sessionStorage.setItem("user", JSON.stringify(response.data.user));
+      navigate("/app/home");
     } catch (error) {
       console.error(error);
 

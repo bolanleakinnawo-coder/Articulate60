@@ -1,24 +1,30 @@
-import {
-  Flame,
-  Play,
-  Volume2,
-  ArrowRight,
-} from "lucide-react";
+import { useEffect, useState } from "react";
+import { Flame, Play, Volume2, ArrowRight } from "lucide-react";
+import { useLocation, useNavigate } from "react-router-dom";
 
 export default function Home() {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const currentUser = location.state?.user || getStoredUser();
+  const [username, setUsername] = useState(
+    () => currentUser?.username || location.state?.username || "there",
+  );
+
+  useEffect(() => {
+    if (location.state?.user?.username) {
+      setUsername(location.state.user.username);
+    }
+  }, [location.state]);
+
   return (
     <div className="page">
       <header className="page-header">
         <div>
           <p className="eyebrow">ARTICULATE 60</p>
 
-          <h1>
-            Good morning, Amara 👋
-          </h1>
+          <h1>Good morning, {username}</h1>
 
-          <p className="subtitle">
-            Let's get better today.
-          </p>
+          <p className="subtitle">Let's get better today.</p>
         </div>
 
         <div className="streak">
@@ -31,8 +37,7 @@ export default function Home() {
       </header>
 
       <section className="home-grid">
-
-        <div className="card practice-card">
+        <div className="card today-practice-card">
           <div className="card-heading">
             <span>Today's Practice</span>
           </div>
@@ -40,11 +45,14 @@ export default function Home() {
           <h2>Get a topic. Think for 60 seconds.</h2>
 
           <p>
-            Then speak for 2 minutes and improve your
-            ability to communicate clearly.
+            Then speak for 2 minutes and improve your ability to communicate
+            clearly.
           </p>
 
-          <button className="primary-button">
+          <button
+            className="primary-button"
+            onClick={() => navigate("/app/practice")}
+          >
             Spin for a topic
           </button>
         </div>
@@ -57,30 +65,23 @@ export default function Home() {
 
           <h2>Pragmatic</h2>
 
-          <p>
-            Dealing with situations realistically
-            and practically.
-          </p>
+          <p>Dealing with situations realistically and practically.</p>
 
           <button className="text-button">
             Try using it today
             <ArrowRight size={15} />
           </button>
         </div>
-
       </section>
 
       <section className="section">
         <div className="section-header">
           <h2>Recent Activity</h2>
 
-          <button className="text-button">
-            See all
-          </button>
+          <button className="text-button">See all</button>
         </div>
 
         <div className="activity-list">
-
           <Activity
             title="Should people choose job security over passion?"
             level="Level 2"
@@ -98,11 +99,24 @@ export default function Home() {
             level="Level 1"
             duration="1 min"
           />
-
         </div>
       </section>
     </div>
   );
+}
+
+function getStoredUser() {
+  const storedUser = sessionStorage.getItem("user");
+
+  if (!storedUser) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(storedUser);
+  } catch {
+    return null;
+  }
 }
 
 function Activity({ title, level, duration }) {

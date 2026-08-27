@@ -8,6 +8,7 @@ import Challenges from "../Pages/Challenges";
 import Library from "../Pages/Library";
 import Profile from "../Pages/Profile";
 import Registration from "../Pages/Registration";
+import Login from "../Pages/Login";
 
 export default function AppRoutes() {
   return (
@@ -15,6 +16,7 @@ export default function AppRoutes() {
       <Route path="/" element={<Landing />} />
       <Route path="/landingpage" element={<Landing />} />
       <Route path="/register" element={<Registration />} />
+      <Route path="/login" element={<Login />} />
 
       <Route path="/app" element={<AppLayout />}>
         <Route index element={<Navigate to="/app/home" replace />} />
@@ -23,8 +25,6 @@ export default function AppRoutes() {
         <Route path="challenges" element={<Challenges />} />
         <Route path="library" element={<Library />} />
         <Route path="profile" element={<Profile />} />
-        <Route path="register" element={<Registration />} />
-       
       </Route>
     </Routes>
   );
