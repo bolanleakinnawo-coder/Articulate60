@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import logo from "../../assets/Articulate Logo.PNG";
+import logo from "../../assets/ArticulateLogo.png";
 
 const NAV_LINKS = [
   { label: "How It Works", href: "#how-it-works" },

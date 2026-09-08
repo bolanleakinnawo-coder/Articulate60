@@ -11,8 +11,8 @@ import {
   Clock,
 } from "lucide-react";
 import jarImg from "../assets/jar.png";
-import spinningJar from "../assets/Jar2.PNG";
-import resultJar from "../assets/Jar3.PNG";
+import spinningJar from "../assets/Jar2.png";
+import resultJar from "../assets/Jar3.png";
 import {
   CATEGORIES,
   LEVEL_META,
