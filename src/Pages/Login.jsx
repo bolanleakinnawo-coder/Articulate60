@@ -31,7 +31,7 @@ function Login() {
       sessionStorage.setItem("token", response.data.token);
       sessionStorage.setItem("user", JSON.stringify(response.data.user));
 
-      navigate("/dashboard", { state: { user: response.data.user } });
+      navigate("/app/home", { state: { user: response.data.user } });
     } catch (err) {
       console.error(err);
       setError(

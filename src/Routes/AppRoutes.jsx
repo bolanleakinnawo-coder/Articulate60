@@ -10,6 +10,8 @@ import Profile from "../Pages/Profile";
 import Registration from "../Pages/Registration";
 import Login from "../Pages/Login";
 
+import PracticeSession from "../Pages/PracticeSession";
+
 export default function AppRoutes() {
   return (
     <Routes>
@@ -25,6 +27,8 @@ export default function AppRoutes() {
         <Route path="challenges" element={<Challenges />} />
         <Route path="library" element={<Library />} />
         <Route path="profile" element={<Profile />} />
+
+        <Route path="practice/prepare" element={<PracticeSession />} />
       </Route>
     </Routes>
   );

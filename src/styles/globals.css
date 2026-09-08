@@ -911,8 +911,6 @@ a {
   text-decoration: underline;
 }
 
-
-
 .practice-page {
   display: flex;
   flex-direction: column;
@@ -1019,7 +1017,9 @@ a {
   font-weight: 700;
 
   cursor: pointer;
-  transition: background 0.2s ease, transform 0.15s ease;
+  transition:
+    background 0.2s ease,
+    transform 0.15s ease;
   margin-bottom: 24px;
 }
 
@@ -1071,7 +1071,9 @@ a {
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
 
-  transition: transform 0.2s ease, border-color 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease;
 }
 
 .mode-card:hover {
@@ -1122,7 +1124,8 @@ a {
   .mode-card {
     padding: 22px;
   }
-}.practice-page {
+}
+.practice-page {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1228,7 +1231,9 @@ a {
   font-weight: 700;
 
   cursor: pointer;
-  transition: background 0.2s ease, transform 0.15s ease;
+  transition:
+    background 0.2s ease,
+    transform 0.15s ease;
   margin-bottom: 24px;
 }
 
@@ -1280,7 +1285,9 @@ a {
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
 
-  transition: transform 0.2s ease, border-color 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease;
 }
 
 .mode-card:hover {
@@ -1331,4 +1338,543 @@ a {
   .mode-card {
     padding: 22px;
   }
+}
+
+/* ---------- SPINNING / RESULT STATES ---------- */
+.spin-status-title {
+  font-size: 32px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  color: var(--text-primary);
+  margin-top: 40px;
+  margin-bottom: 6px;
+}
+
+.spin-status-subtitle {
+  font-size: 15px;
+  color: var(--text-secondary);
+  margin-bottom: 36px;
+}
+
+.spin-jar-shake {
+  animation: jar-shake 0.35s ease-in-out infinite;
+  margin-top: 40px;
+}
+
+@keyframes jar-shake {
+  0% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(-6deg);
+  }
+  50% {
+    transform: rotate(0deg);
+  }
+  75% {
+    transform: rotate(6deg);
+  }
+  100% {
+    transform: rotate(0deg);
+  }
+}
+
+.spin-loader {
+  width: 36px;
+  height: 36px;
+  border: 3px solid var(--border);
+  border-top-color: #e8a93d;
+  border-radius: 50%;
+  animation: spin-rotate 0.8s linear infinite;
+  margin-top: 20px;
+  margin-bottom: 14px;
+}
+
+@keyframes spin-rotate {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.spin-status-footer {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+/* ---------- RESULT: TOPIC NOTE ON JAR ---------- */
+.result-jar-wrapper {
+  position: relative;
+  margin-bottom: 36px;
+  padding-top: 221px;
+  box-sizing: border-box;
+}
+
+/* =========================================
+   TOPIC CARD
+========================================= */
+
+.topic-note {
+  position: absolute;
+  z-index: 20;
+
+  /* Put the card above the jar */
+  top: -55px;
+  left: 50%;
+
+  width: 680px;
+  min-height: 235px;
+  font-family: poppins !important;
+
+  transform: translateX(-50%) rotate(-5deg);
+
+  padding: 28px 38px 30px;
+
+  box-sizing: border-box;
+
+  background: #f8f0df;
+
+  border: 2px solid #d6b86b;
+  border-radius: 28px;
+
+  box-shadow:
+    0 12px 25px rgba(55, 45, 20, 0.12),
+    0 2px 5px rgba(55, 45, 20, 0.08);
+
+  overflow: hidden;
+}
+
+/* Subtle inner border */
+
+.topic-note::before {
+  content: "";
+  position: absolute;
+
+  inset: 5px;
+
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  border-radius: 23px;
+
+  pointer-events: none;
+}
+
+/* =========================================
+   HEADER
+========================================= */
+
+.topic-note-header {
+  position: relative;
+  z-index: 2;
+
+  display: flex;
+  align-items: center;
+
+  margin-bottom: 22px;
+}
+
+/* LEVEL */
+
+.topic-note-level {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  height: 38px;
+  padding: 0 20px;
+
+  background: #3d4420;
+  color: white;
+
+  border-radius: 22px;
+
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+
+  white-space: nowrap;
+}
+
+/* =========================================
+   TIMER
+========================================= */
+
+.topic-note-timer {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+
+  margin-left: 25px;
+  padding-left: 25px;
+
+  border-left: 2px solid #33342c;
+
+  color: #292921;
+
+  font-size: 13px;
+  font-weight: 600;
+
+  white-space: nowrap;
+}
+
+/* =========================================
+   QUESTION
+========================================= */
+
+.topic-note-text {
+  position: relative;
+  z-index: 2;
+
+  margin: 0;
+
+  max-width: 600px;
+
+  color: #25251f;
+
+  font-family: Georgia, "Times New Roman", serif;
+  font-style: italic;
+
+  font-size: 21px;
+  font-weight: 600;
+
+  line-height: 1.25;
+
+  text-align: left;
+}
+
+/* =========================================
+   JAR WRAPPER
+========================================= */
+
+.result-jar-wrapper {
+  position: relative;
+
+  display: flex;
+  justify-content: center;
+
+  overflow: visible;
+}
+
+/* =========================================
+   MOBILE
+========================================= */
+
+@media (max-width: 768px) {
+  .topic-note {
+    width: 120vw;
+    min-height: auto;
+
+    padding: 23px 25px 25px;
+
+    border-radius: 22px;
+  }
+
+  .topic-note-header {
+    margin-bottom: 17px;
+  }
+
+  .topic-note-level {
+    height: 34px;
+    padding: 0 15px;
+
+    font-size: 11px;
+  }
+
+  .topic-note-timer {
+    margin-left: 15px;
+    padding-left: 15px;
+
+    font-size: 11px;
+  }
+
+  .topic-note-text {
+    max-width: 100%;
+
+    font-size: 16px;
+    line-height: 1.45;
+  }
+}
+
+/* =========================================
+   SMALL PHONES
+========================================= */
+
+@media (max-width: 480px) {
+  .topic-note {
+    width: 65vw !important;
+
+    padding: 19px 20px 21px;
+
+    border-radius: 19px;
+  }
+
+  .topic-note-header {
+    margin-bottom: 14px;
+  }
+
+  .topic-note-level {
+    height: 30px;
+    padding: 0 12px;
+
+    font-size: 9px;
+  }
+
+  .topic-note-timer {
+    margin-left: 10px;
+    padding-left: 10px;
+
+    font-size: 9px;
+  }
+
+  .topic-note-text {
+    font-size: 12px;
+    line-height: 1;
+  }
+}
+
+.result-cta {
+  margin-top: 10px;
+}
+
+.change-topic-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.exit-result-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 12px;
+  text-decoration: underline;
+}
+
+.result-jar-wrapper {
+  position: relative;
+  margin-bottom: 36px;
+  padding-top: 221px;
+  box-sizing: border-box;
+}
+
+.jar-image {
+  position: relative;
+  z-index: 1;
+}
+
+.topic-note {
+  position: absolute;
+  top: 0;
+  bottom: auto;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(680px, calc(100vw - 32px));
+  z-index: 2; /* explicitly stack above the jar image */
+
+  background: #ece3cf;
+  border-radius: var(--radius-md);
+  padding: 28px 24px 24px;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.4);
+}
+
+@media (max-width: 768px) {
+  .result-jar-wrapper {
+    padding-top: 171px;
+  }
+
+  .topic-note {
+    padding: 24px 22px 22px;
+  }
+}
+
+@media (max-width: 480px) {
+  .result-jar-wrapper {
+    padding-top: 141px;
+  }
+
+  .topic-note {
+    padding: 22px 18px 20px;
+  }
+
+  .topic-note-text {
+    font-size: 15px;
+    line-height: 1.25;
+  }
+}
+
+/* ---------- CATEGORY MODAL ---------- */
+.category-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  z-index: 100;
+}
+
+.category-modal {
+  width: 100%;
+  max-width: 480px;
+  background: var(--bg-card);
+  border-radius: 20px 20px 0 0;
+  padding: 20px;
+  animation: modal-slide-up 0.25s ease;
+}
+
+@keyframes modal-slide-up {
+  from {
+    transform: translateY(30px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.category-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.category-modal-header h2 {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.category-modal-close {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+}
+
+.category-modal-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.category-modal-item {
+  text-align: left;
+  padding: 16px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.category-modal-item:hover {
+  border-color: var(--olive-primary);
+}
+
+/* ---------- DESKTOP: modal centers instead of sliding from bottom ---------- */
+@media (min-width: 760px) {
+  .category-modal-backdrop {
+    align-items: center;
+  }
+
+  .category-modal {
+    border-radius: 20px;
+  }
+}
+
+/* ---------- YAP MODE VIEW ---------- */
+.yap-page {
+  position: relative;
+}
+
+.yap-back {
+  position: absolute;
+  top: 20px;
+  left: 16px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.yap-title {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin-top: 50px;
+  margin-bottom: 10px;
+}
+
+.yap-subtitle {
+  font-size: 14px;
+  color: var(--text-secondary);
+  max-width: 320px;
+  margin-bottom: 28px;
+}
+
+.yap-help-card {
+  width: 100%;
+  max-width: 380px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  text-align: left;
+  margin-bottom: 24px;
+}
+
+.yap-help-label {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: var(--olive-bright);
+  margin-bottom: 12px;
+}
+
+.yap-help-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.yap-help-list li {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+  padding-left: 14px;
+  position: relative;
+}
+
+.yap-help-list li::before {
+  content: "•";
+  position: absolute;
+  left: 0;
+  color: var(--olive-bright);
+}
+
+.yap-quote {
+  font-style: italic;
+  font-size: 13px;
+  color: var(--text-muted);
+  max-width: 340px;
+  margin-bottom: 30px;
+  line-height: 1.6;
+}
+
+.yap-start-btn {
+  max-width: 380px;
 }

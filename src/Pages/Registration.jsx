@@ -1,9 +1,15 @@
 import React from "react";
 
 import RegistrationLayout from "../Components/registration/RegistrationLayout";
+import RegistrationNav from "../Components/registration/RegistrationNav";
 
 function Registration() {
-  return <RegistrationLayout />;
+  return (
+    <>
+      <RegistrationNav />
+      <RegistrationLayout />
+    </>
+  );
 }
 
 export default Registration;
