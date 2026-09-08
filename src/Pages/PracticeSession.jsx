@@ -12,7 +12,7 @@ import {
   Flame,
 } from "lucide-react";
 import { LEVEL_META, HELP_TIPS } from "../data/prompts";
-import amazingImage from "../assets/amazing.PNG";
+import amazingImage from "../assets/amazing.png";
 import "./PracticeSession.css";
 
 const formatTime = (totalSeconds) => {
