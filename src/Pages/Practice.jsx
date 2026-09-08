@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import jarImg from "../assets/jar.png";
 import spinningJar from "../assets/Jar2.png";
-import resultJar from "../assets/Jar3.png";
+import resultJar from "../assets/jar3.png";
 import {
   CATEGORIES,
   LEVEL_META,
