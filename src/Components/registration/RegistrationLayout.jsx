@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import StepIndicator from "./StepIndicator";
@@ -31,6 +31,10 @@ function RegistrationLayout() {
     improvementOther: "",
     practiceFrequency: "",
   });
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+  }, [currentStep]);
 
   const updateFormData = (updates) => {
     setFormData((prev) => ({

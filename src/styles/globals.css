@@ -49,6 +49,11 @@ body,
   min-height: 100%;
 }
 
+html,
+body {
+  overflow-x: hidden;
+}
+
 body {
   background: var(--bg-primary);
   color: var(--text-primary);
@@ -645,6 +650,7 @@ a {
 
 .form-field input {
   width: 100%;
+  max-width: 100%;
   min-height: 50px;
   padding: 0 15px;
 
@@ -655,6 +661,24 @@ a {
   color: var(--text-primary);
   outline: none;
   font-size: 14px;
+}
+
+@media (max-width: 768px) {
+  .registration-page {
+    align-items: flex-start;
+    padding-top: 28px;
+    padding-bottom: 28px;
+  }
+
+  .registration-container,
+  .registration-step-content,
+  .registration-form {
+    min-width: 0;
+  }
+
+  .form-field input {
+    font-size: 16px;
+  }
 }
 
 .form-field input::placeholder {
