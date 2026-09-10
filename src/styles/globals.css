@@ -1389,6 +1389,10 @@ a {
 }
 
 /* Compact mode choices */
+.practice-page {
+  padding-top: 34px;
+}
+
 .practice-page .practice-eyebrow {
   margin-bottom: 12px;
 }
@@ -1398,6 +1402,7 @@ a {
 }
 
 .practice-page .jar-wrapper {
+  margin-top: 22px;
   margin-bottom: 20px;
 }
 
@@ -1407,36 +1412,40 @@ a {
 }
 
 .practice-page .mode-card {
-  padding: 10px 12px;
+  padding: 8px 10px;
 }
 
 .practice-page .mode-card-heading {
   display: flex;
   align-items: center;
-  gap: 7px;
+  gap: 6px;
   width: 100%;
 }
 
 .practice-page .mode-card-icon {
-  width: 28px;
-  height: 28px;
+  width: 24px;
+  height: 24px;
   margin-bottom: 0;
 }
 
 .practice-page .mode-card-title {
-  font-size: 13px;
+  font-size: 12px;
   margin-bottom: 0;
 }
 
 .practice-page .mode-card-desc {
-  margin-top: 5px;
-  font-size: 11px;
+  margin-top: 4px;
+  font-size: 10px;
   line-height: 1.35;
 }
 
 @media (min-width: 760px) {
+  .practice-page {
+    padding-top: 50px;
+  }
+
   .practice-page .mode-card {
-    padding: 12px 14px;
+    padding: 10px 12px;
   }
 }
 
