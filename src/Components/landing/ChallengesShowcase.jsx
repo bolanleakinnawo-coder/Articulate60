@@ -52,7 +52,7 @@ const ChallengesShowcase = () => {
             </div>
 
             <p className="chs-price">₦3,900</p>
-            <p className="chs-price-note">Founding price</p>
+            <p className="chs-price-note">Happening now</p>
 
             <button className="chs-btn">
               VIEW CHALLENGE <span className="arrow">→</span>

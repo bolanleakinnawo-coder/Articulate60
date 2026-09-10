@@ -485,6 +485,18 @@ a {
   padding: 40px 24px;
 }
 
+.registration-flow-page {
+  min-height: calc(100vh - 76px);
+  align-items: flex-start;
+  padding-top: 64px;
+}
+
+.registration-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
 .registration-container {
   width: 100%;
   max-width: 460px;
@@ -665,9 +677,13 @@ a {
 
 @media (max-width: 768px) {
   .registration-page {
-    align-items: flex-start;
-    padding-top: 28px;
-    padding-bottom: 28px;
+    padding-top: 48px;
+    padding-bottom: 40px;
+  }
+
+  .registration-flow-page {
+    min-height: calc(100vh - 68px);
+    padding-top: 48px;
   }
 
   .registration-container,

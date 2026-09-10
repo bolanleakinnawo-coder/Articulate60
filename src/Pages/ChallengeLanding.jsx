@@ -201,7 +201,7 @@ export default function ChallengeLanding() {
               </div>
             </div>
             <div className="a60-price-box">
-              <div className="founding">FOUNDING PRICE</div>
+              <div className="founding">HAPPENING NOW</div>
               <div className="price">&#8358;3,900</div>
               <div className="offer">Limited Time Offer</div>
             </div>

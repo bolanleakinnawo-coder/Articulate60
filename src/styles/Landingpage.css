@@ -19,6 +19,111 @@ body {
 #root {
   overflow-x: clip;
 }
+
+@keyframes heroReveal {
+  from {
+    opacity: 0;
+    transform: translateY(22px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes visualReveal {
+  from {
+    opacity: 0;
+    transform: translateX(28px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+@keyframes cardFloat {
+  0%,
+  100% {
+    transform: translateY(0) scale(var(--float-scale));
+  }
+  50% {
+    transform: translateY(-7px) scale(var(--float-scale));
+  }
+}
+
+@keyframes sectionReveal {
+  from {
+    opacity: 0;
+    transform: translateY(26px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.hero-content > * {
+  animation: heroReveal 0.7s both;
+}
+
+.hero-content > :nth-child(2) {
+  animation-delay: 0.08s;
+}
+
+.hero-content > :nth-child(3) {
+  animation-delay: 0.16s;
+}
+
+.hero-content > :nth-child(4) {
+  animation-delay: 0.24s;
+}
+
+.hero-content > :nth-child(5) {
+  animation-delay: 0.32s;
+}
+
+.hero-visual {
+  animation: visualReveal 0.9s 0.18s both;
+}
+
+.float-card {
+  --float-scale: 1;
+  animation: cardFloat 4.5s ease-in-out infinite;
+}
+
+.practice-card {
+  animation-delay: -1.5s;
+}
+
+.progress-card {
+  animation-delay: -3s;
+}
+
+.landing-reveal {
+  opacity: 1;
+}
+
+.landing-reveal > * {
+  opacity: 0;
+  transform: translateY(26px);
+}
+
+.landing-reveal.is-visible > * {
+  animation: sectionReveal 0.75s ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -35,8 +140,9 @@ body {
 }
 
 .navbar {
-  position: sticky;
+  position: fixed;
   top: 0;
+  width: 100%;
   z-index: 100;
   background: var(--cream);
   transition: box-shadow 0.2s ease;
@@ -69,9 +175,10 @@ body {
 }
 
 .navbar-logo img {
-  width: 300px;
-  max-width: none;
-  transform: translateX(-74px);
+  width: 152px;
+  max-width: 100%;
+  height: auto;
+  object-fit: contain;
   display: block;
 }
 
@@ -123,6 +230,15 @@ body {
 
 .btn-primary:hover {
   background: var(--olive-deeper);
+}
+
+.navbar-cta:hover,
+.navbar-mobile-cta:hover {
+  color: #fff;
+}
+
+.hero .btn-primary:hover {
+  color: #fff;
 }
 
 /* ---------- HAMBURGER ---------- */
@@ -215,6 +331,7 @@ body {
 
 /* Hero section  */
 .hero {
+  margin-top: 76px;
   padding: 60px 70px 80px;
   background: rgb(243, 243, 225);
   overflow: hidden;
@@ -512,6 +629,10 @@ body {
 
 /* ---------- MOBILE ---------- */
 @media (max-width: 860px) {
+  .hero {
+    margin-top: 68px;
+  }
+
   .hero-container {
     flex-direction: column;
     gap: 40px;
@@ -553,6 +674,7 @@ body {
 
   .float-card {
     position: absolute;
+    --float-scale: 0.85;
     transform: scale(0.85);
   }
 
@@ -590,9 +712,8 @@ body {
   }
 
   .hero-note {
- 
-  margin-bottom: 28px;
-}
+    margin-bottom: 28px;
+  }
 
   .practice-card {
     right: -20px;

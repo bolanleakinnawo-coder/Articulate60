@@ -1,6 +1,5 @@
 import { BookOpen, Calendar, Gift } from "lucide-react";
 
-
 const CurrentChallenge = () => {
   return (
     <section className="challenge">
@@ -38,7 +37,7 @@ const CurrentChallenge = () => {
               <div className="offer-text">
                 <span className="offer-label">CHALLENGE 01</span>
                 <p className="offer-price">₦3,900</p>
-                <span className="offer-note">Founding Price</span>
+                <span className="offer-note">Happening now</span>
               </div>
 
               <div className="gift-box-wrapper">

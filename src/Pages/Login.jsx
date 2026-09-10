@@ -44,7 +44,7 @@ function Login() {
   };
 
   return (
-    <main className="registration-page">
+    <main className="registration-page login-page">
       <div className="registration-container">
         <div className="registration-header">
           <h1>Welcome back</h1>

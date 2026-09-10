@@ -76,7 +76,7 @@ function RegistrationLayout() {
   };
 
   return (
-    <main className="registration-page">
+    <main className="registration-page registration-flow-page">
       <div className="registration-container">
         <StepIndicator currentStep={currentStep} />
 
