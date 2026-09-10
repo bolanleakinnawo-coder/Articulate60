@@ -964,7 +964,7 @@ a {
   font-weight: 800;
   letter-spacing: 0.12em;
   color: var(--olive-bright);
-  margin-bottom: 16px;
+  margin-bottom: 12px;
 }
 
 /* ---------- LEVEL TABS ---------- */
@@ -975,7 +975,7 @@ a {
   border-radius: var(--radius-lg);
   overflow: hidden;
   border: 1px solid var(--border);
-  margin-bottom: 30px;
+  margin-bottom: 20px;
 }
 
 .level-tab {
@@ -1028,7 +1028,7 @@ a {
 .jar-wrapper {
   width: 100%;
   max-width: 260px;
-  margin-bottom: 30px;
+  margin-bottom: 20px;
 }
 
 .jar-image {
@@ -1046,7 +1046,7 @@ a {
 
   width: 100%;
   max-width: 380px;
-  padding: 18px;
+  padding: 14px;
 
   background: var(--olive-primary);
   color: var(--text-primary);
@@ -1060,7 +1060,7 @@ a {
   transition:
     background 0.2s ease,
     transform 0.15s ease;
-  margin-bottom: 24px;
+  margin-bottom: 18px;
 }
 
 .spin-jar-btn:hover {
@@ -1105,7 +1105,7 @@ a {
   flex-direction: column;
   align-items: flex-start;
   text-align: left;
-  padding: 18px;
+  padding: 14px;
 
   background: var(--bg-card);
   border: 1px solid var(--border);
@@ -1122,28 +1122,36 @@ a {
 }
 
 .mode-card-icon {
-  width: 38px;
-  height: 38px;
+  width: 32px;
+  height: 32px;
   border-radius: var(--radius-md);
   background: var(--bg-secondary);
   color: var(--olive-bright);
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 12px;
+  margin-bottom: 0;
+}
+
+.mode-card-heading {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
 }
 
 .mode-card-title {
   font-size: 14px;
   font-weight: 700;
   color: var(--text-primary);
-  margin-bottom: 6px;
+  margin-bottom: 0;
 }
 
 .mode-card-desc {
   font-size: 12px;
   line-height: 1.5;
   color: var(--text-secondary);
+  margin-top: 8px;
 }
 
 /* ---------- DESKTOP ---------- */
@@ -1162,7 +1170,7 @@ a {
   }
 
   .mode-card {
-    padding: 22px;
+    padding: 16px;
   }
 }
 .practice-page {
@@ -1377,6 +1385,55 @@ a {
 
   .mode-card {
     padding: 22px;
+  }
+}
+
+/* Compact mode choices */
+.practice-page .practice-eyebrow {
+  margin-bottom: 12px;
+}
+
+.practice-page .level-tabs {
+  margin-bottom: 20px;
+}
+
+.practice-page .jar-wrapper {
+  margin-bottom: 20px;
+}
+
+.practice-page .spin-jar-btn {
+  padding: 14px;
+  margin-bottom: 18px;
+}
+
+.practice-page .mode-card {
+  padding: 14px;
+}
+
+.practice-page .mode-card-heading {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+}
+
+.practice-page .mode-card-icon {
+  width: 32px;
+  height: 32px;
+  margin-bottom: 0;
+}
+
+.practice-page .mode-card-title {
+  margin-bottom: 0;
+}
+
+.practice-page .mode-card-desc {
+  margin-top: 8px;
+}
+
+@media (min-width: 760px) {
+  .practice-page .mode-card {
+    padding: 16px;
   }
 }
 

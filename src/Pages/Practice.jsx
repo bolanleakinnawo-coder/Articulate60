@@ -218,31 +218,29 @@ export default function Practice() {
         Spin the Jar
       </button>
 
-      <div className="or-divider">
-        <span className="or-line" />
-        <span className="or-text">OR</span>
-        <span className="or-line" />
-      </div>
-
       <div className="mode-cards">
         <button
           className="mode-card"
           onClick={() => setShowCategoryModal(true)}
         >
-          <div className="mode-card-icon">
-            <LayoutGrid size={20} strokeWidth={1.8} />
+          <div className="mode-card-heading">
+            <div className="mode-card-icon">
+              <LayoutGrid size={18} strokeWidth={1.8} />
+            </div>
+            <h3 className="mode-card-title">Choose a category</h3>
           </div>
-          <h3 className="mode-card-title">Choose a category</h3>
           <p className="mode-card-desc">
             Pick a category and get a tailored topic.
           </p>
         </button>
 
         <button className="mode-card" onClick={handleYapMode}>
-          <div className="mode-card-icon">
-            <MessageCircle size={20} strokeWidth={1.8} />
+          <div className="mode-card-heading">
+            <div className="mode-card-icon">
+              <MessageCircle size={18} strokeWidth={1.8} />
+            </div>
+            <h3 className="mode-card-title">Yap Mode</h3>
           </div>
-          <h3 className="mode-card-title">Yap Mode</h3>
           <p className="mode-card-desc">No topic. Just you talking.</p>
         </button>
       </div>
