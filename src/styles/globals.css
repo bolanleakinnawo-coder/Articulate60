@@ -1407,33 +1407,36 @@ a {
 }
 
 .practice-page .mode-card {
-  padding: 14px;
+  padding: 10px 12px;
 }
 
 .practice-page .mode-card-heading {
   display: flex;
   align-items: center;
-  gap: 9px;
+  gap: 7px;
   width: 100%;
 }
 
 .practice-page .mode-card-icon {
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   margin-bottom: 0;
 }
 
 .practice-page .mode-card-title {
+  font-size: 13px;
   margin-bottom: 0;
 }
 
 .practice-page .mode-card-desc {
-  margin-top: 8px;
+  margin-top: 5px;
+  font-size: 11px;
+  line-height: 1.35;
 }
 
 @media (min-width: 760px) {
   .practice-page .mode-card {
-    padding: 16px;
+    padding: 12px 14px;
   }
 }
 
