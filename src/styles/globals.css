@@ -1462,7 +1462,7 @@ a {
 .spin-status-subtitle {
   font-size: 15px;
   color: var(--text-secondary);
-  margin-bottom: 36px;
+  margin-bottom: 15px;
 }
 
 .spin-jar-shake {
@@ -1513,7 +1513,7 @@ a {
 /* ---------- RESULT: TOPIC NOTE ON JAR ---------- */
 .result-jar-wrapper {
   position: relative;
-  margin-bottom: 36px;
+  margin-bottom: 15px;
   padding-top: 221px;
   box-sizing: border-box;
 }
@@ -1532,7 +1532,7 @@ a {
 
   width: 680px;
   min-height: 235px;
-  font-family: poppins !important;
+  font-family: inherit;
 
   transform: translateX(-50%) rotate(-5deg);
 
@@ -1638,11 +1638,9 @@ a {
 
   color: #25251f;
 
-  font-family: Georgia, "Times New Roman", serif;
-  font-style: italic;
+  font-family: inherit !important;
 
   font-size: 21px;
-  font-weight: 600;
 
   line-height: 1.25;
 
@@ -1708,8 +1706,6 @@ a {
 
 @media (max-width: 480px) {
   .topic-note {
-    width: 65vw !important;
-
     padding: 19px 20px 21px;
 
     border-radius: 19px;
@@ -1734,8 +1730,12 @@ a {
   }
 
   .topic-note-text {
-    font-size: 12px;
+    font-size: 11px;
     line-height: 1;
+  }
+
+  .spin-status-title {
+    font-size: 22px;
   }
 }
 
