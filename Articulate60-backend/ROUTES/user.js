@@ -13,6 +13,23 @@ const generateToken = (userId) => {
   return jwt.sign({ id: userId }, process.env.JWT_SECRET, { expiresIn: "7d" });
 };
 
+const authenticate = async (req, res, next) => {
+  try {
+    const token = req.headers.authorization?.replace("Bearer ", "");
+    if (!token)
+      return res.status(401).json({ message: "Authentication required." });
+
+    const payload = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findById(payload.id);
+    if (!user) return res.status(404).json({ message: "User not found." });
+
+    req.user = user;
+    next();
+  } catch {
+    res.status(401).json({ message: "Invalid or expired session." });
+  }
+};
+
 // ---------- SIGNUP ----------
 router.post("/signup", async (req, res) => {
   try {
@@ -44,8 +61,6 @@ router.post("/signup", async (req, res) => {
     if (!email || !EMAIL_REGEX.test(email.trim())) {
       errors.email = "Please enter a valid email address.";
     }
-
-   
 
     if (
       !password ||
@@ -178,6 +193,76 @@ router.post("/login", async (req, res) => {
     res
       .status(500)
       .json({ message: "Something went wrong. Please try again." });
+  }
+});
+
+// ---------- UPDATE PROFILE ----------
+router.put("/profile", authenticate, async (req, res) => {
+  try {
+    const { fullName, username, email, newPassword, confirmPassword } =
+      req.body;
+    const errors = {};
+
+    if (!fullName || fullName.trim().length < 2) {
+      errors.fullName = "Full name must be at least 2 characters.";
+    }
+    if (!username || !USERNAME_REGEX.test(username.trim())) {
+      errors.username =
+        "Username must be 3–20 characters (letters, numbers, underscores only).";
+    }
+    if (!email || !EMAIL_REGEX.test(email.trim())) {
+      errors.email = "Please enter a valid email address.";
+    }
+    if (newPassword || confirmPassword) {
+      if (
+        !newPassword ||
+        newPassword.length < 8 ||
+        !/[a-zA-Z]/.test(newPassword) ||
+        !/[0-9]/.test(newPassword)
+      ) {
+        errors.newPassword =
+          "New password must be at least 8 characters and include a letter and a number.";
+      } else if (newPassword !== confirmPassword) {
+        errors.confirmPassword = "Passwords do not match.";
+      }
+    }
+    if (Object.keys(errors).length) {
+      return res.status(400).json({ message: "Validation failed.", errors });
+    }
+
+    const normalizedEmail = email.trim().toLowerCase();
+    const existingUser = await User.findOne({
+      $or: [{ email: normalizedEmail }, { username: username.trim() }],
+      _id: { $ne: req.user._id },
+    });
+    if (existingUser) {
+      return res
+        .status(409)
+        .json({ message: "That email or username is already in use." });
+    }
+
+    req.user.fullName = fullName.trim();
+    req.user.username = username.trim();
+    req.user.email = normalizedEmail;
+    if (newPassword) {
+      req.user.password = await bcrypt.hash(newPassword, 10);
+    }
+    await req.user.save();
+
+    res.json({
+      message: "Profile updated successfully.",
+      user: {
+        id: req.user._id,
+        fullName: req.user.fullName,
+        username: req.user.username,
+        email: req.user.email,
+      },
+    });
+  } catch (err) {
+    console.error(err);
+    res
+      .status(500)
+      .json({ message: "Something went wrong updating your profile." });
   }
 });
 
