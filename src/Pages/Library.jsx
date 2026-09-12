@@ -33,13 +33,10 @@ export default function Library() {
         <div className="library-empty-art">
           <div className="library-empty-blob" />
           <ShoppingCart
-            size={64}
+            size={100}
             strokeWidth={1.5}
             className="library-cart-icon"
           />
-          <div className="library-empty-card" />
-          <Sparkles size={22} className="library-sparkle library-sparkle-1" />
-          <Sparkles size={14} className="library-sparkle library-sparkle-2" />
         </div>
 
         <h2>Something great is coming...</h2>

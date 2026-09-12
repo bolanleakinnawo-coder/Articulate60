@@ -78,7 +78,7 @@
   align-items: center;
   justify-content: center;
   text-align: center;
-  padding: 48px 24px 40px;
+  padding: 8px 24px 40px;
   gap: 20px;
 }
 
@@ -93,7 +93,7 @@
 
 .library-empty-blob {
   position: absolute;
-  inset: 0;
+  inset: 22px;
   background: radial-gradient(
     circle,
     rgba(100, 103, 66, 0.35),
