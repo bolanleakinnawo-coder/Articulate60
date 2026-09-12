@@ -1,0 +1,162 @@
+/* Library.css */
+
+.library-content {
+  display: flex;
+  flex-direction: column;
+  color: var(--text-primary);
+  font-family:
+    "Inter",
+    system-ui,
+    -apple-system,
+    sans-serif;
+  box-sizing: border-box;
+}
+
+/* ---------- Intro ---------- */
+
+.library-intro {
+  padding: 0 20px;
+}
+
+.library-intro h1 {
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: clamp(2rem, 7vw, 2.75rem);
+  font-weight: 500;
+  margin: 0 0 10px;
+  color: var(--text-primary);
+}
+
+.library-intro p {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 14.5px;
+  line-height: 1.5;
+  max-width: 46ch;
+}
+
+/* ---------- Filter pills ---------- */
+
+.library-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 20px 20px 0;
+}
+
+.library-filter {
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 13px;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.library-filter.active {
+  background: var(--olive-primary);
+  border-color: var(--olive-primary);
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.library-filter:not(.active):hover {
+  border-color: var(--olive-bright);
+}
+
+/* ---------- Empty state ---------- */
+
+.library-empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 48px 24px 40px;
+  gap: 20px;
+}
+
+.library-empty-art {
+  position: relative;
+  width: min(240px, 60vw);
+  height: min(240px, 60vw);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.library-empty-blob {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    circle,
+    rgba(100, 103, 66, 0.35),
+    rgba(100, 103, 66, 0.08) 70%,
+    transparent 75%
+  );
+  border-radius: 45% 55% 60% 40% / 50% 45% 55% 50%;
+}
+
+.library-cart-icon {
+  position: relative;
+  color: var(--olive-bright);
+  z-index: 1;
+}
+
+.library-empty-card {
+  position: absolute;
+  width: 34px;
+  height: 46px;
+  background: var(--bg-secondary);
+  border-radius: 4px;
+  top: 68px;
+  left: 112px;
+  transform: rotate(-8deg);
+  z-index: 0;
+}
+
+.library-sparkle {
+  position: absolute;
+  color: var(--text-primary);
+}
+
+.library-sparkle-1 {
+  top: 46px;
+  right: 40px;
+}
+
+.library-sparkle-2 {
+  top: 78px;
+  right: 22px;
+}
+
+.library-empty h2 {
+  font-family: "Playfair Display", Georgia, serif;
+  font-weight: 500;
+  font-size: clamp(1.5rem, 6vw, 2rem);
+  margin: 0;
+  color: var(--text-primary);
+  line-height: 1.25;
+}
+
+.library-empty p {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 14.5px;
+  line-height: 1.6;
+  max-width: 34ch;
+}
+
+/* ---------- Responsive ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .library-filter {
+    transition: none;
+  }
+}

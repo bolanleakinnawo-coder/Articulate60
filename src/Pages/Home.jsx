@@ -6,14 +6,26 @@ const API_URL = import.meta.env.VITE_API_URL;
 
 // Reads a word aloud using the browser's built-in voice — no audio
 // files, no backend storage needed.
+// Reads a word aloud using the browser's built-in voice, set to
+// British English.
 function speakWord(word) {
   if (!window.speechSynthesis) return; // very old browsers only
+
   const utterance = new SpeechSynthesisUtterance(word);
-  utterance.lang = "en-US";
+  utterance.lang = "en-GB";
   utterance.rate = 0.9; // slightly slower for clarity
+
+  // Try to pick an actual British voice if one is installed on the
+  // device — setting lang alone sometimes isn't enough, since some
+  // browsers fall back to whatever default voice is available.
+  const voices = window.speechSynthesis.getVoices();
+  const britishVoice = voices.find((v) => v.lang === "en-GB");
+  if (britishVoice) {
+    utterance.voice = britishVoice;
+  }
+
   window.speechSynthesis.speak(utterance);
 }
-
 export default function Home() {
   const location = useLocation();
   const navigate = useNavigate();
