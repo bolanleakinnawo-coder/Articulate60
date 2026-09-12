@@ -9,6 +9,7 @@ const cors = require("cors");
 
 const connectDB = require("./DB_CONFIG/db");
 const userRoutes = require("./ROUTES/user");
+const wordOfTheDayRoute = require("./ROUTES/wordOfTheDay");
 
 const app = express();
 
@@ -18,7 +19,7 @@ app.use(cors());
 app.use(express.json());
 
 app.use("/user", userRoutes);
-
+app.use(wordOfTheDayRoute);
 connectDB();
 
 app.listen(port, () => {

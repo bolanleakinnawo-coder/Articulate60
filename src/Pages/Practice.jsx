@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import {
@@ -13,6 +13,7 @@ import {
 import jarImg from "../assets/jar.png";
 import spinningJar from "../assets/Jar2.PNG";
 import resultJar from "../assets/jar3.PNG";
+import spinSound from "../assets/spin.mp3";
 import {
   CATEGORIES,
   LEVEL_META,
@@ -29,14 +30,37 @@ export default function Practice() {
   const [activeCategory, setActiveCategory] = useState(null);
   const [currentPrompt, setCurrentPrompt] = useState(null);
   const [showCategoryModal, setShowCategoryModal] = useState(false);
+  const spinAudio = useRef(null);
 
   const levelInfo = LEVEL_META.find((l) => l.id === selectedLevel);
 
-  const runSpin = (categoryId, categoryTitle, prompt) => {
+  if (!spinAudio.current) {
+    spinAudio.current = new Audio(spinSound);
+    spinAudio.current.preload = "auto";
+    spinAudio.current.loop = true;
+    spinAudio.current.volume = 0.35;
+  }
+
+  const runSpin = async (categoryId, categoryTitle, prompt) => {
     setActiveCategory({ id: categoryId, title: categoryTitle });
     setCurrentPrompt(prompt);
     setView("spinning");
-    setTimeout(() => setView("result"), 1600);
+
+    // Start spinning sound
+    try {
+      spinAudio.current.currentTime = 0;
+      await spinAudio.current.play();
+    } catch (error) {
+      console.log("Spin sound blocked:", error);
+    }
+
+    setTimeout(() => {
+      // Stop sound when spinning ends
+      spinAudio.current.pause();
+      spinAudio.current.currentTime = 0;
+
+      setView("result");
+    }, 1600);
   };
 
   const handleSpinTheJar = () => {

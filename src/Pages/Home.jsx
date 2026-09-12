@@ -2,6 +2,18 @@ import { useEffect, useState } from "react";
 import { Flame, Play, Volume2, ArrowRight } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
+// Reads a word aloud using the browser's built-in voice — no audio
+// files, no backend storage needed.
+function speakWord(word) {
+  if (!window.speechSynthesis) return; // very old browsers only
+  const utterance = new SpeechSynthesisUtterance(word);
+  utterance.lang = "en-US";
+  utterance.rate = 0.9; // slightly slower for clarity
+  window.speechSynthesis.speak(utterance);
+}
+
 export default function Home() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -10,11 +22,28 @@ export default function Home() {
     () => currentUser?.username || location.state?.username || "there",
   );
 
+  // Word of the Day state — fetched from the backend instead of hardcoded
+  const [wordOfDay, setWordOfDay] = useState(null);
+  const [loadingWord, setLoadingWord] = useState(true);
+
   useEffect(() => {
     if (location.state?.user?.username) {
       setUsername(location.state.user.username);
     }
   }, [location.state]);
+
+  useEffect(() => {
+    fetch(`${API_URL}/api/word-of-the-day`)
+      .then((res) => {
+        if (!res.ok) throw new Error("Word of the day request failed");
+        return res.json();
+      })
+      .then((data) => {
+        setWordOfDay(data);
+        setLoadingWord(false);
+      })
+      .catch(() => setLoadingWord(false));
+  }, []);
 
   return (
     <div className="page">
@@ -57,15 +86,29 @@ export default function Home() {
           </button>
         </div>
 
-        <div className="card">
+        <div className="card word-of-day-card">
           <div className="card-heading">
             <span>Word of the Day</span>
-            <Volume2 size={17} />
+            <button
+              className="icon-button word-of-day-audio"
+              onClick={() => wordOfDay && speakWord(wordOfDay.word)}
+              disabled={!wordOfDay}
+              aria-label="Play pronunciation"
+            >
+              <Volume2 size={17} />
+            </button>
           </div>
 
-          <h2>Pragmatic</h2>
-
-          <p>Dealing with situations realistically and practically.</p>
+          {loadingWord ? (
+            <p>Loading...</p>
+          ) : wordOfDay ? (
+            <>
+              <h2>{wordOfDay.word}</h2>
+              <p>{wordOfDay.meaning}</p>
+            </>
+          ) : (
+            <p>Couldn't load today's word.</p>
+          )}
 
           <button className="text-button">
             Try using it today

@@ -45,9 +45,7 @@ router.post("/signup", async (req, res) => {
       errors.email = "Please enter a valid email address.";
     }
 
-    if (!phoneNumber || !PHONE_REGEX.test(phoneNumber.trim())) {
-      errors.phoneNumber = "Please enter a valid phone number.";
-    }
+   
 
     if (
       !password ||

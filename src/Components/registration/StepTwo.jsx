@@ -1,7 +1,10 @@
 import { useState } from "react";
+import { Eye, EyeOff } from "lucide-react";
 
 function StepTwo({ onNext, onBack, formData, updateFormData }) {
   const [errors, setErrors] = useState({});
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const validate = () => {
     const newErrors = {};
@@ -25,12 +28,6 @@ function StepTwo({ onNext, onBack, formData, updateFormData }) {
       newErrors.email = "Email is required.";
     } else if (!/^\S+@\S+\.\S+$/.test(formData.email.trim())) {
       newErrors.email = "Please enter a valid email address.";
-    }
-
-    if (!formData.phoneNumber.trim()) {
-      newErrors.phoneNumber = "Phone number is required.";
-    } else if (!/^\+?[0-9]{10,15}$/.test(formData.phoneNumber.trim())) {
-      newErrors.phoneNumber = "Please enter a valid phone number.";
     }
 
     if (!formData.password) {
@@ -119,47 +116,53 @@ function StepTwo({ onNext, onBack, formData, updateFormData }) {
           {errors.email && <p className="form-error">{errors.email}</p>}
         </div>
 
-        {/* Phone Number */}
-        <div className="form-field">
-          <label htmlFor="phoneNumber">Phone number</label>
-          <input
-            id="phoneNumber"
-            type="tel"
-            placeholder="Enter your phone number"
-            value={formData.phoneNumber}
-            aria-invalid={Boolean(errors.phoneNumber)}
-            onChange={handleChange("phoneNumber")}
-          />
-          {errors.phoneNumber && (
-            <p className="form-error">{errors.phoneNumber}</p>
-          )}
-        </div>
-
         {/* Password */}
         <div className="form-field">
           <label htmlFor="password">Password</label>
-          <input
-            id="password"
-            type="password"
-            placeholder="Create a password"
-            value={formData.password}
-            aria-invalid={Boolean(errors.password)}
-            onChange={handleChange("password")}
-          />
+          <div className="password-input-wrapper">
+            <input
+              id="password"
+              type={showPassword ? "text" : "password"}
+              placeholder="Create a password"
+              value={formData.password}
+              aria-invalid={Boolean(errors.password)}
+              onChange={handleChange("password")}
+            />
+            <button
+              type="button"
+              className="password-toggle"
+              onClick={() => setShowPassword((visible) => !visible)}
+              aria-label={showPassword ? "Hide password" : "Show password"}
+            >
+              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+            </button>
+          </div>
           {errors.password && <p className="form-error">{errors.password}</p>}
         </div>
 
         {/* Confirm Password */}
         <div className="form-field">
           <label htmlFor="confirmPassword">Confirm password</label>
-          <input
-            id="confirmPassword"
-            type="password"
-            placeholder="Confirm your password"
-            value={formData.confirmPassword}
-            aria-invalid={Boolean(errors.confirmPassword)}
-            onChange={handleChange("confirmPassword")}
-          />
+          <div className="password-input-wrapper">
+            <input
+              id="confirmPassword"
+              type={showConfirmPassword ? "text" : "password"}
+              placeholder="Confirm your password"
+              value={formData.confirmPassword}
+              aria-invalid={Boolean(errors.confirmPassword)}
+              onChange={handleChange("confirmPassword")}
+            />
+            <button
+              type="button"
+              className="password-toggle"
+              onClick={() => setShowConfirmPassword((visible) => !visible)}
+              aria-label={
+                showConfirmPassword ? "Hide password" : "Show password"
+              }
+            >
+              {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+            </button>
+          </div>
           {errors.confirmPassword && (
             <p className="form-error">{errors.confirmPassword}</p>
           )}

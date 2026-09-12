@@ -296,6 +296,30 @@ a {
   margin-bottom: 25px;
 }
 
+.word-of-day-audio {
+  width: 32px;
+  height: 32px;
+
+  display: grid;
+  place-items: center;
+
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: var(--olive-primary);
+  color: var(--text-primary);
+
+  transition: 0.2s ease;
+}
+
+.word-of-day-audio:hover:not(:disabled) {
+  background: var(--olive-bright);
+}
+
+.word-of-day-audio:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
 .card h2 {
   font-size: 23px;
   margin-bottom: 12px;
@@ -673,6 +697,37 @@ a {
   color: var(--text-primary);
   outline: none;
   font-size: 14px;
+}
+
+.password-input-wrapper {
+  position: relative;
+}
+
+.password-input-wrapper input {
+  padding-right: 48px;
+}
+
+.password-toggle {
+  position: absolute;
+  top: 50%;
+  right: 12px;
+
+  display: grid;
+  place-items: center;
+
+  width: 28px;
+  height: 28px;
+  padding: 0;
+
+  border: 0;
+  background: transparent;
+  color: var(--text-muted);
+
+  transform: translateY(-50%);
+}
+
+.password-toggle:hover {
+  color: var(--text-primary);
 }
 
 @media (max-width: 768px) {

@@ -1,0 +1,2702 @@
+[
+  {
+    "word": "Pragmatic",
+    "meaning": "Focused on practical solutions and results rather than theory or ideals."
+  },
+  {
+    "word": "Ambivalent",
+    "meaning": "Having mixed or conflicting feelings about something."
+  },
+  {
+    "word": "Astute",
+    "meaning": "Very good at noticing important details and making accurate judgments."
+  },
+  {
+    "word": "Conspicuous",
+    "meaning": "Very easy to notice because of being unusual, obvious, or prominent."
+  },
+  {
+    "word": "Arbitrary",
+    "meaning": "Based on personal choice or preference rather than a clear reason or system."
+  },
+  {
+    "word": "Scrutinize",
+    "meaning": "To examine something very carefully and in detail."
+  },
+  {
+    "word": "Tentative",
+    "meaning": "Not certain, final, or fully decided."
+  },
+  {
+    "word": "Compelling",
+    "meaning": "So convincing, interesting, or powerful that it strongly holds your attention."
+  },
+  {
+    "word": "Intricate",
+    "meaning": "Having many connected details or parts that require careful understanding."
+  },
+  {
+    "word": "Versatile",
+    "meaning": "Able to adapt easily to different situations, activities, or purposes."
+  },
+  {
+    "word": "Redundant",
+    "meaning": "Unnecessary because something similar or identical already exists."
+  },
+  {
+    "word": "Impulsive",
+    "meaning": "Acting suddenly without carefully considering the consequences."
+  },
+  {
+    "word": "Proactive",
+    "meaning": "Taking action in advance rather than waiting for a problem to occur."
+  },
+  {
+    "word": "Resilient",
+    "meaning": "Able to recover and adapt after difficulty, failure, or hardship."
+  },
+  {
+    "word": "Nuance",
+    "meaning": "A subtle difference in meaning, feeling, or expression."
+  },
+  {
+    "word": "Plausible",
+    "meaning": "Seeming reasonable or likely to be true."
+  },
+  {
+    "word": "Prevalent",
+    "meaning": "Common or widespread in a particular place, group, or situation."
+  },
+  {
+    "word": "Coherent",
+    "meaning": "Clear, logical, and connected in a way that is easy to understand."
+  },
+  {
+    "word": "Conventional",
+    "meaning": "Based on ideas, methods, or practices that are traditionally accepted."
+  },
+  {
+    "word": "Inadvertent",
+    "meaning": "Happening accidentally rather than intentionally."
+  },
+  {
+    "word": "Deliberate",
+    "meaning": "Done intentionally and with careful thought."
+  },
+  {
+    "word": "Deter",
+    "meaning": "To discourage someone from doing something."
+  },
+  {
+    "word": "Exacerbate",
+    "meaning": "To make a problem or negative situation worse."
+  },
+  {
+    "word": "Alleviate",
+    "meaning": "To make something unpleasant, painful, or difficult less severe."
+  },
+  {
+    "word": "Facilitate",
+    "meaning": "To make an action or process easier."
+  },
+  {
+    "word": "Perceive",
+    "meaning": "To notice, understand, or interpret something in a particular way."
+  },
+  {
+    "word": "Infer",
+    "meaning": "To reach a conclusion based on evidence or information."
+  },
+  {
+    "word": "Reconcile",
+    "meaning": "To make two opposing ideas, situations, or people compatible again."
+  },
+  {
+    "word": "Validate",
+    "meaning": "To recognize or confirm that something is reasonable, legitimate, or true."
+  },
+  {
+    "word": "Dismissive",
+    "meaning": "Showing that you consider someone or something unimportant."
+  },
+  {
+    "word": "Condescending",
+    "meaning": "Behaving as though you are more intelligent or important than someone else."
+  },
+  {
+    "word": "Assertive",
+    "meaning": "Confidently expressing your thoughts, needs, or boundaries without being aggressive."
+  },
+  {
+    "word": "Diplomatic",
+    "meaning": "Careful and skillful when dealing with sensitive people or situations."
+  },
+  {
+    "word": "Discerning",
+    "meaning": "Good at recognizing subtle differences and judging the quality of something."
+  },
+  {
+    "word": "Prudent",
+    "meaning": "Showing careful judgment about what is sensible or safe."
+  },
+  {
+    "word": "Impartial",
+    "meaning": "Fair and not influenced by personal opinions or preferences."
+  },
+  {
+    "word": "Scrupulous",
+    "meaning": "Extremely careful about doing what is right or avoiding mistakes."
+  },
+  {
+    "word": "Futile",
+    "meaning": "Unlikely to produce any useful or successful result."
+  },
+  {
+    "word": "Superficial",
+    "meaning": "Concerned only with what is obvious or on the surface."
+  },
+  {
+    "word": "Substantive",
+    "meaning": "Important, meaningful, and dealing with real issues rather than appearances."
+  },
+  {
+    "word": "Innovative",
+    "meaning": "Introducing new ideas, methods, or approaches."
+  },
+  {
+    "word": "Articulate",
+    "meaning": "Able to express thoughts and ideas clearly and effectively."
+  },
+  {
+    "word": "Candid",
+    "meaning": "Honest and direct, especially when discussing something difficult."
+  },
+  {
+    "word": "Meticulous",
+    "meaning": "Extremely careful and precise about details."
+  },
+  {
+    "word": "Eloquent",
+    "meaning": "Expressing ideas fluently and persuasively."
+  },
+  {
+    "word": "Succinct",
+    "meaning": "Expressed clearly and effectively using very few words."
+  },
+  {
+    "word": "Tangible",
+    "meaning": "Real and concrete enough to be seen, touched, or clearly measured."
+  },
+  {
+    "word": "Intangible",
+    "meaning": "Existing as an idea, quality, or feeling rather than as something physical."
+  },
+  {
+    "word": "Feasible",
+    "meaning": "Possible and practical to accomplish."
+  },
+  {
+    "word": "Viable",
+    "meaning": "Capable of working successfully or continuing to exist."
+  },
+  {
+    "word": "Inherent",
+    "meaning": "Existing naturally as a basic or permanent part of something."
+  },
+  {
+    "word": "Intrinsic",
+    "meaning": "Belonging naturally to something as an essential quality."
+  },
+  {
+    "word": "Extrinsic",
+    "meaning": "Coming from outside rather than being an essential part of something."
+  },
+  {
+    "word": "Inevitable",
+    "meaning": "Certain to happen and impossible to avoid."
+  },
+  {
+    "word": "Ironic",
+    "meaning": "Happening in a way that is opposite to what is expected or intended."
+  },
+  {
+    "word": "Paradoxical",
+    "meaning": "Seeming contradictory but possibly containing an underlying truth."
+  },
+  {
+    "word": "Contradictory",
+    "meaning": "Containing ideas or statements that cannot both be true or correct."
+  },
+  {
+    "word": "Ambiguous",
+    "meaning": "Open to more than one possible meaning or interpretation."
+  },
+  {
+    "word": "Explicit",
+    "meaning": "Clearly stated so that there is little room for confusion."
+  },
+  {
+    "word": "Implicit",
+    "meaning": "Suggested or understood without being directly stated."
+  },
+  {
+    "word": "Analogous",
+    "meaning": "Similar in important ways even though the things being compared are different."
+  },
+  {
+    "word": "Compatible",
+    "meaning": "Able to exist, work, or function well together."
+  },
+  {
+    "word": "Incompatible",
+    "meaning": "Unable to exist, work, or function successfully together."
+  },
+  {
+    "word": "Comprehensive",
+    "meaning": "Including all or nearly all important aspects of something."
+  },
+  {
+    "word": "Concise",
+    "meaning": "Expressing an idea clearly without using unnecessary words."
+  },
+  {
+    "word": "Elaborate",
+    "meaning": "Containing many carefully arranged details or involving considerable effort."
+  },
+  {
+    "word": "Preliminary",
+    "meaning": "Coming before the main event or final stage and serving as preparation."
+  },
+  {
+    "word": "Subsequent",
+    "meaning": "Happening or coming after something else."
+  },
+  {
+    "word": "Concurrent",
+    "meaning": "Happening at the same time as something else."
+  },
+  {
+    "word": "Consecutive",
+    "meaning": "Following one another continuously without interruption."
+  },
+  {
+    "word": "Cumulative",
+    "meaning": "Increasing through the gradual addition of things over time."
+  },
+  {
+    "word": "Sporadic",
+    "meaning": "Happening occasionally and irregularly rather than consistently."
+  },
+  {
+    "word": "Consistent",
+    "meaning": "Remaining the same or behaving reliably over time."
+  },
+  {
+    "word": "Inconsistent",
+    "meaning": "Not staying the same or failing to follow a reliable pattern."
+  },
+  {
+    "word": "Predominantly",
+    "meaning": "Mostly or mainly."
+  },
+  {
+    "word": "Marginal",
+    "meaning": "Small, limited, or of relatively little importance."
+  },
+  {
+    "word": "Substantial",
+    "meaning": "Large or important enough to have a noticeable effect."
+  },
+  {
+    "word": "Negligible",
+    "meaning": "So small or unimportant that it can almost be ignored."
+  },
+  {
+    "word": "Significant",
+    "meaning": "Important enough to have a noticeable effect or meaning."
+  },
+  {
+    "word": "Superfluous",
+    "meaning": "More than what is needed or necessary."
+  },
+  {
+    "word": "Insufficient",
+    "meaning": "Not enough to meet a particular need or requirement."
+  },
+  {
+    "word": "Adept",
+    "meaning": "Highly skilled or capable at doing something."
+  },
+  {
+    "word": "Proficient",
+    "meaning": "Skilled and competent at doing something."
+  },
+  {
+    "word": "Competent",
+    "meaning": "Having enough skill, knowledge, or ability to do something successfully."
+  },
+  {
+    "word": "Inept",
+    "meaning": "Lacking the skill or ability to do something effectively."
+  },
+  {
+    "word": "Astounding",
+    "meaning": "Extremely surprising or impressive."
+  },
+  {
+    "word": "Remarkable",
+    "meaning": "Worthy of attention because it is unusual, impressive, or significant."
+  },
+  {
+    "word": "Mundane",
+    "meaning": "Ordinary, routine, or lacking excitement."
+  },
+  {
+    "word": "Tedious",
+    "meaning": "Boring and tiring because of being repetitive or lengthy."
+  },
+  {
+    "word": "Monotonous",
+    "meaning": "Lacking variety and therefore becoming boring or repetitive."
+  },
+  {
+    "word": "Spontaneous",
+    "meaning": "Happening naturally without being planned or forced."
+  },
+  {
+    "word": "Deliberative",
+    "meaning": "Involving careful thought and consideration before making a decision."
+  },
+  {
+    "word": "Rational",
+    "meaning": "Based on reason, logic, and careful thought."
+  },
+  {
+    "word": "Irrational",
+    "meaning": "Not based on reason, logic, or sound judgment."
+  },
+  {
+    "word": "Objective",
+    "meaning": "Based on facts rather than personal feelings or opinions."
+  },
+  {
+    "word": "Subjective",
+    "meaning": "Influenced by personal feelings, opinions, or experiences."
+  },
+  {
+    "word": "Empirical",
+    "meaning": "Based on observation, experience, or evidence rather than theory alone."
+  },
+  {
+    "word": "Hypothetical",
+    "meaning": "Based on a possible situation rather than something known to be real."
+  },
+  {
+    "word": "Theoretical",
+    "meaning": "Based on ideas or principles rather than practical experience."
+  },
+  {
+    "word": "Cursory",
+    "meaning": "Done quickly with little attention to detail."
+  },
+  {
+    "word": "Pervasive",
+    "meaning": "Present or spreading widely throughout something."
+  },
+  {
+    "word": "Elusive",
+    "meaning": "Difficult to find, understand, achieve, or remember."
+  },
+  {
+    "word": "Profound",
+    "meaning": "Very deep, meaningful, or having a strong effect."
+  },
+  {
+    "word": "Contentious",
+    "meaning": "Likely to cause disagreement or argument."
+  },
+  {
+    "word": "Precarious",
+    "meaning": "Unstable or uncertain and likely to become difficult or dangerous."
+  },
+  {
+    "word": "Volatile",
+    "meaning": "Likely to change suddenly and unpredictably."
+  },
+  {
+    "word": "Fleeting",
+    "meaning": "Lasting for only a very short time."
+  },
+  {
+    "word": "Persistent",
+    "meaning": "Continuing despite difficulty, opposition, or repeated attempts to stop it."
+  },
+  {
+    "word": "Reluctant",
+    "meaning": "Unwilling or hesitant to do something."
+  },
+  {
+    "word": "Inclined",
+    "meaning": "Likely or willing to do something."
+  },
+  {
+    "word": "Prone",
+    "meaning": "Likely to experience or do something, usually something undesirable."
+  },
+  {
+    "word": "Susceptible",
+    "meaning": "Easily affected or influenced by something."
+  },
+  {
+    "word": "Imperative",
+    "meaning": "Extremely important or necessary."
+  },
+  {
+    "word": "Agitation",
+    "meaning": "A state of emotional disturbance, restlessness, or unease."
+  },
+  {
+    "word": "Vague",
+    "meaning": "Not clearly expressed, defined, or understood."
+  },
+  {
+    "word": "Precise",
+    "meaning": "Extremely clear, exact, and accurate."
+  },
+  {
+    "word": "Subtle",
+    "meaning": "Not obvious or easily noticed, but often meaningful."
+  },
+  {
+    "word": "Alienate",
+    "meaning": "To make someone feel isolated, rejected, or disconnected from others."
+  },
+  {
+    "word": "Predominant",
+    "meaning": "More common, important, or influential than others."
+  },
+  {
+    "word": "Breach",
+    "meaning": "A failure to respect or maintain an agreement, rule, trust, or relationship."
+  },
+  {
+    "word": "Callous",
+    "meaning": "Showing little concern for another person's feelings or suffering."
+  },
+  {
+    "word": "Fundamental",
+    "meaning": "Essential to the existence, development, or understanding of something."
+  },
+  {
+    "word": "Contemporary",
+    "meaning": "Belonging to or existing in the present time."
+  },
+  {
+    "word": "Obsolete",
+    "meaning": "No longer useful or commonly used because something newer has replaced it."
+  },
+  {
+    "word": "Contrite",
+    "meaning": "Genuinely sorry and remorseful for having done something wrong."
+  },
+  {
+    "word": "Cynical",
+    "meaning": "Distrustful of people's motives, often assuming they are driven by self-interest."
+  },
+  {
+    "word": "Pertinent",
+    "meaning": "Directly relevant or applicable to the matter being considered."
+  },
+  {
+    "word": "Deference",
+    "meaning": "Respectful submission to another person's authority, wishes, or judgment."
+  },
+  {
+    "word": "Perceptive",
+    "meaning": "Quick to notice and understand things that others may miss."
+  },
+  {
+    "word": "Intuitive",
+    "meaning": "Able to understand something instinctively without conscious reasoning."
+  },
+  {
+    "word": "Insightful",
+    "meaning": "Showing a deep and accurate understanding of something."
+  },
+  {
+    "word": "Dubious",
+    "meaning": "Not convinced that something is true, reliable, or worthwhile."
+  },
+  {
+    "word": "Analytical",
+    "meaning": "Using careful examination and logical reasoning to understand something."
+  },
+  {
+    "word": "Discreet",
+    "meaning": "Careful about keeping information private or avoiding unnecessary attention."
+  },
+  {
+    "word": "Frank",
+    "meaning": "Direct and honest, sometimes without softening what you say."
+  },
+  {
+    "word": "Tactful",
+    "meaning": "Careful about what you say so that you do not unnecessarily upset or offend someone."
+  },
+  {
+    "word": "Passive",
+    "meaning": "Accepting situations or allowing others to decide without expressing your own needs or opinions."
+  },
+  {
+    "word": "Aggressive",
+    "meaning": "Forcefully pursuing your own wishes without adequately considering others."
+  },
+  {
+    "word": "Patronizing",
+    "meaning": "Treating someone with apparent kindness while subtly suggesting that they are less capable or intelligent."
+  },
+  {
+    "word": "Pretentious",
+    "meaning": "Trying to appear more important, intelligent, cultured, or sophisticated than you really are."
+  },
+  {
+    "word": "Genuine",
+    "meaning": "Sincere, authentic, and not deliberately misleading."
+  },
+  {
+    "word": "Authentic",
+    "meaning": "Consistent with who or what someone genuinely is."
+  },
+  {
+    "word": "Sincere",
+    "meaning": "Expressing genuine feelings, beliefs, or intentions."
+  },
+  {
+    "word": "Complex",
+    "meaning": "Made up of many connected parts or difficult to understand fully."
+  },
+  {
+    "word": "Nuanced",
+    "meaning": "Containing subtle differences or distinctions that are not immediately obvious."
+  },
+  {
+    "word": "Cautious",
+    "meaning": "Careful to avoid unnecessary danger, mistakes, or risk."
+  },
+  {
+    "word": "Reckless",
+    "meaning": "Acting without considering the possible consequences."
+  },
+  {
+    "word": "Skeptical",
+    "meaning": "Not easily convinced and inclined to question what you are told."
+  },
+  {
+    "word": "Idealistic",
+    "meaning": "Guided by high standards or ideals, sometimes without considering practical limitations."
+  },
+  {
+    "word": "Realistic",
+    "meaning": "Accepting situations as they actually are rather than imagining them as you wish they were."
+  },
+  {
+    "word": "Optimistic",
+    "meaning": "Expecting positive outcomes or believing that things will improve."
+  },
+  {
+    "word": "Pessimistic",
+    "meaning": "Expecting negative outcomes or believing that things will go badly."
+  },
+  {
+    "word": "Indifferent",
+    "meaning": "Having little or no interest, concern, or emotional reaction."
+  },
+  {
+    "word": "Apathetic",
+    "meaning": "Showing very little interest, enthusiasm, or concern."
+  },
+  {
+    "word": "Empathetic",
+    "meaning": "Able to understand and relate to another person's feelings."
+  },
+  {
+    "word": "Compassionate",
+    "meaning": "Showing genuine concern for someone who is suffering or struggling."
+  },
+  {
+    "word": "Resentful",
+    "meaning": "Feeling bitterness because you believe you have been treated unfairly."
+  },
+  {
+    "word": "Apprehensive",
+    "meaning": "Worried or nervous about something that may happen."
+  },
+  {
+    "word": "Bewildered",
+    "meaning": "Extremely confused and unsure of what to do or think."
+  },
+  {
+    "word": "Perplexed",
+    "meaning": "Confused because something is difficult to understand or explain."
+  },
+  {
+    "word": "Intrigued",
+    "meaning": "Very interested in something because it is unusual, mysterious, or fascinating."
+  },
+  {
+    "word": "Enthralled",
+    "meaning": "Completely fascinated or captivated by something."
+  },
+  {
+    "word": "Resolute",
+    "meaning": "Extremely determined and unwilling to change your decision."
+  },
+  {
+    "word": "Tenacious",
+    "meaning": "Continuing firmly despite difficulty or opposition."
+  },
+  {
+    "word": "Amiable",
+    "meaning": "Friendly, pleasant, and easy to get along with."
+  },
+  {
+    "word": "Affable",
+    "meaning": "Friendly and easy to talk to."
+  },
+  {
+    "word": "Cordial",
+    "meaning": "Polite, warm, and friendly without necessarily being close."
+  },
+  {
+    "word": "Genial",
+    "meaning": "Cheerful, warm, and friendly."
+  },
+  {
+    "word": "Gregarious",
+    "meaning": "Enjoying the company of others and being naturally sociable."
+  },
+  {
+    "word": "Reserved",
+    "meaning": "Quiet and unlikely to openly express your thoughts or feelings."
+  },
+  {
+    "word": "Introverted",
+    "meaning": "More comfortable focusing inward or spending time alone than constantly socializing."
+  },
+  {
+    "word": "Extroverted",
+    "meaning": "Naturally energized by social interaction and being around other people."
+  },
+  {
+    "word": "Aloof",
+    "meaning": "Emotionally distant or appearing uninterested in others."
+  },
+  {
+    "word": "Inquisitive",
+    "meaning": "Naturally curious and eager to discover information."
+  },
+  {
+    "word": "Incredulous",
+    "meaning": "Unable or unwilling to believe that something is true."
+  },
+  {
+    "word": "Vindictive",
+    "meaning": "Wanting to hurt someone because you believe they have wronged you."
+  },
+  {
+    "word": "Benevolent",
+    "meaning": "Kind and willing to help others."
+  },
+  {
+    "word": "Malevolent",
+    "meaning": "Having or showing a desire to cause harm."
+  },
+  {
+    "word": "Malicious",
+    "meaning": "Intending to cause harm, trouble, or pain."
+  },
+  {
+    "word": "Deceptive",
+    "meaning": "Likely to make someone believe something that is not true."
+  },
+  {
+    "word": "Deceitful",
+    "meaning": "Habitually dishonest or deliberately misleading."
+  },
+  {
+    "word": "Manipulative",
+    "meaning": "Influencing someone unfairly or indirectly to get what you want."
+  },
+  {
+    "word": "Exploitative",
+    "meaning": "Taking unfair advantage of someone or something for personal benefit."
+  },
+  {
+    "word": "Opportunistic",
+    "meaning": "Taking advantage of a situation for personal benefit, often without considering broader principles."
+  },
+  {
+    "word": "Disingenuous",
+    "meaning": "Not completely honest or sincere, despite appearing to be."
+  },
+  {
+    "word": "Evasive",
+    "meaning": "Avoiding giving a direct answer or dealing with something openly."
+  },
+  {
+    "word": "Forthright",
+    "meaning": "Direct, honest, and straightforward in expressing yourself."
+  },
+  {
+    "word": "Reticent",
+    "meaning": "Unwilling to speak openly about your thoughts or feelings."
+  },
+  {
+    "word": "Taciturn",
+    "meaning": "Usually speaking very little."
+  },
+  {
+    "word": "Verbose",
+    "meaning": "Using more words than necessary."
+  },
+  {
+    "word": "Loquacious",
+    "meaning": "Talking a great deal, often more than necessary."
+  },
+  {
+    "word": "Persuasive",
+    "meaning": "Good at convincing people to accept an idea or take an action."
+  },
+  {
+    "word": "Conciliatory",
+    "meaning": "Intended to reduce conflict and encourage agreement."
+  },
+  {
+    "word": "Confrontational",
+    "meaning": "Likely to challenge others directly and create conflict."
+  },
+  {
+    "word": "Provocative",
+    "meaning": "Intended to cause a strong reaction, often by challenging people's opinions."
+  },
+  {
+    "word": "Blunt",
+    "meaning": "Very direct, sometimes without considering how your words may affect others."
+  },
+  {
+    "word": "Curt",
+    "meaning": "Brief and sometimes unfriendly in speech or manner."
+  },
+  {
+    "word": "Courteous",
+    "meaning": "Polite and respectful toward others."
+  },
+  {
+    "word": "Gracious",
+    "meaning": "Kind, polite, and pleasant, especially toward others."
+  },
+  {
+    "word": "Considerate",
+    "meaning": "Careful to think about other people's feelings and needs."
+  },
+  {
+    "word": "Inconsiderate",
+    "meaning": "Failing to think about how your actions affect other people."
+  },
+  {
+    "word": "Derogatory",
+    "meaning": "Showing disrespect or expressing a negative opinion about someone or something."
+  },
+  {
+    "word": "Disparaging",
+    "meaning": "Speaking about someone or something in a way that shows little respect."
+  },
+  {
+    "word": "Complimentary",
+    "meaning": "Expressing praise or admiration."
+  },
+  {
+    "word": "Affirmative",
+    "meaning": "Expressing agreement, approval, or confirmation."
+  },
+  {
+    "word": "Receptive",
+    "meaning": "Willing to listen to, consider, or accept new ideas."
+  },
+  {
+    "word": "Amenable",
+    "meaning": "Willing to accept suggestions or cooperate with others."
+  },
+  {
+    "word": "Obstinate",
+    "meaning": "Unreasonably unwilling to change your opinion or behavior."
+  },
+  {
+    "word": "Stubborn",
+    "meaning": "Unwilling to change your mind despite reasons to do so."
+  },
+  {
+    "word": "Inflexible",
+    "meaning": "Unwilling or unable to adapt to different circumstances."
+  },
+  {
+    "word": "Adaptable",
+    "meaning": "Able to adjust effectively to new situations or conditions."
+  },
+  {
+    "word": "Flexible",
+    "meaning": "Willing and able to change according to circumstances."
+  },
+  {
+    "word": "Dogmatic",
+    "meaning": "Expressing opinions as unquestionably correct and refusing to consider alternatives."
+  },
+  {
+    "word": "Open-minded",
+    "meaning": "Willing to consider ideas or opinions different from your own."
+  },
+  {
+    "word": "Prejudiced",
+    "meaning": "Having an unfair opinion about someone based on preconceived ideas."
+  },
+  {
+    "word": "Biased",
+    "meaning": "Showing an unfair preference for one side, person, or viewpoint."
+  },
+  {
+    "word": "Logical",
+    "meaning": "Following clear reasoning and making sense according to facts or principles."
+  },
+  {
+    "word": "Illogical",
+    "meaning": "Not following a sensible or reasonable line of thought."
+  },
+  {
+    "word": "Credible",
+    "meaning": "Believable because the person or information appears trustworthy."
+  },
+  {
+    "word": "Transparent",
+    "meaning": "Open and honest, with little attempt to hide information or intentions."
+  },
+  {
+    "word": "Fickle",
+    "meaning": "Changing your opinions, interests, or feelings frequently and unpredictably."
+  },
+  {
+    "word": "Capricious",
+    "meaning": "Changing suddenly and unpredictably, often without a clear reason."
+  },
+  {
+    "word": "Methodical",
+    "meaning": "Doing things in a careful, organized, and systematic way."
+  },
+  {
+    "word": "Impetuous",
+    "meaning": "Acting suddenly and without considering the consequences."
+  },
+  {
+    "word": "Calculated",
+    "meaning": "Carefully planned to achieve a particular result."
+  },
+  {
+    "word": "Strategic",
+    "meaning": "Planned carefully to achieve a specific long-term goal."
+  },
+  {
+    "word": "Tactical",
+    "meaning": "Focused on the practical steps needed to achieve a particular objective."
+  },
+  {
+    "word": "Sustainable",
+    "meaning": "Able to continue for a long time without causing serious problems or exhaustion."
+  },
+  {
+    "word": "Attainable",
+    "meaning": "Possible to achieve or reach."
+  },
+  {
+    "word": "Unrealistic",
+    "meaning": "Not reasonably achievable because it ignores practical limitations."
+  },
+  {
+    "word": "Optimal",
+    "meaning": "The best or most effective possible under particular circumstances."
+  },
+  {
+    "word": "Suboptimal",
+    "meaning": "Less effective or suitable than the best possible option."
+  },
+  {
+    "word": "Efficient",
+    "meaning": "Achieving a desired result without wasting time, effort, or resources."
+  },
+  {
+    "word": "Inefficient",
+    "meaning": "Wasting time, effort, money, or other resources while achieving a result."
+  },
+  {
+    "word": "Effective",
+    "meaning": "Successful in producing the intended result."
+  },
+  {
+    "word": "Ineffective",
+    "meaning": "Failing to produce the intended result."
+  },
+  {
+    "word": "Adequate",
+    "meaning": "Good enough to meet a particular need or requirement."
+  },
+  {
+    "word": "Excessive",
+    "meaning": "Greater than what is necessary, reasonable, or appropriate."
+  },
+  {
+    "word": "Moderate",
+    "meaning": "Reasonable in amount, degree, or intensity rather than extreme."
+  },
+  {
+    "word": "Extreme",
+    "meaning": "Far beyond what is considered ordinary, reasonable, or moderate."
+  },
+  {
+    "word": "Proportional",
+    "meaning": "Appropriate in size, amount, or degree relative to something else."
+  },
+  {
+    "word": "Disproportionate",
+    "meaning": "Much larger or smaller than would be reasonable in comparison with something else."
+  },
+  {
+    "word": "Contextual",
+    "meaning": "Related to the circumstances surrounding a particular situation."
+  },
+  {
+    "word": "Circumstantial",
+    "meaning": "Dependent on particular conditions or surrounding facts."
+  },
+  {
+    "word": "Conditional",
+    "meaning": "Depending on something else happening or being true."
+  },
+  {
+    "word": "Unconditional",
+    "meaning": "Not limited or dependent on particular conditions."
+  },
+  {
+    "word": "Peripheral",
+    "meaning": "Less important or directly connected to the main issue."
+  },
+  {
+    "word": "Central",
+    "meaning": "Most important or directly connected to the main issue."
+  },
+  {
+    "word": "Integral",
+    "meaning": "Essential to making something complete or functional."
+  },
+  {
+    "word": "Ancillary",
+    "meaning": "Providing additional support to something more important."
+  },
+  {
+    "word": "Complementary",
+    "meaning": "Adding something useful that improves or completes another thing."
+  },
+  {
+    "word": "Supplementary",
+    "meaning": "Added to provide extra information, support, or value."
+  },
+  {
+    "word": "Exclusive",
+    "meaning": "Limited to a particular person, group, or purpose."
+  },
+  {
+    "word": "Inclusive",
+    "meaning": "Designed to involve or accommodate a wide range of people."
+  },
+  {
+    "word": "Universal",
+    "meaning": "Applying to everyone or existing everywhere within a particular context."
+  },
+  {
+    "word": "Specific",
+    "meaning": "Clearly defined or relating to one particular thing."
+  },
+  {
+    "word": "Generalized",
+    "meaning": "Described in broad terms rather than with specific details."
+  },
+  {
+    "word": "Particular",
+    "meaning": "Relating to one specific person, thing, or situation."
+  },
+  {
+    "word": "Generic",
+    "meaning": "Not specific to a particular person, place, or situation."
+  },
+  {
+    "word": "Distinct",
+    "meaning": "Clearly different or separate from something else."
+  },
+  {
+    "word": "Identical",
+    "meaning": "Exactly the same in every relevant way."
+  },
+  {
+    "word": "Comparable",
+    "meaning": "Similar enough to be reasonably compared."
+  },
+  {
+    "word": "Contrasting",
+    "meaning": "Significantly different in ways that make the differences noticeable."
+  },
+  {
+    "word": "Equivalent",
+    "meaning": "Equal in value, meaning, function, or effect."
+  },
+  {
+    "word": "Contrary",
+    "meaning": "Opposite to something previously stated, expected, or believed."
+  },
+  {
+    "word": "Erratic",
+    "meaning": "Unpredictable and lacking a consistent pattern."
+  },
+  {
+    "word": "Stable",
+    "meaning": "Remaining steady and unlikely to change suddenly."
+  },
+  {
+    "word": "Transient",
+    "meaning": "Existing or continuing only for a short time."
+  },
+  {
+    "word": "Perpetual",
+    "meaning": "Continuing indefinitely or seemingly without end."
+  },
+  {
+    "word": "Recurring",
+    "meaning": "Happening repeatedly over time."
+  },
+  {
+    "word": "Intermittent",
+    "meaning": "Stopping and starting repeatedly rather than continuing constantly."
+  },
+  {
+    "word": "Continuous",
+    "meaning": "Continuing without interruption."
+  },
+  {
+    "word": "Gradual",
+    "meaning": "Happening slowly over a period of time."
+  },
+  {
+    "word": "Abrupt",
+    "meaning": "Sudden and unexpected."
+  },
+  {
+    "word": "Obvious",
+    "meaning": "Easy to see, understand, or recognize."
+  },
+  {
+    "word": "Apparent",
+    "meaning": "Clearly visible or seeming to be true based on what is known."
+  },
+  {
+    "word": "Ostensible",
+    "meaning": "Appearing to be true or genuine, although it may not actually be so."
+  },
+  {
+    "word": "Evident",
+    "meaning": "Clearly seen, understood, or recognized."
+  },
+  {
+    "word": "Conceivable",
+    "meaning": "Possible to imagine or consider as a possibility."
+  },
+  {
+    "word": "Inconceivable",
+    "meaning": "Extremely difficult or impossible to imagine or believe."
+  },
+  {
+    "word": "Implausible",
+    "meaning": "Unlikely to be true or believable."
+  },
+  {
+    "word": "Probable",
+    "meaning": "Likely to happen or be true."
+  },
+  {
+    "word": "Improbable",
+    "meaning": "Unlikely to happen or be true."
+  },
+  {
+    "word": "Certain",
+    "meaning": "Known or expected to happen without reasonable doubt."
+  },
+  {
+    "word": "Uncertain",
+    "meaning": "Not known, decided, or predictable."
+  },
+  {
+    "word": "Latent",
+    "meaning": "Present but not yet visible, active, or fully developed."
+  },
+  {
+    "word": "Overt",
+    "meaning": "Open, obvious, and not hidden."
+  },
+  {
+    "word": "Covert",
+    "meaning": "Hidden or secret rather than openly displayed."
+  },
+  {
+    "word": "Unintentional",
+    "meaning": "Not planned or intended."
+  },
+  {
+    "word": "Intentional",
+    "meaning": "Done on purpose rather than by accident."
+  },
+  {
+    "word": "Accidental",
+    "meaning": "Happening unexpectedly without being planned."
+  },
+  {
+    "word": "Voluntary",
+    "meaning": "Done willingly and by personal choice."
+  },
+  {
+    "word": "Compulsory",
+    "meaning": "Required by a rule, authority, or obligation."
+  },
+  {
+    "word": "Autonomous",
+    "meaning": "Able to make decisions or operate independently."
+  },
+  {
+    "word": "Dependent",
+    "meaning": "Relying on someone or something else for support or functioning."
+  },
+  {
+    "word": "Independent",
+    "meaning": "Able to act, think, or function without relying on others."
+  },
+  {
+    "word": "Interdependent",
+    "meaning": "Mutually relying on each other."
+  },
+  {
+    "word": "Reciprocal",
+    "meaning": "Given, felt, or done equally by two sides toward each other."
+  },
+  {
+    "word": "Mutual",
+    "meaning": "Shared by or involving two or more people equally."
+  },
+  {
+    "word": "Collective",
+    "meaning": "Shared by or involving a group rather than an individual."
+  },
+  {
+    "word": "Individualistic",
+    "meaning": "Focused strongly on personal independence and individual needs or goals."
+  },
+  {
+    "word": "Collaborative",
+    "meaning": "Involving people working together toward a shared goal."
+  },
+  {
+    "word": "Cooperative",
+    "meaning": "Willing to work with others to achieve something together."
+  },
+  {
+    "word": "Relegate",
+    "meaning": "To put something or someone into a less important or lower position."
+  },
+  {
+    "word": "Rescind",
+    "meaning": "To officially cancel or withdraw a decision, agreement, or offer."
+  },
+  {
+    "word": "Rectitude",
+    "meaning": "Strong moral integrity and commitment to doing what is right."
+  },
+  {
+    "word": "Scrutiny",
+    "meaning": "Close and careful examination of something."
+  },
+  {
+    "word": "Equivocal",
+    "meaning": "Open to more than one interpretation, often making something unclear."
+  },
+  {
+    "word": "Incongruous",
+    "meaning": "Out of place because it does not fit with its surroundings or context."
+  },
+  {
+    "word": "Plausibility",
+    "meaning": "The quality of seeming reasonable or believable."
+  },
+  {
+    "word": "Validity",
+    "meaning": "The degree to which something is logically sound, accurate, or well-founded."
+  },
+  {
+    "word": "Fallacy",
+    "meaning": "A mistake in reasoning that makes an argument logically unsound."
+  },
+  {
+    "word": "Premise",
+    "meaning": "A statement or assumption used as the basis for an argument or conclusion."
+  },
+  {
+    "word": "Rationale",
+    "meaning": "The reasoning or underlying explanation behind a decision or belief."
+  },
+  {
+    "word": "Implication",
+    "meaning": "A meaning or consequence that is suggested rather than directly stated."
+  },
+  {
+    "word": "Inference",
+    "meaning": "A conclusion reached by interpreting available information rather than being told directly."
+  },
+  {
+    "word": "Assumption",
+    "meaning": "Something accepted as true without sufficient proof."
+  },
+  {
+    "word": "Presumption",
+    "meaning": "A belief accepted as true before it has been properly established."
+  },
+  {
+    "word": "Misconception",
+    "meaning": "A belief or understanding that is incorrect."
+  },
+  {
+    "word": "Misinterpret",
+    "meaning": "To understand someone's words, actions, or intentions incorrectly."
+  },
+  {
+    "word": "Misconstrue",
+    "meaning": "To interpret something incorrectly, especially someone's meaning or intentions."
+  },
+  {
+    "word": "Discern",
+    "meaning": "To recognize or understand something that is not immediately obvious."
+  },
+  {
+    "word": "Comprehend",
+    "meaning": "To fully understand something."
+  },
+  {
+    "word": "Grasp",
+    "meaning": "To understand an idea or concept clearly."
+  },
+  {
+    "word": "Elucidate",
+    "meaning": "To make something clearer by explaining it carefully."
+  },
+  {
+    "word": "Expound",
+    "meaning": "To explain an idea or subject in detail."
+  },
+  {
+    "word": "Substantiate",
+    "meaning": "To support a claim with evidence or convincing information."
+  },
+  {
+    "word": "Refute",
+    "meaning": "To prove that a statement or argument is wrong."
+  },
+  {
+    "word": "Rebut",
+    "meaning": "To respond to an argument or criticism by presenting evidence against it."
+  },
+  {
+    "word": "Corroborate",
+    "meaning": "To provide evidence that supports or confirms something."
+  },
+  {
+    "word": "Authenticate",
+    "meaning": "To establish that something is genuine or real."
+  },
+  {
+    "word": "Verify",
+    "meaning": "To check whether something is accurate or true."
+  },
+  {
+    "word": "Ascertain",
+    "meaning": "To find out something with certainty through investigation or inquiry."
+  },
+  {
+    "word": "Deduce",
+    "meaning": "To reach a conclusion by reasoning from known facts."
+  },
+  {
+    "word": "Speculate",
+    "meaning": "To form an idea or theory without enough evidence to be certain."
+  },
+  {
+    "word": "Rationalize",
+    "meaning": "To create a seemingly reasonable explanation for something, especially after the decision has already been made."
+  },
+  {
+    "word": "Reconsider",
+    "meaning": "To think about something again, especially with the possibility of changing your decision."
+  },
+  {
+    "word": "Reassess",
+    "meaning": "To evaluate something again in light of new information."
+  },
+  {
+    "word": "Reevaluate",
+    "meaning": "To examine something again to determine whether your original judgment still holds."
+  },
+  {
+    "word": "Contend",
+    "meaning": "To argue or maintain that something is true."
+  },
+  {
+    "word": "Assert",
+    "meaning": "To state something confidently and firmly."
+  },
+  {
+    "word": "Insist",
+    "meaning": "To demand that something be accepted or done despite disagreement."
+  },
+  {
+    "word": "Acknowledge",
+    "meaning": "To recognize or admit that something exists, is true, or is important."
+  },
+  {
+    "word": "Concede",
+    "meaning": "To admit that something is true or that someone else has a valid point."
+  },
+  {
+    "word": "Contest",
+    "meaning": "To challenge the truth, validity, or authority of something."
+  },
+  {
+    "word": "Challenge",
+    "meaning": "To question an idea, belief, decision, or assumption rather than simply accepting it."
+  },
+  {
+    "word": "Ponder",
+    "meaning": "To think deeply and carefully about something."
+  },
+  {
+    "word": "Mull",
+    "meaning": "To think about something for a period of time before reaching a decision."
+  },
+  {
+    "word": "Weigh",
+    "meaning": "To carefully consider different factors before deciding."
+  },
+  {
+    "word": "Detect",
+    "meaning": "To notice or discover something that is not immediately apparent."
+  },
+  {
+    "word": "Identify",
+    "meaning": "To recognize or establish exactly what something or someone is."
+  },
+  {
+    "word": "Pinpoint",
+    "meaning": "To identify something with a high degree of accuracy."
+  },
+  {
+    "word": "Gauge",
+    "meaning": "To estimate or judge the extent, level, or importance of something."
+  },
+  {
+    "word": "Interpret",
+    "meaning": "To determine the meaning or significance of something."
+  },
+  {
+    "word": "Contextualize",
+    "meaning": "To understand or explain something by considering the circumstances surrounding it."
+  },
+  {
+    "word": "Distort",
+    "meaning": "To change something from its original meaning, form, or truth."
+  },
+  {
+    "word": "Contradict",
+    "meaning": "To state the opposite of what someone else has said or what was previously established."
+  },
+  {
+    "word": "Qualify",
+    "meaning": "To modify a statement by adding a limitation, condition, or exception."
+  },
+  {
+    "word": "Connotation",
+    "meaning": "The feeling or idea associated with a word beyond its literal meaning."
+  },
+  {
+    "word": "Denotation",
+    "meaning": "The direct, literal meaning of a word."
+  },
+  {
+    "word": "Criterion",
+    "meaning": "A standard used to judge, evaluate, or make a decision about something."
+  },
+  {
+    "word": "Prerequisite",
+    "meaning": "Something required before another thing can happen or be achieved."
+  },
+  {
+    "word": "Constraint",
+    "meaning": "A limitation that restricts what can be done."
+  },
+  {
+    "word": "Exception",
+    "meaning": "A person, situation, or case that does not follow the usual rule."
+  },
+  {
+    "word": "Distinction",
+    "meaning": "A meaningful difference between two things."
+  },
+  {
+    "word": "Discrepancy",
+    "meaning": "A difference between things that are expected to match."
+  },
+  {
+    "word": "Disparity",
+    "meaning": "A significant difference, especially one involving levels, opportunities, or outcomes."
+  },
+  {
+    "word": "Correlation",
+    "meaning": "A relationship in which two things tend to change or occur together."
+  },
+  {
+    "word": "Causation",
+    "meaning": "A relationship in which one thing directly produces or contributes to another."
+  },
+  {
+    "word": "Consequence",
+    "meaning": "A result or effect that follows from an action or decision."
+  },
+  {
+    "word": "Ramification",
+    "meaning": "A consequence or development that results from a particular action or decision."
+  },
+  {
+    "word": "Repercussion",
+    "meaning": "A negative or unintended consequence of an action or event."
+  },
+  {
+    "word": "Impetus",
+    "meaning": "Something that encourages or causes an action to begin."
+  },
+  {
+    "word": "Catalyst",
+    "meaning": "A person or event that causes an important change or development."
+  },
+  {
+    "word": "Precursor",
+    "meaning": "Something that comes before and contributes to the development of something else."
+  },
+  {
+    "word": "Byproduct",
+    "meaning": "An additional result produced alongside the main result."
+  },
+  {
+    "word": "Precipitate",
+    "meaning": "To cause something, especially an event or situation, to happen suddenly."
+  },
+  {
+    "word": "Elicit",
+    "meaning": "To draw out a response, reaction, or piece of information."
+  },
+  {
+    "word": "Evoke",
+    "meaning": "To bring a feeling, memory, or image into someone's mind."
+  },
+  {
+    "word": "Provoke",
+    "meaning": "To cause a particular reaction, especially a strong one."
+  },
+  {
+    "word": "Incite",
+    "meaning": "To encourage or stir someone toward a particular action, often something negative."
+  },
+  {
+    "word": "Prompt",
+    "meaning": "To cause someone to take action or respond."
+  },
+  {
+    "word": "Compel",
+    "meaning": "To strongly persuade or force someone to do something."
+  },
+  {
+    "word": "Inhibit",
+    "meaning": "To make someone less likely or less able to act freely."
+  },
+  {
+    "word": "Impede",
+    "meaning": "To slow down or obstruct progress."
+  },
+  {
+    "word": "Hinder",
+    "meaning": "To make something more difficult to accomplish or achieve."
+  },
+  {
+    "word": "Enable",
+    "meaning": "To make something possible or give someone the ability to do something."
+  },
+  {
+    "word": "Foster",
+    "meaning": "To encourage the development or growth of something."
+  },
+  {
+    "word": "Cultivate",
+    "meaning": "To deliberately develop a quality, relationship, skill, or habit over time."
+  },
+  {
+    "word": "Nurture",
+    "meaning": "To support the growth or development of someone or something."
+  },
+  {
+    "word": "Sustain",
+    "meaning": "To maintain something over a period of time."
+  },
+  {
+    "word": "Diminish",
+    "meaning": "To become or make something smaller, weaker, or less important."
+  },
+  {
+    "word": "Deteriorate",
+    "meaning": "To gradually become worse in quality, condition, or effectiveness."
+  },
+  {
+    "word": "Erode",
+    "meaning": "To gradually weaken or diminish something."
+  },
+  {
+    "word": "Amplify",
+    "meaning": "To increase the strength, effect, or importance of something."
+  },
+  {
+    "word": "Intensify",
+    "meaning": "To become or make something stronger or more extreme."
+  },
+  {
+    "word": "Temper",
+    "meaning": "To make something less extreme, severe, or intense."
+  },
+  {
+    "word": "Aggravate",
+    "meaning": "To make a problem, condition, or situation more severe."
+  },
+  {
+    "word": "Offset",
+    "meaning": "To counterbalance the effect of something with an opposing effect."
+  },
+  {
+    "word": "Counteract",
+    "meaning": "To act against something in order to reduce or prevent its effect."
+  },
+  {
+    "word": "Rectify",
+    "meaning": "To correct something that is wrong or unsatisfactory."
+  },
+  {
+    "word": "Remedy",
+    "meaning": "To correct or improve a problem."
+  },
+  {
+    "word": "Rehabilitate",
+    "meaning": "To restore someone or something to a healthy, functional, or respected condition."
+  },
+  {
+    "word": "Restore",
+    "meaning": "To return something to its previous or proper condition."
+  },
+  {
+    "word": "Revise",
+    "meaning": "To reconsider and make changes in order to improve something."
+  },
+  {
+    "word": "Refine",
+    "meaning": "To improve something by making small, careful changes."
+  },
+  {
+    "word": "Dispute",
+    "meaning": "To question or disagree with the truth, validity, or ownership of something."
+  },
+  {
+    "word": "Inspect",
+    "meaning": "To examine something closely in order to assess its condition or quality."
+  },
+  {
+    "word": "Probe",
+    "meaning": "To investigate something deeply in order to uncover information."
+  },
+  {
+    "word": "Investigate",
+    "meaning": "To systematically examine something in order to discover facts."
+  },
+  {
+    "word": "Explore",
+    "meaning": "To examine an idea, possibility, or subject in order to understand it better."
+  },
+  {
+    "word": "Delve",
+    "meaning": "To investigate or examine something deeply."
+  },
+  {
+    "word": "Unravel",
+    "meaning": "To gradually discover the explanation or meaning behind something complicated."
+  },
+  {
+    "word": "Decipher",
+    "meaning": "To succeed in understanding something difficult or unclear."
+  },
+  {
+    "word": "Requisite",
+    "meaning": "Necessary or required for a particular purpose."
+  },
+  {
+    "word": "Salient",
+    "meaning": "Most noticeable or important among the relevant details."
+  },
+  {
+    "word": "Tenable",
+    "meaning": "Reasonable enough to be accepted, defended, or maintained."
+  },
+  {
+    "word": "Convoluted",
+    "meaning": "Unnecessarily complicated and difficult to follow."
+  },
+  {
+    "word": "Cohesive",
+    "meaning": "Closely connected and forming a unified whole."
+  },
+  {
+    "word": "Inconsequential",
+    "meaning": "Too unimportant to have a meaningful effect."
+  },
+  {
+    "word": "Consequential",
+    "meaning": "Likely to have an important effect or result."
+  },
+  {
+    "word": "Irrelevant",
+    "meaning": "Not connected to or useful for the matter being considered."
+  },
+  {
+    "word": "Germane",
+    "meaning": "Directly relevant to the subject being discussed."
+  },
+  {
+    "word": "Tangential",
+    "meaning": "Related to a subject but not directly connected to its main point."
+  },
+  {
+    "word": "Extraneous",
+    "meaning": "Unnecessary or unrelated to the main matter."
+  },
+  {
+    "word": "Manifest",
+    "meaning": "Clearly visible, obvious, or demonstrated."
+  },
+  {
+    "word": "Incidental",
+    "meaning": "Occurring as a secondary or minor consequence rather than being the main focus."
+  },
+  {
+    "word": "Discretionary",
+    "meaning": "Dependent on someone's judgment or choice rather than being required."
+  },
+  {
+    "word": "Prescriptive",
+    "meaning": "Giving specific instructions about what should be done."
+  },
+  {
+    "word": "Descriptive",
+    "meaning": "Focused on explaining what something is like rather than prescribing what it should be."
+  },
+  {
+    "word": "Normative",
+    "meaning": "Based on ideas about what is considered desirable, proper, or acceptable."
+  },
+  {
+    "word": "Unconventional",
+    "meaning": "Different from what is normally accepted or expected."
+  },
+  {
+    "word": "Novel",
+    "meaning": "New, unusual, or different from what has existed before."
+  },
+  {
+    "word": "Original",
+    "meaning": "New or distinctive rather than copied or derived from something else."
+  },
+  {
+    "word": "Radical",
+    "meaning": "Involving a major departure from established ideas, methods, or conditions."
+  },
+  {
+    "word": "Incremental",
+    "meaning": "Developing through small changes made gradually over time."
+  },
+  {
+    "word": "Transformative",
+    "meaning": "Causing a significant and lasting change."
+  },
+  {
+    "word": "Enduring",
+    "meaning": "Continuing for a long time despite change or difficulty."
+  },
+  {
+    "word": "Ubiquitous",
+    "meaning": "Present or found almost everywhere."
+  },
+  {
+    "word": "Disparate",
+    "meaning": "Fundamentally different or unrelated in nature."
+  },
+  {
+    "word": "Convergent",
+    "meaning": "Moving toward the same point, result, or conclusion."
+  },
+  {
+    "word": "Divergent",
+    "meaning": "Developing in different directions or producing different opinions or results."
+  },
+  {
+    "word": "Symbiotic",
+    "meaning": "Involving two parties that depend on or benefit from each other."
+  },
+  {
+    "word": "Counterintuitive",
+    "meaning": "Opposite to what you would naturally expect or assume."
+  },
+  {
+    "word": "Haphazard",
+    "meaning": "Done without a clear plan, order, or method."
+  },
+  {
+    "word": "Reactive",
+    "meaning": "Responding to events after they have already happened."
+  },
+  {
+    "word": "Accommodating",
+    "meaning": "Willing to adjust your behavior or expectations to meet another person's needs."
+  },
+  {
+    "word": "Intransigent",
+    "meaning": "Unwilling to change your position or compromise."
+  },
+  {
+    "word": "Resistant",
+    "meaning": "Unwilling to accept, change, or cooperate with something."
+  },
+  {
+    "word": "Compliant",
+    "meaning": "Willing to follow a request, rule, or instruction."
+  },
+  {
+    "word": "Defiant",
+    "meaning": "Openly refusing to obey or accept something."
+  },
+  {
+    "word": "Submissive",
+    "meaning": "Too willing to accept another person's authority or demands."
+  },
+  {
+    "word": "Assertiveness",
+    "meaning": "The ability to express yourself confidently without being aggressive."
+  },
+  {
+    "word": "Candor",
+    "meaning": "Honest and direct expression, especially about something difficult."
+  },
+  {
+    "word": "Tact",
+    "meaning": "The ability to communicate difficult truths without unnecessarily offending people."
+  },
+  {
+    "word": "Diplomacy",
+    "meaning": "Skill in handling sensitive situations without creating unnecessary conflict."
+  },
+  {
+    "word": "Discretion",
+    "meaning": "Careful judgment about what should be said, revealed, or done."
+  },
+  {
+    "word": "Reticence",
+    "meaning": "A tendency to avoid speaking freely or revealing one's thoughts."
+  },
+  {
+    "word": "Garrulous",
+    "meaning": "Talking a great deal, especially about things that are not very important."
+  },
+  {
+    "word": "Circumlocution",
+    "meaning": "Using more words than necessary instead of expressing something directly."
+  },
+  {
+    "word": "Euphemism",
+    "meaning": "A milder expression used instead of one that may seem harsh or uncomfortable."
+  },
+  {
+    "word": "Hyperbole",
+    "meaning": "An intentional exaggeration used for emphasis rather than literal accuracy."
+  },
+  {
+    "word": "Understatement",
+    "meaning": "A way of expressing something as less important or intense than it really is."
+  },
+  {
+    "word": "Ambivalence",
+    "meaning": "The state of having conflicting feelings or attitudes toward something."
+  },
+  {
+    "word": "Reservation",
+    "meaning": "A doubt or hesitation about fully accepting or supporting something."
+  },
+  {
+    "word": "Conviction",
+    "meaning": "A firmly held belief that something is true or right."
+  },
+  {
+    "word": "Inclination",
+    "meaning": "A natural tendency or preference toward a particular action or opinion."
+  },
+  {
+    "word": "Predisposition",
+    "meaning": "A tendency to think, behave, or react in a particular way."
+  },
+  {
+    "word": "Aversion",
+    "meaning": "A strong feeling of dislike or unwillingness toward something."
+  },
+  {
+    "word": "Affinity",
+    "meaning": "A natural liking, connection, or sense of similarity between people or things."
+  },
+  {
+    "word": "Disposition",
+    "meaning": "A person's usual attitude, temperament, or tendency to behave in a particular way."
+  },
+  {
+    "word": "Demeanor",
+    "meaning": "The way a person appears and behaves, especially around others."
+  },
+  {
+    "word": "Composure",
+    "meaning": "The ability to remain calm and in control, especially under pressure."
+  },
+  {
+    "word": "Poise",
+    "meaning": "Calm confidence and self-control, particularly in difficult or public situations."
+  },
+  {
+    "word": "Equanimity",
+    "meaning": "Mental calmness and emotional balance, especially when facing difficulty."
+  },
+  {
+    "word": "Fortitude",
+    "meaning": "The strength to endure pain, difficulty, or adversity without giving up."
+  },
+  {
+    "word": "Resilience",
+    "meaning": "The ability to recover and adapt after difficulty, failure, or stress."
+  },
+  {
+    "word": "Perseverance",
+    "meaning": "Continued effort despite difficulty, delay, or discouragement."
+  },
+  {
+    "word": "Tenacity",
+    "meaning": "Determination to keep pursuing something despite obstacles or resistance."
+  },
+  {
+    "word": "Resolve",
+    "meaning": "Firm determination to do something or deal with a difficult situation."
+  },
+  {
+    "word": "Certitude",
+    "meaning": "Complete confidence that something is true or correct."
+  },
+  {
+    "word": "Skepticism",
+    "meaning": "A tendency to question claims rather than accepting them immediately."
+  },
+  {
+    "word": "Credulity",
+    "meaning": "A tendency to believe things too readily without sufficient evidence."
+  },
+  {
+    "word": "Incredulity",
+    "meaning": "An inability or unwillingness to believe that something is true."
+  },
+  {
+    "word": "Cynicism",
+    "meaning": "A tendency to believe that people are mainly motivated by self-interest."
+  },
+  {
+    "word": "Idealism",
+    "meaning": "A tendency to pursue high or perfect standards, sometimes without fully considering practical limitations."
+  },
+  {
+    "word": "Pragmatism",
+    "meaning": "A practical approach that focuses on what is likely to work rather than what sounds ideal."
+  },
+  {
+    "word": "Realism",
+    "meaning": "An approach based on accepting situations as they actually are rather than as you wish they were."
+  },
+  {
+    "word": "Dogmatism",
+    "meaning": "An insistence that your beliefs are correct without being open to serious questioning."
+  },
+  {
+    "word": "Subjectivity",
+    "meaning": "The influence of personal feelings, opinions, or experiences on judgment."
+  },
+  {
+    "word": "Objectivity",
+    "meaning": "The attempt to judge something based on facts rather than personal feelings or preferences."
+  },
+  {
+    "word": "Partiality",
+    "meaning": "A tendency to favor one person, group, or viewpoint over others."
+  },
+  {
+    "word": "Prejudice",
+    "meaning": "An unfair opinion formed about someone or something before knowing enough about it."
+  },
+  {
+    "word": "Stereotype",
+    "meaning": "A fixed and oversimplified belief about a particular type of person or thing."
+  },
+  {
+    "word": "Bias",
+    "meaning": "A preference or tendency that influences judgment in a way that may be unfair or inaccurate."
+  },
+  {
+    "word": "Paradox",
+    "meaning": "A statement or situation that appears contradictory but may reveal a deeper truth."
+  },
+  {
+    "word": "Dilemma",
+    "meaning": "A difficult situation in which you must choose between two or more undesirable options."
+  },
+  {
+    "word": "Predicament",
+    "meaning": "A difficult or unpleasant situation that is hard to escape."
+  },
+  {
+    "word": "Quandary",
+    "meaning": "A state of uncertainty about what decision to make."
+  },
+  {
+    "word": "Conundrum",
+    "meaning": "A confusing and difficult problem for which the answer is not obvious."
+  },
+  {
+    "word": "Impasse",
+    "meaning": "A situation in which progress is impossible because opposing sides cannot agree."
+  },
+  {
+    "word": "Deadlock",
+    "meaning": "A situation in which neither side can make progress because of disagreement."
+  },
+  {
+    "word": "Compromise",
+    "meaning": "An agreement reached when each side accepts less than everything it originally wanted."
+  },
+  {
+    "word": "Concession",
+    "meaning": "Something you agree to give up or accept in order to reach an agreement."
+  },
+  {
+    "word": "Consensus",
+    "meaning": "General agreement reached by a group."
+  },
+  {
+    "word": "Reconciliation",
+    "meaning": "The process of restoring a relationship or resolving differences between opposing sides."
+  },
+  {
+    "word": "Mediation",
+    "meaning": "The process of helping people in conflict reach an agreement."
+  },
+  {
+    "word": "Arbitration",
+    "meaning": "A process in which an independent person or body makes a decision to settle a dispute."
+  },
+  {
+    "word": "Negotiation",
+    "meaning": "A discussion intended to reach an agreement between people or groups with different interests."
+  },
+  {
+    "word": "Collaboration",
+    "meaning": "The act of working with others toward a shared goal."
+  },
+  {
+    "word": "Coordination",
+    "meaning": "The organization of different people or activities so they work effectively together."
+  },
+  {
+    "word": "Cooperation",
+    "meaning": "The willingness to work with others to achieve a shared result."
+  },
+  {
+    "word": "Reciprocity",
+    "meaning": "A mutual exchange in which each person gives or does something in return."
+  },
+  {
+    "word": "Interdependence",
+    "meaning": "A situation in which people or things depend on one another."
+  },
+  {
+    "word": "Autonomy",
+    "meaning": "The freedom and ability to make your own decisions and act independently."
+  },
+  {
+    "word": "Agency",
+    "meaning": "The ability to make your own choices and take purposeful action."
+  },
+  {
+    "word": "Self-awareness",
+    "meaning": "A clear understanding of your own thoughts, emotions, motives, and behavior."
+  },
+  {
+    "word": "Self-assurance",
+    "meaning": "Confidence in your own abilities, judgment, or decisions."
+  },
+  {
+    "word": "Self-restraint",
+    "meaning": "The ability to control your impulses, emotions, or behavior."
+  },
+  {
+    "word": "Temperament",
+    "meaning": "A person's characteristic pattern of emotional reactions and behavior."
+  },
+  {
+    "word": "Volition",
+    "meaning": "The ability to make a conscious choice or decision."
+  },
+  {
+    "word": "Intent",
+    "meaning": "The purpose or motivation behind an action."
+  },
+  {
+    "word": "Motive",
+    "meaning": "The reason or desire that causes someone to act."
+  },
+  {
+    "word": "Incentive",
+    "meaning": "Something that encourages someone to take a particular action."
+  },
+  {
+    "word": "Deterrent",
+    "meaning": "Something that discourages a person from taking a particular action."
+  },
+  {
+    "word": "Impulse",
+    "meaning": "A sudden urge to act without necessarily thinking it through."
+  },
+  {
+    "word": "Compulsion",
+    "meaning": "A powerful urge to do something, sometimes despite wanting to resist it."
+  },
+  {
+    "word": "Predilection",
+    "meaning": "A strong natural preference for something."
+  },
+  {
+    "word": "Proclivity",
+    "meaning": "A natural tendency to behave in a particular way."
+  },
+  {
+    "word": "Aptitude",
+    "meaning": "A natural ability or talent for learning or doing something."
+  },
+  {
+    "word": "Acumen",
+    "meaning": "The ability to make good judgments and understand situations quickly."
+  },
+  {
+    "word": "Foresight",
+    "meaning": "The ability to anticipate what may happen and prepare for it."
+  },
+  {
+    "word": "Hindsight",
+    "meaning": "Understanding a situation more clearly after it has already happened."
+  },
+  {
+    "word": "Intuition",
+    "meaning": "An immediate understanding or feeling about something without conscious reasoning."
+  },
+  {
+    "word": "Perception",
+    "meaning": "The way something is noticed, understood, or interpreted."
+  },
+  {
+    "word": "Awareness",
+    "meaning": "Knowledge or understanding of something that is happening or exists."
+  },
+  {
+    "word": "Cognizance",
+    "meaning": "Awareness or recognition of a particular fact or situation."
+  },
+  {
+    "word": "Discernment",
+    "meaning": "The ability to recognize subtle differences and make sound judgments."
+  },
+  {
+    "word": "Judgment",
+    "meaning": "The ability to make sensible decisions after considering relevant information."
+  },
+  {
+    "word": "Prudence",
+    "meaning": "Careful judgment that takes possible risks and consequences into account."
+  },
+  {
+    "word": "Sagacity",
+    "meaning": "The ability to make wise decisions based on deep understanding and experience."
+  },
+  {
+    "word": "Wisdom",
+    "meaning": "The ability to apply knowledge and experience with sound judgment."
+  },
+  {
+    "word": "Fallibility",
+    "meaning": "The possibility of making mistakes or being wrong."
+  },
+  {
+    "word": "Accountability",
+    "meaning": "The responsibility to explain and take ownership of your actions or decisions."
+  },
+  {
+    "word": "Responsibility",
+    "meaning": "The duty to deal with something properly and accept the consequences of your actions."
+  },
+  {
+    "word": "Obligation",
+    "meaning": "A duty or commitment that requires someone to do something."
+  },
+  {
+    "word": "Commitment",
+    "meaning": "A firm decision to remain dedicated to something or someone."
+  },
+  {
+    "word": "Dedication",
+    "meaning": "Strong commitment to a person, purpose, or activity."
+  },
+  {
+    "word": "Discipline",
+    "meaning": "The ability to control your behavior and consistently do what is necessary."
+  },
+  {
+    "word": "Consistency",
+    "meaning": "The quality of behaving or performing in a reliable and steady way."
+  },
+  {
+    "word": "Reliability",
+    "meaning": "The quality of being dependable and likely to do what is expected."
+  },
+  {
+    "word": "Credibility",
+    "meaning": "The quality of being believable and worthy of trust."
+  },
+  {
+    "word": "Authenticity",
+    "meaning": "The quality of being genuine rather than artificial or performed."
+  },
+  {
+    "word": "Transparency",
+    "meaning": "Openness about information, intentions, or processes."
+  },
+  {
+    "word": "Integrity",
+    "meaning": "The quality of consistently acting according to strong moral principles."
+  },
+  {
+    "word": "Impartiality",
+    "meaning": "The quality of treating different people or viewpoints fairly without favoritism."
+  },
+  {
+    "word": "Rationality",
+    "meaning": "The quality of thinking and acting according to reason and evidence."
+  },
+  {
+    "word": "Coherence",
+    "meaning": "The quality of being logically connected and easy to understand."
+  },
+  {
+    "word": "Rationalization",
+    "meaning": "A reason or explanation created to make a questionable action or belief seem reasonable."
+  },
+  {
+    "word": "Justification",
+    "meaning": "A reason given to explain or defend an action, decision, or belief."
+  },
+  {
+    "word": "Deliberation",
+    "meaning": "Careful consideration of different options before making a decision."
+  },
+  {
+    "word": "Appraisal",
+    "meaning": "An assessment of the value, quality, or performance of something."
+  },
+  {
+    "word": "Evaluation",
+    "meaning": "A careful judgment about the quality, effectiveness, or value of something."
+  },
+  {
+    "word": "Assessment",
+    "meaning": "A judgment about someone's abilities, performance, or the nature of a situation."
+  },
+  {
+    "word": "Diagnosis",
+    "meaning": "The identification of the underlying cause or nature of a problem."
+  },
+  {
+    "word": "Prognosis",
+    "meaning": "A prediction about how a situation is likely to develop or turn out."
+  },
+  {
+    "word": "Premeditation",
+    "meaning": "The act of thinking about and planning something before carrying it out."
+  },
+  {
+    "word": "Contingency",
+    "meaning": "A possible future event that requires preparation or a response."
+  },
+  {
+    "word": "Corollary",
+    "meaning": "A result or consequence that naturally follows from something else."
+  },
+  {
+    "word": "Aftermath",
+    "meaning": "The consequences or effects that remain after an important or difficult event."
+  },
+  {
+    "word": "Inertia",
+    "meaning": "A tendency to remain unchanged or continue doing something simply because it has already been happening."
+  },
+  {
+    "word": "Momentum",
+    "meaning": "The growing force or progress that makes an activity increasingly difficult to stop."
+  },
+  {
+    "word": "Trajectory",
+    "meaning": "The direction or pattern in which something develops over time."
+  },
+  {
+    "word": "Evolution",
+    "meaning": "A gradual process of development or change."
+  },
+  {
+    "word": "Transition",
+    "meaning": "The process of moving from one state, stage, or situation to another."
+  },
+  {
+    "word": "Transformation",
+    "meaning": "A major change in form, character, or condition."
+  },
+  {
+    "word": "Adaptation",
+    "meaning": "A change made to suit a new situation or environment."
+  },
+  {
+    "word": "Adjustment",
+    "meaning": "A small change made to improve suitability, effectiveness, or balance."
+  },
+  {
+    "word": "Calibration",
+    "meaning": "The process of adjusting something so that it functions or performs accurately."
+  },
+  {
+    "word": "Refinement",
+    "meaning": "An improvement that makes something more precise, effective, or polished."
+  },
+  {
+    "word": "Iteration",
+    "meaning": "A repeated process of testing, adjusting, and improving something."
+  },
+  {
+    "word": "Optimization",
+    "meaning": "The process of making something as effective or efficient as possible."
+  },
+  {
+    "word": "Viability",
+    "meaning": "The ability of something to work successfully or continue successfully."
+  },
+  {
+    "word": "Sustainability",
+    "meaning": "The ability to continue over time without exhausting necessary resources."
+  },
+  {
+    "word": "Scalability",
+    "meaning": "The ability of something to grow without losing effectiveness or becoming unmanageable."
+  },
+  {
+    "word": "Feasibility",
+    "meaning": "The degree to which something is practical and realistically achievable."
+  },
+  {
+    "word": "Efficacy",
+    "meaning": "The ability of something to produce the intended result."
+  },
+  {
+    "word": "Efficiency",
+    "meaning": "The ability to achieve a result with minimal wasted time, effort, or resources."
+  },
+  {
+    "word": "Proficiency",
+    "meaning": "A high level of skill or competence in something."
+  },
+  {
+    "word": "Mastery",
+    "meaning": "A high level of knowledge or skill gained through learning and practice."
+  },
+  {
+    "word": "Competence",
+    "meaning": "The ability to perform something successfully and effectively."
+  },
+  {
+    "word": "Expertise",
+    "meaning": "A high level of specialized knowledge or skill."
+  },
+  {
+    "word": "Fluency",
+    "meaning": "The ability to express yourself smoothly and naturally in a particular language or subject."
+  },
+  {
+    "word": "Artistry",
+    "meaning": "Skill and creativity demonstrated in the way something is done or created."
+  },
+  {
+    "word": "Precision",
+    "meaning": "The quality of being exact, accurate, and specific."
+  },
+  {
+    "word": "Rigor",
+    "meaning": "Thoroughness and strict attention to accuracy, logic, or standards."
+  },
+  {
+    "word": "Thoroughness",
+    "meaning": "The quality of dealing with every important part of something carefully."
+  },
+  {
+    "word": "Exacting",
+    "meaning": "Demanding a very high level of accuracy, quality, or attention to detail."
+  },
+  {
+    "word": "Fastidious",
+    "meaning": "Extremely careful about accuracy, cleanliness, quality, or small details."
+  },
+  {
+    "word": "Metacognition",
+    "meaning": "The ability to think about and understand your own thinking process."
+  },
+  {
+    "word": "Cognitive",
+    "meaning": "Relating to the mental processes involved in thinking, understanding, learning, and remembering."
+  },
+  {
+    "word": "Astuteness",
+    "meaning": "The ability to understand situations and make smart judgments."
+  },
+  {
+    "word": "Sophistry",
+    "meaning": "The use of clever but misleading reasoning to make a weak argument seem convincing."
+  },
+  {
+    "word": "Fallacious",
+    "meaning": "Based on faulty reasoning or an incorrect argument."
+  },
+  {
+    "word": "Contradiction",
+    "meaning": "A statement or idea that directly conflicts with another."
+  },
+  {
+    "word": "Inconsistency",
+    "meaning": "A lack of agreement or logical connection between things."
+  },
+  {
+    "word": "Dichotomy",
+    "meaning": "A division between two things that are presented as completely opposite."
+  },
+  {
+    "word": "Spectrum",
+    "meaning": "A range of related possibilities, qualities, or positions between two extremes."
+  },
+  {
+    "word": "Continuum",
+    "meaning": "A series of things that gradually change without clear divisions between them."
+  },
+  {
+    "word": "Hierarchy",
+    "meaning": "A system in which people, ideas, or things are arranged according to levels of importance or authority."
+  },
+  {
+    "word": "Framework",
+    "meaning": "A basic structure used to organize ideas, decisions, or processes."
+  },
+  {
+    "word": "Paradigm",
+    "meaning": "A particular way of understanding or approaching a subject."
+  },
+  {
+    "word": "Proposition",
+    "meaning": "A statement or idea put forward for consideration or debate."
+  },
+  {
+    "word": "Assertion",
+    "meaning": "A confident statement that something is true."
+  },
+  {
+    "word": "Rebuttal",
+    "meaning": "An argument or statement that directly challenges another argument."
+  },
+  {
+    "word": "Counterargument",
+    "meaning": "An argument that presents an opposing view to another argument."
+  },
+  {
+    "word": "Corroboration",
+    "meaning": "Additional evidence that supports or confirms something."
+  },
+  {
+    "word": "Evidence",
+    "meaning": "Information or facts used to support a belief, conclusion, or claim."
+  },
+  {
+    "word": "Verification",
+    "meaning": "The process of checking whether something is accurate or true."
+  },
+  {
+    "word": "Invalidation",
+    "meaning": "The act of showing that something is not valid, accurate, or acceptable."
+  },
+  {
+    "word": "Interpretation",
+    "meaning": "An explanation of the meaning or significance of something."
+  },
+  {
+    "word": "Context",
+    "meaning": "The circumstances and information surrounding something that help explain its meaning."
+  },
+  {
+    "word": "Semantics",
+    "meaning": "The study of meaning, especially the meaning of words and language."
+  },
+  {
+    "word": "Rhetoric",
+    "meaning": "The use of language and persuasive techniques to influence an audience."
+  },
+  {
+    "word": "Persuasion",
+    "meaning": "The process of influencing someone to accept an idea or take an action."
+  },
+  {
+    "word": "Elaboration",
+    "meaning": "Additional information that makes an idea clearer or more developed."
+  },
+  {
+    "word": "Qualification",
+    "meaning": "A limitation or condition added to a statement to make it more accurate."
+  },
+  {
+    "word": "Clarification",
+    "meaning": "An explanation that makes something easier to understand."
+  },
+  {
+    "word": "Articulation",
+    "meaning": "The clear expression of thoughts, ideas, or feelings through language."
+  },
+  {
+    "word": "Concision",
+    "meaning": "The quality of expressing something clearly using few words."
+  },
+  {
+    "word": "Brevity",
+    "meaning": "The quality of being brief while still communicating what is necessary."
+  },
+  {
+    "word": "Verbosity",
+    "meaning": "The use of more words than necessary to communicate an idea."
+  },
+  {
+    "word": "Eloquence",
+    "meaning": "The ability to express ideas beautifully, clearly, and effectively."
+  },
+  {
+    "word": "Tactfulness",
+    "meaning": "The ability to communicate difficult things without unnecessarily offending others."
+  },
+  {
+    "word": "Evasion",
+    "meaning": "The act of avoiding a direct answer or responsibility."
+  },
+  {
+    "word": "Deflection",
+    "meaning": "The act of shifting attention away from a difficult subject, criticism, or responsibility."
+  },
+  {
+    "word": "Reframing",
+    "meaning": "Presenting an idea or situation from a different perspective."
+  },
+  {
+    "word": "Miscommunication",
+    "meaning": "A failure to communicate or understand a message correctly."
+  },
+  {
+    "word": "Misrepresentation",
+    "meaning": "Presenting something inaccurately or in a way that gives a misleading impression."
+  },
+  {
+    "word": "Extrapolate",
+    "meaning": "To estimate what may happen by extending known information or patterns."
+  },
+  {
+    "word": "Deduction",
+    "meaning": "A conclusion reached by logically reasoning from available information."
+  },
+  {
+    "word": "Induction",
+    "meaning": "Reasoning from specific observations toward a broader conclusion."
+  },
+  {
+    "word": "Hypothesis",
+    "meaning": "A proposed explanation that can be tested through evidence or investigation."
+  },
+  {
+    "word": "Causality",
+    "meaning": "The relationship in which one event or factor produces another."
+  },
+  {
+    "word": "Probability",
+    "meaning": "The likelihood that something will happen or be true."
+  },
+  {
+    "word": "Certainty",
+    "meaning": "Complete confidence that something is true or will happen."
+  },
+  {
+    "word": "Uncertainty",
+    "meaning": "A lack of confidence about what is true, what will happen, or what should be done."
+  },
+  {
+    "word": "Relative",
+    "meaning": "Existing or being understood in relation to something else."
+  },
+  {
+    "word": "Absolute",
+    "meaning": "Not dependent on comparison, conditions, or exceptions."
+  },
+  {
+    "word": "Definitive",
+    "meaning": "Providing a final and authoritative answer or decision."
+  },
+  {
+    "word": "Qualitative",
+    "meaning": "Concerned with qualities, characteristics, or experiences rather than numerical measurement."
+  },
+  {
+    "word": "Quantitative",
+    "meaning": "Concerned with amounts or information that can be measured numerically."
+  },
+  {
+    "word": "Priority",
+    "meaning": "Something considered more important than other things and dealt with first."
+  },
+  {
+    "word": "Benchmark",
+    "meaning": "A standard or reference point used to measure performance or progress."
+  },
+  {
+    "word": "Threshold",
+    "meaning": "The point at which something begins, changes, or becomes significant."
+  },
+  {
+    "word": "Trade-off",
+    "meaning": "A situation in which gaining one benefit requires accepting a disadvantage elsewhere."
+  },
+  {
+    "word": "Leverage",
+    "meaning": "The use of an advantage or resource to achieve a stronger result."
+  },
+  {
+    "word": "Intervention",
+    "meaning": "An action taken to influence, improve, or prevent a situation."
+  },
+  {
+    "word": "Mitigation",
+    "meaning": "An action taken to reduce the seriousness or harmful effects of something."
+  },
+  {
+    "word": "Escalation",
+    "meaning": "An increase in the seriousness, intensity, or scale of a situation."
+  },
+  {
+    "word": "De-escalation",
+    "meaning": "The process of reducing tension, conflict, or intensity."
+  },
+  {
+    "word": "Alienation",
+    "meaning": "A feeling of being disconnected, excluded, or separated from others."
+  },
+  {
+    "word": "Rapport",
+    "meaning": "A sense of mutual understanding, trust, and ease between people."
+  },
+  {
+    "word": "Solidarity",
+    "meaning": "Unity with others based on shared interests, difficulties, or goals."
+  },
+  {
+    "word": "Cohesion",
+    "meaning": "The quality of people or parts remaining united and working well together."
+  },
+  {
+    "word": "Affiliation",
+    "meaning": "A connection or association with a person, group, or organization."
+  },
+  {
+    "word": "Estrangement",
+    "meaning": "A state in which people who were once close become emotionally or socially distant."
+  },
+  {
+    "word": "Vulnerability",
+    "meaning": "A state of being open to emotional, physical, or other forms of harm."
+  },
+  {
+    "word": "Susceptibility",
+    "meaning": "A tendency to be easily affected or influenced by something."
+  },
+  {
+    "word": "Defensiveness",
+    "meaning": "A tendency to react strongly when you feel criticized, threatened, or challenged."
+  },
+  {
+    "word": "Hostility",
+    "meaning": "Strong negative feelings or behavior toward someone or something."
+  },
+  {
+    "word": "Antagonism",
+    "meaning": "Active opposition or hostility between people or groups."
+  },
+  {
+    "word": "Empathy",
+    "meaning": "The ability to understand and relate to another person's feelings or perspective."
+  },
+  {
+    "word": "Compassion",
+    "meaning": "A concern for another person's suffering accompanied by a desire to help."
+  },
+  {
+    "word": "Validation",
+    "meaning": "Recognition that someone's feelings, experiences, or perspective are understandable or worthy of consideration."
+  }
+]
