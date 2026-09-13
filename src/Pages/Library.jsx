@@ -2,7 +2,7 @@ import { useState } from "react";
 import { ShoppingCart, Sparkles } from "lucide-react";
 import "./Library.css";
 
-const FILTERS = ["All", "Courses", "eBooks", "Workbooks", "Templates"];
+const FILTERS = ["All", "Courses", "eBooks",  "Templates"];
 
 export default function Library() {
   const [activeFilter, setActiveFilter] = useState("All");

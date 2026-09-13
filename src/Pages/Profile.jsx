@@ -1,15 +1,26 @@
 import { useState } from "react";
-import { Eye, EyeOff, Settings, Play, User, X } from "lucide-react";
+import {
+  Eye,
+  EyeOff,
+  Settings,
+  Play,
+  User,
+  X,
+  Flame,
+  Trophy,
+  CircleCheck,
+  Clock3,
+} from "lucide-react";
 import axios from "axios";
 import "./Profile.css";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
 const STATS = [
-  { value: "23", label: "Current streak" },
-  { value: "27", label: "Longest streak" },
-  { value: "54", label: "Sessions completed" },
-  { value: "3h 42m", label: "Speaking time" },
+  { value: "23", label: "Current streak", icon: Flame },
+  { value: "27", label: "Longest streak", icon: Trophy },
+  { value: "54", label: "Sessions completed", icon: CircleCheck },
+  { value: "3h 42m", label: "Speaking time", icon: Clock3 },
 ];
 
 const RECORDINGS = [
@@ -74,8 +85,7 @@ export default function Profile({ user }) {
   };
 
   const name = profileUser?.fullName || profileUser?.username || "Amara";
-  const initial = name.charAt(0).toUpperCase();
-  const level = user?.level || "Level 2 · Thinking";
+
   const memberSince = user?.memberSince || "Member since Apr 2024";
 
   return (
@@ -88,10 +98,9 @@ export default function Profile({ user }) {
       </header>
 
       <div className="profile-card">
-        <div className="profile-avatar">{initial}</div>
         <div className="profile-info">
           <h1>{name}</h1>
-          <p>{level}</p>
+
           <p>{memberSince}</p>
         </div>
         <button
@@ -203,11 +212,16 @@ export default function Profile({ user }) {
         </form>
       )}
 
-      <section className="profile-section">
+      <section className="profile-section profile-stats-section">
         <h2>Your Stats</h2>
         <div className="profile-stats-grid">
           {STATS.map((stat) => (
             <div className="profile-stat-card" key={stat.label}>
+              <stat.icon
+                className="profile-stat-icon"
+                size={20}
+                strokeWidth={2}
+              />
               <span className="profile-stat-value">{stat.value}</span>
               <span className="profile-stat-label">{stat.label}</span>
             </div>
@@ -215,7 +229,7 @@ export default function Profile({ user }) {
         </div>
       </section>
 
-      <section className="profile-section">
+      <section className="profile-section profile-recordings-section">
         <div className="profile-section-header">
           <h2>Your Recordings</h2>
           <button className="profile-see-all">See all</button>

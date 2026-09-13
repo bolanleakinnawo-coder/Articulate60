@@ -9,6 +9,9 @@ import {
   RotateCw,
   ArrowLeft,
   Clock,
+  Volume2,
+  ChevronDown,
+  Check,
 } from "lucide-react";
 import jarImg from "../assets/jar.png";
 import spinningJar from "../assets/Jar2.PNG";
@@ -25,7 +28,8 @@ import {
 
 export default function Practice() {
   const navigate = useNavigate();
-  const [selectedLevel, setSelectedLevel] = useState(1);
+  const [selectedLevel, setSelectedLevel] = useState(null);
+  const [isLevelOpen, setIsLevelOpen] = useState(false);
   const [view, setView] = useState("select"); // select | spinning | result | yap
   const [activeCategory, setActiveCategory] = useState(null);
   const [currentPrompt, setCurrentPrompt] = useState(null);
@@ -64,12 +68,23 @@ export default function Practice() {
   };
 
   const handleSpinTheJar = () => {
+    if (!selectedLevel) {
+      setIsLevelOpen(true);
+      return;
+    }
+
     const { categoryId, categoryTitle, prompt } =
       getRandomCategoryPrompt(selectedLevel);
     runSpin(categoryId, categoryTitle, prompt);
   };
 
   const handleChooseCategory = (categoryId, categoryTitle) => {
+    if (!selectedLevel) {
+      setShowCategoryModal(false);
+      setIsLevelOpen(true);
+      return;
+    }
+
     setShowCategoryModal(false);
     const prompt = getRandomPrompt(categoryId, selectedLevel);
     runSpin(categoryId, categoryTitle, prompt);
@@ -100,11 +115,21 @@ export default function Practice() {
   };
 
   const handleYapMode = () => {
+    if (!selectedLevel) {
+      setIsLevelOpen(true);
+      return;
+    }
+
     setView("yap");
   };
 
   const handleStartYapping = () => {
     navigate("yap-session", { state: { level: selectedLevel } });
+  };
+
+  const handleSelectLevel = (levelId) => {
+    setSelectedLevel(levelId);
+    setIsLevelOpen(false);
   };
 
   // ---------- YAP MODE VIEW ----------
@@ -212,21 +237,76 @@ export default function Practice() {
     <div className="page practice-page">
       <p className="eyebrow practice-eyebrow">CHOOSE YOUR LEVEL</p>
 
-      <div className="level-tabs">
-        {LEVEL_META.map((level) => {
-          const isSelected = selectedLevel === level.id;
+      <div className="level-dropdown">
+        <button
+          className={`level-dropdown-trigger ${isLevelOpen ? "open" : ""}`}
+          onClick={() => setIsLevelOpen((prev) => !prev)}
+        >
+          <span className="level-dropdown-trigger-text">
+            <span className="level-dropdown-label">
+              {levelInfo ? `LEVEL ${levelInfo.id}` : "LEVEL"}
+            </span>
+            <span className="level-dropdown-title">
+              {levelInfo?.title || "Choose your level"}
+            </span>
+          </span>
+          <ChevronDown
+            size={20}
+            strokeWidth={2}
+            className={`level-dropdown-chevron ${isLevelOpen ? "open" : ""}`}
+          />
+        </button>
 
-          return (
-            <button
-              key={level.id}
-              className={`level-tab ${isSelected ? "selected" : ""}`}
-              onClick={() => setSelectedLevel(level.id)}
-            >
-              <span className="level-tab-number">LEVEL {level.id}</span>
-              <span className="level-tab-title">{level.title}</span>
-            </button>
-          );
-        })}
+        {isLevelOpen && (
+          <div className="level-dropdown-list">
+            {LEVEL_META.map((level) => {
+              const isSelected = selectedLevel === level.id;
+              return (
+                <button
+                  key={level.id}
+                  className={`level-dropdown-item ${
+                    isSelected ? "selected" : ""
+                  }`}
+                  onClick={() => handleSelectLevel(level.id)}
+                >
+                  <span className="level-dropdown-item-number">
+                    {String(level.id).padStart(2, "0")}
+                  </span>
+
+                  <span className="level-dropdown-item-text">
+                    <span className="level-dropdown-item-title">
+                      {level.title}
+                    </span>
+                    {level.description && (
+                      <span className="level-dropdown-item-desc">
+                        {level.description}
+                      </span>
+                    )}
+                  </span>
+
+                  <span className="level-dropdown-item-meta">
+                    <span className="level-dropdown-item-stat">
+                      <Clock size={13} strokeWidth={2.2} />
+                      {level.prepare}
+                    </span>
+                    <span className="level-dropdown-item-stat">
+                      <Volume2 size={13} strokeWidth={2.2} />
+                      {level.speak}
+                    </span>
+                  </span>
+
+                  {isSelected && (
+                    <Check
+                      size={16}
+                      strokeWidth={2.5}
+                      className="level-dropdown-item-check"
+                    />
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       <div className="jar-wrapper">

@@ -215,12 +215,16 @@
   gap: 10px;
 }
 
+.profile-stat-icon {
+  color: var(--olive-bright);
+}
+
 .profile-stat-card {
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
-  gap: 4px;
+  gap: 6px;
   background: var(--bg-secondary);
   border-radius: 12px;
   padding: 14px 6px;
@@ -270,6 +274,36 @@
 .profile-recording-details {
   flex: 1;
   min-width: 0;
+}
+
+@media (max-width: 759px) {
+  .profile-stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .profile-stats-section {
+    width: calc(100% + 24px);
+    margin-left: -12px;
+    padding: 14px;
+  }
+
+  .profile-recordings-section {
+    width: calc(100% + 24px);
+    margin-left: -12px;
+    padding: 14px;
+  }
+
+  .profile-recording-item {
+    padding: 10px 12px;
+  }
+
+  .profile-recording-details h3 {
+    font-size: 13px;
+  }
+
+  .profile-recording-details p {
+    font-size: 11px;
+  }
 }
 
 .profile-recording-details h3 {

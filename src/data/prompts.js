@@ -350,10 +350,12 @@ export const YAP_HELP = [
 ];
 
 export const YAP_QUOTE = `Yap is not talking for the sake of talking. It's practising your ability to think out loud.`;
+
 export const LEVEL_META = [
   {
     id: 1,
     title: "Find Your Voice",
+    description: "Get comfortable thinking out loud.",
     prepare: "60s",
     speak: "1min",
     prepareSeconds: 60,
@@ -362,6 +364,7 @@ export const LEVEL_META = [
   {
     id: 2,
     title: "Think Faster",
+    description: "Learn to form your thoughts under pressure.",
     prepare: "60s",
     speak: "2min",
     prepareSeconds: 60,
@@ -370,6 +373,7 @@ export const LEVEL_META = [
   {
     id: 3,
     title: "Speak Under Pressure",
+    description: "Think on your feet. Keep going.",
     prepare: "No prep",
     speak: "3min",
     prepareSeconds: 0,
