@@ -379,7 +379,15 @@ a {
 }
 
 .section-header h2 {
-  font-size: 17px;
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.section-header .text-button {
+  margin-top: 0;
 }
 
 .activity-list {
@@ -1025,7 +1033,7 @@ a {
   color: var(--text-primary);
   font-family: inherit;
   font-size: clamp(1.75rem, 7vw, 2rem);
-  font-weight: 500;
+  font-weight: 700;
   line-height: 1.25;
 }
 
@@ -2256,7 +2264,7 @@ a {
 .challenges-title {
   font-family: inherit;
   font-size: clamp(1.75rem, 7vw, 2rem);
-  font-weight: 500;
+  font-weight: 700;
   color: var(--text-primary);
   line-height: 1.25;
   margin: 0;
@@ -2295,7 +2303,7 @@ a {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 12px;
+  gap: 24px;
   background: linear-gradient(
     160deg,
     rgba(122, 138, 92, 0.16),
@@ -2304,37 +2312,56 @@ a {
   border: 1px solid rgba(196, 209, 168, 0.25);
   border-radius: 20px;
   padding: 22px 22px 24px;
+  width: calc(100% + 32px);
+  margin-left: -16px;
 }
 
-.challenges-hero-eyebrow {
-  font-size: 11px;
-  letter-spacing: 0.1em;
+.challenges-hero-title {
+  max-width: 22ch;
+  margin: 0;
+  color: #f5f2e8;
+  font-size: clamp(24px, 4vw, 34px);
+  font-weight: 500;
+  line-height: 1.12;
+  margin: 0;
+}
+.challenges-hero-title span {
   color: #c4d1a8;
-  font-weight: 600;
-  margin: 0;
-}
-
-.challenges-hero-copy {
-  font-size: clamp(13px, 3vw, 15px);
-  color: rgba(245, 242, 232, 0.75);
-  line-height: 1.5;
-  margin: 0;
   max-width: 52ch;
 }
+.challenges-hero-benefits {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  width: 100%;
+}
 
-.challenges-coming-soon-btn {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-top: 4px;
-  padding: 10px 18px;
-  border-radius: 999px;
-  background: rgba(196, 209, 168, 0.12);
-  border: 1px solid rgba(196, 209, 168, 0.3);
+.challenges-hero-benefit {
+  min-height: 76px;
+  padding: 0 24px;
+}
+
+.challenges-hero-benefit:first-child {
+  padding-left: 0;
+}
+
+.challenges-hero-benefit + .challenges-hero-benefit {
+  border-left: 1px solid rgba(196, 209, 168, 0.3);
+}
+
+.challenges-benefit-label {
+  margin: 0 0 8px;
   color: #c4d1a8;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.08em;
+}
+
+.challenges-benefit-copy {
+  min-height: 38px;
+  margin: 0;
+  color: rgba(245, 242, 232, 0.68);
+  font-size: 13px;
+  line-height: 1.45;
   cursor: default;
 }
 
@@ -2485,4 +2512,142 @@ a {
     width: 38px;
     height: 38px;
   }
+}
+
+@media (max-width: 600px) {
+  .challenges-hero-card {
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .challenges-hero-benefits {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .challenges-hero-benefit,
+  .challenges-hero-benefit:first-child {
+    min-height: 76px;
+    padding: 0 10px;
+  }
+
+  .challenges-hero-benefit:first-child {
+    padding-left: 0;
+  }
+
+  .challenges-hero-benefit + .challenges-hero-benefit {
+    border-left: 1px solid rgba(196, 209, 168, 0.3);
+  }
+
+  .challenges-benefit-copy {
+    min-height: 52px;
+    font-size: 12px;
+  }
+}
+
+/* ---------- Articulate Leaderboard ---------- */
+
+.leaderboard-card {
+  padding: 0;
+  overflow: hidden;
+}
+
+.leaderboard-tabs {
+  display: flex;
+  gap: 8px;
+  padding: 16px 20px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.leaderboard-tab {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 14px;
+  font-weight: 500;
+  padding: 8px 4px 14px;
+  cursor: pointer;
+  position: relative;
+  white-space: nowrap;
+  transition: color 0.15s ease;
+}
+
+.leaderboard-tab:hover {
+  color: var(--text-primary);
+}
+
+.leaderboard-tab-active {
+  color: var(--sage);
+}
+
+.leaderboard-tab-active::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  background: var(--sage);
+  border-radius: 2px;
+}
+
+.leaderboard-list {
+  display: flex;
+  flex-direction: column;
+  padding: 8px 20px 16px;
+}
+
+.leaderboard-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 0;
+}
+
+.leaderboard-item + .leaderboard-item {
+  border-top: 1px solid var(--border);
+}
+
+.leaderboard-rank {
+  width: 18px;
+  flex-shrink: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.leaderboard-avatar {
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: rgba(156, 177, 133, 0.18);
+  color: var(--sage);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.leaderboard-name {
+  flex: 1;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.leaderboard-value {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--olive-bright);
+  white-space: nowrap;
+}
+
+/* Optional: date label next to the single Recent Activity item */
+.activity-date {
+  font-size: 13px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  margin-right: 8px;
 }

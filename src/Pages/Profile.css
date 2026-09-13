@@ -27,7 +27,7 @@
 .profile-eyebrow {
   font-family: inherit;
   font-size: clamp(2rem, 7vw, 2.75rem);
-  font-weight: 500;
+  font-weight: 700;
   line-height: 1.2;
   color: var(--text-primary);
 }
@@ -237,19 +237,16 @@
 .profile-recordings-list {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
 }
 
-.profile-recording-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 8px 0;
-}
-
-.profile-recording-details {
-  flex: 1;
-  min-width: 0;
+.profile-recordings-section {
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  width: calc(100% + 20px);
+  margin-left: -10px;
 }
 
 @media (max-width: 759px) {
@@ -262,59 +259,6 @@
     margin-left: -12px;
     padding: 14px;
   }
-
-  .profile-recordings-section {
-    width: calc(100% + 24px);
-    margin-left: -12px;
-    padding: 14px;
-  }
-
-  .profile-recording-item {
-    padding: 8px 0;
-  }
-
-  .profile-recording-details h3 {
-    font-size: 13px;
-  }
-
-  .profile-recording-details p {
-    font-size: 11px;
-  }
-}
-
-.profile-recording-details h3 {
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--text-primary);
-  margin: 0 0 4px;
-  line-height: 1.35;
-}
-
-.profile-recording-details p {
-  margin: 0;
-  font-size: 12px;
-  color: var(--text-secondary);
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.profile-recording-date {
-  color: var(--text-muted);
-}
-
-.profile-recording-play {
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  background: var(--olive-primary);
-  color: var(--text-primary);
-  border: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  flex-shrink: 0;
 }
 
 /* ---------- Responsive ---------- */

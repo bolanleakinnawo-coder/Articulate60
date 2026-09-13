@@ -9,9 +9,6 @@ import {
   Lock,
 } from "lucide-react";
 
-const CHALLENGES_HERO_COPY =
-  "Take on focused speaking challenges designed to help you break bad habits, build better ones, and sound more confident — one step at a time.";
-
 const CHALLENGES = [
   {
     id: "no-fillers",
@@ -20,13 +17,7 @@ const CHALLENGES = [
     description: "Speak without saying um, uh, like, you know...",
     locked: true,
   },
-  {
-    id: "no-pauses",
-    icon: Pause,
-    title: "No Pauses",
-    description: "Keep your thought moving without awkward silence.",
-    locked: true,
-  },
+
   {
     id: "get-to-the-point",
     icon: Target,
@@ -39,13 +30,6 @@ const CHALLENGES = [
     icon: ShieldCheck,
     title: "Speak with Confidence",
     description: "Say what you mean without constantly qualifying yourself.",
-    locked: true,
-  },
-  {
-    id: "think-on-your-feet",
-    icon: Brain,
-    title: "Think on Your Feet",
-    description: "Answer an unexpected question immediately.",
     locked: true,
   },
 ];
@@ -61,7 +45,6 @@ export default function Challenges() {
       <div className="challenges-header">
         <div className="challenges-header-text">
           <div className="challenges-title-row">
-            <Trophy size={28} strokeWidth={1.8} className="challenges-icon" />
             <h1 className="challenges-title">Challenges</h1>
           </div>
           <p className="challenges-subtitle">
@@ -75,12 +58,32 @@ export default function Challenges() {
       </div>
 
       <div className="challenges-hero-card">
-        <p className="challenges-hero-eyebrow">THE ARTICULATE60 CHALLENGES</p>
-        <p className="challenges-hero-copy">{CHALLENGES_HERO_COPY}</p>
-        <button className="challenges-coming-soon-btn" disabled>
-          <Lock size={14} strokeWidth={2} />
-          CHALLENGES COMING SOON
-        </button>
+        <h2 className="challenges-hero-title">
+          You're not just taking on <span>challenges</span>
+        </h2>
+
+        <div className="challenges-hero-benefits">
+          <div className="challenges-hero-benefit">
+            <p className="challenges-benefit-label">LIVE MASTERCLASS</p>
+            <p className="challenges-benefit-copy">
+              Join a live session before each challenge begins.
+            </p>
+          </div>
+
+          <div className="challenges-hero-benefit">
+            <p className="challenges-benefit-label">CERTIFICATION</p>
+            <p className="challenges-benefit-copy">
+              Earn proof of certification.
+            </p>
+          </div>
+
+          <div className="challenges-hero-benefit">
+            <p className="challenges-benefit-label">COMPLETION BONUS</p>
+            <p className="challenges-benefit-copy">
+              Finish the challenge and unlock your reward.
+            </p>
+          </div>
+        </div>
       </div>
 
       <section className="challenges-list-section">

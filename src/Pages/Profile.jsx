@@ -26,19 +26,16 @@ const RECORDINGS = [
     title: "Should people choose job security over passion?",
     level: "Level 2",
     duration: "2 min",
-    date: "May 8, 2024",
   },
   {
     title: "Is social media doing more harm than good?",
     level: "Level 3",
     duration: "3 min",
-    date: "May 7, 2024",
   },
   {
     title: "Describe a time you had to solve a problem quickly.",
     level: "Level 1",
     duration: "1 min",
-    date: "May 6, 2024",
   },
 ];
 
@@ -232,20 +229,14 @@ export default function Profile({ user }) {
 
         <div className="profile-recordings-list">
           {RECORDINGS.map((recording) => (
-            <div className="profile-recording-item" key={recording.title}>
-              <div className="profile-recording-details">
+            <div className="activity-item" key={recording.title}>
+              <div>
                 <h3>{recording.title}</h3>
                 <p>
                   {recording.level} · {recording.duration}
-                  <span className="profile-recording-date">
-                    {recording.date}
-                  </span>
                 </p>
               </div>
-              <button
-                className="profile-recording-play"
-                aria-label="Play recording"
-              >
+              <button className="play-button" aria-label="Play recording">
                 <Play size={14} fill="currentColor" />
               </button>
             </div>
