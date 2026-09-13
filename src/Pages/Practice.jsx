@@ -235,7 +235,12 @@ export default function Practice() {
   // ---------- SELECT VIEW (default) ----------
   return (
     <div className="page practice-page">
-      <p className="eyebrow practice-eyebrow">CHOOSE YOUR LEVEL</p>
+      <div className="practice-intro">
+        <p className="practice-time-label">Practice Time</p>
+        <h1 className="practice-intro-title">Your 60 is waiting.</h1>
+      </div>
+
+      <p className="eyebrow practice-level-label">CHOOSE YOUR LEVEL</p>
 
       <div className="level-dropdown">
         <button

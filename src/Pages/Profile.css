@@ -19,27 +19,17 @@
 .profile-header {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   position: relative;
   padding-top: 4px;
 }
 
 .profile-eyebrow {
-  font-size: 13px;
-  letter-spacing: 0.08em;
-  color: var(--text-secondary);
-  text-transform: uppercase;
-}
-
-.profile-settings {
-  position: absolute;
-  right: 0;
-  background: none;
-  border: none;
-  color: var(--text-secondary);
-  cursor: pointer;
-  padding: 4px;
-  display: flex;
+  font-family: inherit;
+  font-size: clamp(2rem, 7vw, 2.75rem);
+  font-weight: 500;
+  line-height: 1.2;
+  color: var(--text-primary);
 }
 
 /* ---------- Profile card ---------- */
@@ -254,21 +244,7 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  background: var(--bg-secondary);
-  border-radius: 12px;
-  padding: 12px 14px;
-}
-
-.profile-recording-avatar {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: var(--bg-card);
-  color: var(--text-secondary);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
+  padding: 8px 0;
 }
 
 .profile-recording-details {
@@ -294,7 +270,7 @@
   }
 
   .profile-recording-item {
-    padding: 10px 12px;
+    padding: 8px 0;
   }
 
   .profile-recording-details h3 {

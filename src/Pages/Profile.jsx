@@ -2,9 +2,7 @@ import { useState } from "react";
 import {
   Eye,
   EyeOff,
-  Settings,
   Play,
-  User,
   X,
   Flame,
   Trophy,
@@ -92,9 +90,6 @@ export default function Profile({ user }) {
     <div className="profile-content">
       <header className="profile-header">
         <span className="profile-eyebrow">Profile</span>
-        <button className="profile-settings" aria-label="Settings">
-          <Settings size={20} />
-        </button>
       </header>
 
       <div className="profile-card">
@@ -238,9 +233,6 @@ export default function Profile({ user }) {
         <div className="profile-recordings-list">
           {RECORDINGS.map((recording) => (
             <div className="profile-recording-item" key={recording.title}>
-              <div className="profile-recording-avatar">
-                <User size={16} />
-              </div>
               <div className="profile-recording-details">
                 <h3>{recording.title}</h3>
                 <p>

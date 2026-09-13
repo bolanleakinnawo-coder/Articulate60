@@ -355,7 +355,7 @@ export const LEVEL_META = [
   {
     id: 1,
     title: "Find Your Voice",
-    description: "Get comfortable thinking out loud.",
+    description: "60 sec prep, speak for 60 seconds.",
     prepare: "60s",
     speak: "1min",
     prepareSeconds: 60,
@@ -364,20 +364,20 @@ export const LEVEL_META = [
   {
     id: 2,
     title: "Think Faster",
-    description: "Learn to form your thoughts under pressure.",
-    prepare: "60s",
-    speak: "2min",
-    prepareSeconds: 60,
-    speakSeconds: 120,
+    description: "30 seconds prep, speak for 60 seconds.",
+    prepare: "30s",
+    speak: "1min",
+    prepareSeconds: 30,
+    speakSeconds: 60,
   },
   {
     id: 3,
     title: "Speak Under Pressure",
-    description: "Think on your feet. Keep going.",
+    description: "No prep, speak for 60 seconds.",
     prepare: "No prep",
-    speak: "3min",
+    speak: "1min",
     prepareSeconds: 0,
-    speakSeconds: 180,
+    speakSeconds: 60,
   },
 ];
 
