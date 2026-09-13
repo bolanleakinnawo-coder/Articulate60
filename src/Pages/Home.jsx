@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Flame, Play, Volume2, ArrowRight, Trophy } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
+import logo from "../assets/Dashboardlogo.PNG";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -35,11 +36,6 @@ const LEADERBOARD_DATA = {
     { username: "Tobi", displayValue: "2h 40m" },
   ],
 };
-
-// Reads a word aloud using the browser's built-in voice — no audio
-// files, no backend storage needed.
-// Reads a word aloud using the browser's built-in voice, set to
-// British English.
 function speakWord(word) {
   if (!window.speechSynthesis) return; // very old browsers only
 
@@ -47,9 +43,6 @@ function speakWord(word) {
   utterance.lang = "en-GB";
   utterance.rate = 0.9; // slightly slower for clarity
 
-  // Try to pick an actual British voice if one is installed on the
-  // device — setting lang alone sometimes isn't enough, since some
-  // browsers fall back to whatever default voice is available.
   const voices = window.speechSynthesis.getVoices();
   const britishVoice = voices.find((v) => v.lang === "en-GB");
   if (britishVoice) {
@@ -104,7 +97,7 @@ export default function Home() {
     <div className="page">
       <header className="page-header">
         <div>
-          <p className="eyebrow">ARTICULATE 60</p>
+          <img src={logo} alt="Articulate 60" className="brand-logo" />
 
           <h1>Good morning, {username}</h1>
 

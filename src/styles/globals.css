@@ -2312,8 +2312,8 @@ a {
   border: 1px solid rgba(196, 209, 168, 0.25);
   border-radius: 20px;
   padding: 22px 22px 24px;
-  width: calc(100% + 32px);
-  margin-left: -16px;
+  width: calc(100% + 48px);
+  margin-left: -24px;
 }
 
 .challenges-hero-title {
@@ -2349,6 +2349,7 @@ a {
 }
 
 .challenges-benefit-label {
+  min-height: 26px;
   margin: 0 0 8px;
   color: #c4d1a8;
   font-size: 11px;
@@ -2542,6 +2543,11 @@ a {
     min-height: 52px;
     font-size: 12px;
   }
+
+  .challenges-benefit-label {
+    min-height: 32px;
+    font-size: 10px;
+  }
 }
 
 /* ---------- Articulate Leaderboard ---------- */
@@ -2562,7 +2568,7 @@ a {
   background: none;
   border: none;
   color: var(--text-secondary);
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
   padding: 8px 4px 14px;
   cursor: pointer;
@@ -2650,4 +2656,11 @@ a {
   color: var(--text-muted);
   white-space: nowrap;
   margin-right: 8px;
+}
+
+.brand-logo {
+  height: 40px;
+  width: auto;
+  display: block;
+  margin-bottom: 10px;
 }
