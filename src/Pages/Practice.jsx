@@ -320,8 +320,6 @@ export default function Practice() {
         )}
       </div>
 
-=
-
       <div className="jar-wrapper">
         <img
           src={jarImg}
