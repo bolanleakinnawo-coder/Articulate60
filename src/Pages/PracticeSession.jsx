@@ -141,7 +141,15 @@ export default function PracticeSession() {
       streamRef.current = stream;
       startAudioAnalysis(stream);
 
-      const mediaRecorder = new MediaRecorder(stream);
+      const preferredTypes = ["audio/webm", "audio/mp4", "audio/ogg"];
+      const mimeType = preferredTypes.find((type) =>
+        MediaRecorder.isTypeSupported(type),
+      );
+
+      const mediaRecorder = mimeType
+        ? new MediaRecorder(stream, { mimeType })
+        : new MediaRecorder(stream); // last-resort browser default
+
       mediaRecorderRef.current = mediaRecorder;
       audioChunksRef.current = [];
 
@@ -150,8 +158,9 @@ export default function PracticeSession() {
       };
 
       mediaRecorder.onstop = () => {
+        const actualType = mediaRecorder.mimeType || "audio/webm";
         const blob = new Blob(audioChunksRef.current, {
-          type: "audio/webm",
+          type: actualType,
         });
         setAudioBlob(blob);
         setAudioUrl(URL.createObjectURL(blob));
@@ -179,7 +188,6 @@ export default function PracticeSession() {
       setIsRecording(false);
     }
   }, [startAudioAnalysis, stopAudioAnalysis]);
-
   const stopRecording = useCallback(() => {
     const recorder = mediaRecorderRef.current;
     if (recorder && recorder.state !== "inactive") {
@@ -305,8 +313,8 @@ export default function PracticeSession() {
       const formData = new FormData();
       formData.append(
         "audio",
-        audioBlob || new Blob(), // guard against a blocked-mic edge case
-        "recording.webm",
+        audioBlob || new Blob(),
+        audioBlob?.type.includes("mp4") ? "recording.m4a" : "recording.webm",
       );
       formData.append("topic", prompt);
       formData.append("category", category?.title || "");

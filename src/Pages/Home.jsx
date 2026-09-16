@@ -67,6 +67,18 @@ export default function Home() {
   const [leaderboardTab, setLeaderboardTab] = useState("streak");
   const leaderboard = LEADERBOARD_DATA;
 
+  function getGreeting() {
+    const hour = new Date().getHours();
+    if (hour < 12) return "Good morning";
+    if (hour < 17) return "Good afternoon";
+    return "Good evening";
+  }
+
+  function capitalize(str) {
+    if (!str) return str;
+    return str.charAt(0).toUpperCase() + str.slice(1);
+  }
+
   useEffect(() => {
     if (location.state?.user?.username) {
       setUsername(location.state.user.username);
@@ -112,9 +124,9 @@ export default function Home() {
     <div className="page">
       <header className="page-header">
         <div>
-       
-
-          <h1>Good morning, {username}</h1>
+          <h1>
+            {getGreeting()}, {capitalize(username)}
+          </h1>
 
           <p className="subtitle">Let's get better today.</p>
         </div>
@@ -130,7 +142,8 @@ export default function Home() {
 
       {needsPracticeToday && (
         <p className="subtitle">
-          You have not practised today. Complete a practice to keep your streak going.
+          You have not practised today. Complete a practice to keep your streak
+          going.
         </p>
       )}
 
@@ -199,7 +212,10 @@ export default function Home() {
           {recentActivity ? (
             <Activity recording={recentActivity} />
           ) : (
-            <p>No practices completed yet. Your latest recording will appear here.</p>
+            <p>
+              No practices completed yet. Your latest recording will appear
+              here.
+            </p>
           )}
         </div>
       </section>
@@ -312,7 +328,11 @@ function Activity({ recording }) {
         onClick={togglePlayback}
         aria-label={isPlaying ? "Pause recording" : "Play recording"}
       >
-        {isPlaying ? <Pause size={15} fill="currentColor" /> : <Play size={15} fill="currentColor" />}
+        {isPlaying ? (
+          <Pause size={15} fill="currentColor" />
+        ) : (
+          <Play size={15} fill="currentColor" />
+        )}
       </button>
     </div>
   );
@@ -321,13 +341,18 @@ function Activity({ recording }) {
 function formatDuration(seconds) {
   const minutes = Math.floor(seconds / 60);
   const remainingSeconds = seconds % 60;
-  return minutes > 0 ? `${minutes}m ${remainingSeconds}s` : `${remainingSeconds}s`;
+  return minutes > 0
+    ? `${minutes}m ${remainingSeconds}s`
+    : `${remainingSeconds}s`;
 }
 
 function formatPracticeDate(date) {
   const practiceDate = new Date(date);
   if (practiceDate.toDateString() === new Date().toDateString()) return "Today";
-  return practiceDate.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+  return practiceDate.toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric",
+  });
 }
 
 function LeaderboardRow({ rank, name, value }) {
