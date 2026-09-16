@@ -24,7 +24,7 @@ const Hero = () => {
           </p>
 
           <div className="hero-cta-group">
-            <Link to="/register" className="btn-primary">
+            <Link to="/welcome" className="btn-primary">
               START YOUR FIRST PRACTICE <span className="arrow">→</span>
             </Link>
           </div>

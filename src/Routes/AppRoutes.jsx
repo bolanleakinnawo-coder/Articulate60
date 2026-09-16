@@ -12,15 +12,18 @@ import Login from "../Pages/Login";
 import ProtectedRoute from "./ProtectedRoute";
 
 import PracticeSession from "../Pages/PracticeSession";
+import WelcomeIntro from "../Pages/WelcomeIntro"; // NEW
+import ReadyIntro from "../Pages/ReadyIntro"; // NEW
 
 export default function AppRoutes() {
   return (
     <Routes>
       <Route path="/" element={<Landing />} />
       <Route path="/landingpage" element={<Landing />} />
+      <Route path="/welcome" element={<WelcomeIntro />} /> {/* NEW */}
       <Route path="/register" element={<Registration />} />
+      <Route path="/ready" element={<ReadyIntro />} /> {/* NEW */}
       <Route path="/login" element={<Login />} />
-
       <Route element={<ProtectedRoute />}>
         <Route path="/app" element={<AppLayout />}>
           <Route index element={<Navigate to="/app/home" replace />} />

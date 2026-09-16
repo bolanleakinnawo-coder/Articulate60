@@ -70,7 +70,7 @@ function RegistrationLayout() {
       const response = await axios.post(`${API_URL}/user/signup`, payload);
       sessionStorage.setItem("token", response.data.token);
       sessionStorage.setItem("user", JSON.stringify(response.data.user));
-      navigate("/app/home");
+      navigate("/ready");
     } catch (error) {
       console.error(error);
 

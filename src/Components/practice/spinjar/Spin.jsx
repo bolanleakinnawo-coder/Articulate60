@@ -37,6 +37,7 @@ export default function Practice() {
         <p className="practice-hero-subtitle">Speak without a script.</p>
 
         <div className="jar-wrapper">
+          <div className="jar-glow" />
           <img
             src={jarImg}
             alt="Jar with speaking topics"

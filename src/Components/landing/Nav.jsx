@@ -56,7 +56,7 @@ const Navbar = () => {
 
         <div className="navbar-actions">
           {isDesktop && (
-            <Link to="/register" className="btn-primary navbar-cta">
+            <Link to="/welcome" className="btn-primary navbar-cta">
               Start Practicing Free
             </Link>
           )}
@@ -86,7 +86,7 @@ const Navbar = () => {
             </a>
           ))}
         </nav>
-        <Link to="/register" className="btn-primary navbar-mobile-cta">
+        <Link to="/welcome" className="btn-primary navbar-mobile-cta">
           Start Practicing Free
         </Link>
       </div>
