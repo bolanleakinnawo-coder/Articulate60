@@ -58,6 +58,24 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    profileImageUrl: {
+      type: String,
+      default: "",
+    },
+
+    // --- Streak tracking (used by /api/practice/complete) ---
+    currentStreak: {
+      type: Number,
+      default: 0,
+    },
+    longestStreak: {
+      type: Number,
+      default: 0,
+    },
+    lastPracticeDate: {
+      type: Date,
+      default: null,
+    },
   },
   { timestamps: true },
 );

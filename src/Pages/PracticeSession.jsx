@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { LEVEL_META, HELP_TIPS } from "../data/prompts";
 import amazingImage from "../assets/amazing.png";
+import api from "../api/axios";
 import "./PracticeSession.css";
 
 const formatTime = (totalSeconds) => {
@@ -39,12 +40,33 @@ export default function PracticeSession() {
   );
   const [isRecording, setIsRecording] = useState(false);
 
+  // ---- real audio capture ----
+  const streamRef = useRef(null);
+  const mediaRecorderRef = useRef(null);
+  const audioChunksRef = useRef([]);
+  const recordStartRef = useRef(null);
+  const audioContextRef = useRef(null);
+  const animationFrameRef = useRef(null);
+  const lastWaveformUpdateRef = useRef(0);
+  const [audioBlob, setAudioBlob] = useState(null);
+  const [audioUrl, setAudioUrl] = useState(null);
+  const [actualDurationSeconds, setActualDurationSeconds] = useState(0);
+  const [micError, setMicError] = useState("");
+  const [waveformLevels, setWaveformLevels] = useState(() =>
+    Array(24).fill(0.08),
+  );
+
   // ---- reflect phase state ----
+  const audioElRef = useRef(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [playedSeconds, setPlayedSeconds] = useState(0);
   const [answer1, setAnswer1] = useState("");
   const [answer2, setAnswer2] = useState("");
-  const playIntervalRef = useRef(null);
+
+  // ---- submit / streak state ----
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
+  const [streak, setStreak] = useState(null);
 
   const tips =
     category?.id && HELP_TIPS[category.id]?.[level]
@@ -55,18 +77,153 @@ export default function PracticeSession() {
           "Then speak with clarity.",
         ];
 
+  // ---------- MIC / RECORDING ----------
+  const stopAudioAnalysis = useCallback(() => {
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current);
+      animationFrameRef.current = null;
+    }
+
+    if (audioContextRef.current) {
+      audioContextRef.current.close().catch(() => {});
+      audioContextRef.current = null;
+    }
+
+    setWaveformLevels(Array(24).fill(0.08));
+    lastWaveformUpdateRef.current = 0;
+  }, []);
+
+  const startAudioAnalysis = useCallback(
+    (stream) => {
+      stopAudioAnalysis();
+
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContext) return;
+
+      const audioContext = new AudioContext();
+      const analyser = audioContext.createAnalyser();
+      analyser.fftSize = 256;
+      analyser.smoothingTimeConstant = 0.72;
+      audioContext.createMediaStreamSource(stream).connect(analyser);
+      audioContextRef.current = audioContext;
+
+      const timeDomainData = new Uint8Array(analyser.fftSize);
+      const updateWaveform = () => {
+        const now = performance.now();
+        // Add one new live audio sample roughly every 70ms. Keeping prior samples
+        // makes the waveform scroll from right to left instead of just pulsing.
+        if (now - lastWaveformUpdateRef.current >= 70) {
+          analyser.getByteTimeDomainData(timeDomainData);
+          const rms = Math.sqrt(
+            timeDomainData.reduce(
+              (sum, value) => sum + ((value - 128) / 128) ** 2,
+              0,
+            ) / timeDomainData.length,
+          );
+          const level = Math.max(0.08, Math.min(1, rms * 8));
+          setWaveformLevels((previous) => [...previous.slice(1), level]);
+          lastWaveformUpdateRef.current = now;
+        }
+        animationFrameRef.current = requestAnimationFrame(updateWaveform);
+      };
+
+      updateWaveform();
+    },
+    [stopAudioAnalysis],
+  );
+
+  const startRecording = useCallback(async () => {
+    setMicError("");
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: true,
+      });
+      streamRef.current = stream;
+      startAudioAnalysis(stream);
+
+      const mediaRecorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = mediaRecorder;
+      audioChunksRef.current = [];
+
+      mediaRecorder.ondataavailable = (e) => {
+        if (e.data.size > 0) audioChunksRef.current.push(e.data);
+      };
+
+      mediaRecorder.onstop = () => {
+        const blob = new Blob(audioChunksRef.current, {
+          type: "audio/webm",
+        });
+        setAudioBlob(blob);
+        setAudioUrl(URL.createObjectURL(blob));
+
+        if (recordStartRef.current) {
+          const elapsed = Math.round(
+            (Date.now() - recordStartRef.current) / 1000,
+          );
+          setActualDurationSeconds(elapsed);
+        }
+
+        // Release the mic
+        stream.getTracks().forEach((track) => track.stop());
+        stopAudioAnalysis();
+      };
+
+      recordStartRef.current = Date.now();
+      mediaRecorder.start();
+      setIsRecording(true);
+    } catch (err) {
+      console.error("Mic access denied or unavailable:", err);
+      setMicError(
+        "We couldn't access your microphone. Check your browser permissions and try again.",
+      );
+      setIsRecording(false);
+    }
+  }, [startAudioAnalysis, stopAudioAnalysis]);
+
+  const stopRecording = useCallback(() => {
+    const recorder = mediaRecorderRef.current;
+    if (recorder && recorder.state !== "inactive") {
+      recorder.stop();
+    }
+    stopAudioAnalysis();
+    setIsRecording(false);
+  }, [stopAudioAnalysis]);
+
+  const togglePauseResume = () => {
+    const recorder = mediaRecorderRef.current;
+    if (!recorder) return;
+
+    if (recorder.state === "recording") {
+      recorder.pause();
+      stopAudioAnalysis();
+      setIsRecording(false);
+    } else if (recorder.state === "paused") {
+      recorder.resume();
+      if (streamRef.current) startAudioAnalysis(streamRef.current);
+      setIsRecording(true);
+    }
+  };
+
   const goToSpeak = useCallback(() => {
     setPhase("speak");
     setTimeLeft(speakTotal);
-    setIsRecording(true);
-  }, [speakTotal]);
+    startRecording();
+  }, [speakTotal, startRecording]);
 
-  const goToReflect = useCallback(() => {
-    setPhase("reflect");
-    setIsRecording(false);
+  useEffect(() => {
+    if (prepareTotal === 0) {
+      goToSpeak();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const goToReflect = useCallback(() => {
+    stopRecording();
+    setPhase("reflect");
+  }, [stopRecording]);
+
   const handleExit = () => {
+    stopRecording();
     navigate("/app/practice");
   };
 
@@ -91,32 +248,88 @@ export default function PracticeSession() {
     return () => clearInterval(timer);
   }, [timeLeft, phase, goToSpeak, goToReflect]);
 
-  // simulated playback for the recording
+  // Clean up the object URL when we're done with it
   useEffect(() => {
-    if (isPlaying) {
-      playIntervalRef.current = setInterval(() => {
-        setPlayedSeconds((prev) => {
-          if (prev >= speakTotal) {
-            setIsPlaying(false);
-            return speakTotal;
-          }
-          return prev + 1;
-        });
-      }, 1000);
-    } else {
-      clearInterval(playIntervalRef.current);
-    }
+    return () => {
+      if (audioUrl) URL.revokeObjectURL(audioUrl);
+    };
+  }, [audioUrl]);
 
-    return () => clearInterval(playIntervalRef.current);
-  }, [isPlaying, speakTotal]);
+  useEffect(() => {
+    return () => {
+      stopAudioAnalysis();
+      streamRef.current?.getTracks().forEach((track) => track.stop());
+    };
+  }, [stopAudioAnalysis]);
+
+  // real playback progress, driven by the actual <audio> element
+  useEffect(() => {
+    const el = audioElRef.current;
+    if (!el) return;
+
+    const onTimeUpdate = () => setPlayedSeconds(Math.floor(el.currentTime));
+    const onEnded = () => {
+      setIsPlaying(false);
+      setPlayedSeconds(0);
+    };
+
+    el.addEventListener("timeupdate", onTimeUpdate);
+    el.addEventListener("ended", onEnded);
+    return () => {
+      el.removeEventListener("timeupdate", onTimeUpdate);
+      el.removeEventListener("ended", onEnded);
+    };
+  }, [audioUrl]);
 
   const togglePlayback = () => {
-    if (playedSeconds >= speakTotal) setPlayedSeconds(0);
-    setIsPlaying((prev) => !prev);
+    const el = audioElRef.current;
+    if (!el) return;
+
+    if (isPlaying) {
+      el.pause();
+      setIsPlaying(false);
+    } else {
+      if (playedSeconds >= (actualDurationSeconds || speakTotal)) {
+        el.currentTime = 0;
+      }
+      el.play();
+      setIsPlaying(true);
+    }
   };
 
-  const handleCompletePractice = () => {
-    setPhase("complete");
+  const handleCompletePractice = async () => {
+    setSubmitError("");
+    setIsSubmitting(true);
+
+    try {
+      const formData = new FormData();
+      formData.append(
+        "audio",
+        audioBlob || new Blob(), // guard against a blocked-mic edge case
+        "recording.webm",
+      );
+      formData.append("topic", prompt);
+      formData.append("category", category?.title || "");
+      formData.append("level", level);
+      formData.append("durationSeconds", actualDurationSeconds || speakTotal);
+      formData.append("wentWell", answer1);
+      formData.append("improveNextTime", answer2);
+
+      const res = await api.post("/api/practice/complete", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
+      setStreak(res.data.streak);
+      setPhase("complete");
+    } catch (err) {
+      console.error("Failed to save practice session:", err);
+      setSubmitError(
+        err.response?.data?.message ||
+          "Couldn't save your recording. Check your connection and try again.",
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const circumference = 2 * Math.PI * 70;
@@ -124,8 +337,9 @@ export default function PracticeSession() {
   const progress = totalForPhase > 0 ? timeLeft / totalForPhase : 0;
   const dashOffset = circumference * (1 - progress);
 
+  const playbackTotal = actualDurationSeconds || speakTotal;
   const playbackProgress =
-    speakTotal > 0 ? (playedSeconds / speakTotal) * 100 : 0;
+    playbackTotal > 0 ? (playedSeconds / playbackTotal) * 100 : 0;
   const reflectionCompleted =
     answer1.trim().length > 0 || answer2.trim().length > 0;
 
@@ -245,19 +459,21 @@ export default function PracticeSession() {
           {speakTotal / 60 !== 1 ? "s" : ""}.
         </p>
 
+        {micError && <p className="session-mic-error">{micError}</p>}
+
         <div className={`session-waveform ${isRecording ? "active" : ""}`}>
-          {Array.from({ length: 24 }).map((_, i) => (
+          {waveformLevels.map((level, i) => (
             <span
               key={i}
               className="session-wave-bar"
-              style={{ animationDelay: `${i * 0.05}s` }}
+              style={{ height: `${Math.round(8 + level * 64)}px` }}
             />
           ))}
         </div>
 
         <button
           className={`session-mic-btn ${isRecording ? "active" : ""}`}
-          onClick={() => setIsRecording((prev) => !prev)}
+          onClick={togglePauseResume}
           aria-label={isRecording ? "Pause" : "Resume"}
         >
           <Mic size={42} strokeWidth={2} />
@@ -289,6 +505,8 @@ export default function PracticeSession() {
 
         <p className="session-reflect-subtitle">Answer 2 quick questions</p>
 
+        {audioUrl && <audio ref={audioElRef} src={audioUrl} preload="auto" />}
+
         <div className="listen-card">
           <p className="listen-label">Listen</p>
           <p className="listen-desc">Review your recording</p>
@@ -297,6 +515,7 @@ export default function PracticeSession() {
             className="listen-play-btn"
             onClick={togglePlayback}
             aria-label="Play recording"
+            disabled={!audioUrl}
           >
             {isPlaying ? (
               <Pause size={26} fill="currentColor" />
@@ -313,7 +532,7 @@ export default function PracticeSession() {
           </div>
           <div className="listen-progress-times">
             <span>{formatTime(playedSeconds)}</span>
-            <span>{formatTime(speakTotal)}</span>
+            <span>{formatTime(playbackTotal)}</span>
           </div>
 
           <div className="listen-tip">
@@ -351,11 +570,14 @@ export default function PracticeSession() {
           />
         </div>
 
+        {submitError && <p className="session-mic-error">{submitError}</p>}
+
         <button
           className="spin-jar-btn reflect-complete-btn"
           onClick={handleCompletePractice}
+          disabled={isSubmitting}
         >
-          Complete practice
+          {isSubmitting ? "Saving..." : "Complete practice"}
         </button>
       </div>
     );
@@ -363,7 +585,9 @@ export default function PracticeSession() {
 
   // ---------- COMPLETE PHASE ----------
   if (phase === "complete") {
-    const timeSpentMinutes = Math.round(speakTotal / 60);
+    const timeSpentMinutes = Math.round(
+      (actualDurationSeconds || speakTotal) / 60,
+    );
 
     return (
       <div className="page session-page">
@@ -421,7 +645,7 @@ export default function PracticeSession() {
         <div className="complete-streak-card">
           <Flame size={18} strokeWidth={1.8} />
           <div>
-            <p className="complete-streak-value">8</p>
+            <p className="complete-streak-value">{streak?.current ?? "—"}</p>
             <p className="complete-streak-label">Day streak</p>
           </div>
         </div>

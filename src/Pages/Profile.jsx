@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Eye,
   EyeOff,
   Play,
+  Pause,
   X,
   Flame,
   Trophy,
@@ -10,33 +11,16 @@ import {
   Clock3,
 } from "lucide-react";
 import axios from "axios";
+import api from "../api/axios";
 import "./Profile.css";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
 const STATS = [
-  { value: "23", label: "Current streak", icon: Flame },
-  { value: "27", label: "Longest streak", icon: Trophy },
-  { value: "54", label: "Sessions completed", icon: CircleCheck },
-  { value: "3h 42m", label: "Speaking time", icon: Clock3 },
-];
-
-const RECORDINGS = [
-  {
-    title: "Should people choose job security over passion?",
-    level: "Level 2",
-    duration: "2 min",
-  },
-  {
-    title: "Is social media doing more harm than good?",
-    level: "Level 3",
-    duration: "3 min",
-  },
-  {
-    title: "Describe a time you had to solve a problem quickly.",
-    level: "Level 1",
-    duration: "1 min",
-  },
+  { key: "current", label: "Current streak", icon: Flame },
+  { key: "vocabulary", label: "Vocabulary practice", icon: Trophy },
+  { key: "sessions", label: "Sessions completed", icon: CircleCheck },
+  { key: "speakingTime", label: "Speaking time", icon: Clock3 },
 ];
 
 export default function Profile({ user }) {
@@ -45,6 +29,10 @@ export default function Profile({ user }) {
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
+  const [streak, setStreak] = useState({ current: 0, longest: 0 });
+  const [recordings, setRecordings] = useState([]);
+  const recordingAudioRef = useRef(null);
+  const [playingRecordingId, setPlayingRecordingId] = useState(null);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [formData, setFormData] = useState({
@@ -79,9 +67,62 @@ export default function Profile({ user }) {
     }
   };
 
-  const name = profileUser?.fullName || profileUser?.username || "Amara";
+  useEffect(() => {
+    api
+      .get("/api/practice/streak")
+      .then((response) => setStreak(response.data))
+      .catch(() => setStreak({ current: 0, longest: 0 }));
+  }, []);
 
-  const memberSince = user?.memberSince || "Member since Apr 2024";
+  useEffect(() => {
+    return () => recordingAudioRef.current?.pause();
+  }, []);
+
+  useEffect(() => {
+    api
+      .get("/api/practice/recordings")
+      .then((response) => setRecordings(response.data))
+      .catch(() => setRecordings([]));
+  }, []);
+
+  const name = profileUser?.fullName || profileUser?.username || "Amara";
+  const initial = name.trim().charAt(0).toUpperCase() || "?";
+
+  const memberSince = profileUser?.createdAt
+    ? `Member since ${new Date(profileUser.createdAt).toLocaleDateString(undefined, {
+        month: "short",
+        year: "numeric",
+      })}`
+    : "Member since —";
+  const stats = {
+    current: streak.current,
+    vocabulary: "—",
+    sessions: recordings.length,
+    speakingTime: formatSpeakingTime(
+      recordings.reduce((total, recording) => total + recording.durationSeconds, 0),
+    ),
+  };
+
+  const toggleRecordingPlayback = async (recording) => {
+    const currentAudio = recordingAudioRef.current;
+    if (currentAudio?.src === recording.audioUrl) {
+      if (currentAudio.paused) {
+        await currentAudio.play();
+        setPlayingRecordingId(recording._id);
+      } else {
+        currentAudio.pause();
+        setPlayingRecordingId(null);
+      }
+      return;
+    }
+
+    currentAudio?.pause();
+    const audio = new Audio(recording.audioUrl);
+    audio.addEventListener("ended", () => setPlayingRecordingId(null));
+    recordingAudioRef.current = audio;
+    await audio.play();
+    setPlayingRecordingId(recording._id);
+  };
 
   return (
     <div className="profile-content">
@@ -90,6 +131,17 @@ export default function Profile({ user }) {
       </header>
 
       <div className="profile-card">
+        {profileUser?.profileImageUrl ? (
+          <img
+            className="profile-avatar profile-avatar-image"
+            src={profileUser.profileImageUrl}
+            alt={`${name}'s profile`}
+          />
+        ) : (
+          <div className="profile-avatar" aria-label={`${name}'s profile initial`}>
+            {initial}
+          </div>
+        )}
         <div className="profile-info">
           <h1>{name}</h1>
 
@@ -214,7 +266,9 @@ export default function Profile({ user }) {
                 size={20}
                 strokeWidth={2}
               />
-              <span className="profile-stat-value">{stat.value}</span>
+              <span className="profile-stat-value">
+                {stats[stat.key]}
+              </span>
               <span className="profile-stat-label">{stat.label}</span>
             </div>
           ))}
@@ -224,11 +278,15 @@ export default function Profile({ user }) {
       <section className="profile-section profile-recordings-section">
         <div className="profile-section-header">
           <h2>Your Recordings</h2>
-          <button className="profile-see-all">See all</button>
         </div>
 
         <div className="profile-recordings-list">
-          {RECORDINGS.map((recording) => (
+          {recordings.map((recording) => ({
+            ...recording,
+            title: recording.topic,
+            level: `Level ${recording.level}`,
+            duration: formatDuration(recording.durationSeconds),
+          })).map((recording) => (
             <div className="activity-item" key={recording.title}>
               <div>
                 <h3>{recording.title}</h3>
@@ -236,8 +294,16 @@ export default function Profile({ user }) {
                   {recording.level} · {recording.duration}
                 </p>
               </div>
-              <button className="play-button" aria-label="Play recording">
-                <Play size={14} fill="currentColor" />
+              <button
+                className="play-button"
+                aria-label={playingRecordingId === recording._id ? "Pause recording" : "Play recording"}
+                onClick={() => toggleRecordingPlayback(recording)}
+              >
+                {playingRecordingId === recording._id ? (
+                  <Pause size={14} fill="currentColor" />
+                ) : (
+                  <Play size={14} fill="currentColor" />
+                )}
               </button>
             </div>
           ))}
@@ -253,4 +319,16 @@ function getStoredUser() {
   } catch {
     return null;
   }
+}
+
+function formatDuration(seconds) {
+  const minutes = Math.floor(seconds / 60);
+  const remainingSeconds = seconds % 60;
+  return minutes > 0 ? `${minutes}m ${remainingSeconds}s` : `${remainingSeconds}s`;
+}
+
+function formatSpeakingTime(seconds) {
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  return hours ? `${hours}h ${minutes}m` : `${minutes}m`;
 }

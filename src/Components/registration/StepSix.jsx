@@ -1,4 +1,4 @@
-function StepSix({ onSubmit, isSubmitting }) {
+function StepSix({ onSubmit, isSubmitting, formData, updateFormData }) {
   return (
     <div className="registration-step-content success-step">
       <div className="success-icon">✓</div>
@@ -10,6 +10,17 @@ function StepSix({ onSubmit, isSubmitting }) {
       </div>
 
       <form onSubmit={onSubmit}>
+        <label className="profile-photo-upload">
+          Profile photo <span>(optional)</span>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={(event) =>
+              updateFormData({ profilePhoto: event.target.files?.[0] || null })
+            }
+          />
+          {formData.profilePhoto && <small>{formData.profilePhoto.name}</small>}
+        </label>
         <button
           type="submit"
           className="registration-next"

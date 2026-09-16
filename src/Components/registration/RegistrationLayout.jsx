@@ -30,6 +30,7 @@ function RegistrationLayout() {
     improvements: [],
     improvementOther: "",
     practiceFrequency: "",
+    profilePhoto: null,
   });
 
   useEffect(() => {
@@ -56,7 +57,17 @@ function RegistrationLayout() {
     setIsSubmitting(true);
 
     try {
-      const response = await axios.post(`${API_URL}/user/signup`, formData);
+      const payload = new FormData();
+      Object.entries(formData).forEach(([key, value]) => {
+        if (key === "profilePhoto") {
+          if (value) payload.append(key, value);
+        } else if (key === "improvements") {
+          payload.append(key, JSON.stringify(value));
+        } else {
+          payload.append(key, value);
+        }
+      });
+      const response = await axios.post(`${API_URL}/user/signup`, payload);
       sessionStorage.setItem("token", response.data.token);
       sessionStorage.setItem("user", JSON.stringify(response.data.user));
       navigate("/app/home");
@@ -119,7 +130,12 @@ function RegistrationLayout() {
         )}
 
         {currentStep === 6 && (
-          <StepSix onSubmit={handleSubmit} isSubmitting={isSubmitting} />
+          <StepSix
+            onSubmit={handleSubmit}
+            isSubmitting={isSubmitting}
+            formData={formData}
+            updateFormData={updateFormData}
+          />
         )}
       </div>
     </main>

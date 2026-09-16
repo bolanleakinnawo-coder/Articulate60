@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react";
-import { Flame, Play, Volume2, ArrowRight, Trophy } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Flame, Play, Pause, Volume2, ArrowRight, Trophy } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import logo from "../assets/Dashboardlogo.PNG";
+import api from "../api/axios";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -13,13 +14,6 @@ const LEADERBOARD_TABS = [
 
 // Hardcoded for now — swap for a real API call once the backend
 // endpoint exists.
-const RECENT_ACTIVITY = {
-  title: "Should people choose job security over passion?",
-  level: "Level 2",
-  duration: "2 min",
-  date: "Today",
-};
-
 // Hardcoded for now — swap for a real API call once the backend
 // endpoint exists.
 const LEADERBOARD_DATA = {
@@ -63,11 +57,12 @@ export default function Home() {
   // Word of the Day state — fetched from the backend instead of hardcoded
   const [wordOfDay, setWordOfDay] = useState(null);
   const [loadingWord, setLoadingWord] = useState(true);
+  const [currentStreak, setCurrentStreak] = useState(0);
+  const [needsPracticeToday, setNeedsPracticeToday] = useState(false);
+  const [recentActivity, setRecentActivity] = useState(null);
 
   // Recent activity — only the single most recent item is shown on Home.
   // "See all" routes to the Profile tab, where the full history lives.
-  const recentActivity = RECENT_ACTIVITY;
-
   // Leaderboard state
   const [leaderboardTab, setLeaderboardTab] = useState("streak");
   const leaderboard = LEADERBOARD_DATA;
@@ -91,13 +86,33 @@ export default function Home() {
       .catch(() => setLoadingWord(false));
   }, []);
 
+  useEffect(() => {
+    api
+      .get("/api/practice/streak")
+      .then((response) => {
+        setCurrentStreak(response.data.current || 0);
+        setNeedsPracticeToday(Boolean(response.data.needsPracticeToday));
+      })
+      .catch(() => {
+        setCurrentStreak(0);
+        setNeedsPracticeToday(false);
+      });
+  }, []);
+
+  useEffect(() => {
+    api
+      .get("/api/practice/recent?limit=1")
+      .then((response) => setRecentActivity(response.data[0] || null))
+      .catch(() => setRecentActivity(null));
+  }, []);
+
   const activeLeaderboardEntries = leaderboard[leaderboardTab] || [];
 
   return (
     <div className="page">
       <header className="page-header">
         <div>
-          <img src={logo} alt="Articulate 60" className="brand-logo" />
+       
 
           <h1>Good morning, {username}</h1>
 
@@ -107,11 +122,17 @@ export default function Home() {
         <div className="streak">
           <Flame size={20} />
           <div>
-            <strong>7</strong>
+            <strong>{currentStreak}</strong>
             <span>Day streak</span>
           </div>
         </div>
       </header>
+
+      {needsPracticeToday && (
+        <p className="subtitle">
+          You have not practised today. Complete a practice to keep your streak going.
+        </p>
+      )}
 
       <section className="home-grid">
         <div className="card today-practice-card">
@@ -119,7 +140,7 @@ export default function Home() {
             <span>Today's Practice</span>
           </div>
 
-          <h2>Get a topic. Speak for 60 seconds..</h2>
+          <h2>Get a topic. Speak for 60 seconds.</h2>
 
           <p>Build your ability to communicate clearly and confidently.</p>
 
@@ -175,12 +196,11 @@ export default function Home() {
         </div>
 
         <div className="activity-list">
-          <Activity
-            title={recentActivity.title}
-            level={recentActivity.level}
-            duration={recentActivity.duration}
-            date={recentActivity.date}
-          />
+          {recentActivity ? (
+            <Activity recording={recentActivity} />
+          ) : (
+            <p>No practices completed yet. Your latest recording will appear here.</p>
+          )}
         </div>
       </section>
 
@@ -242,7 +262,39 @@ function getStoredUser() {
   }
 }
 
-function Activity({ title, level, duration, date }) {
+function Activity({ recording }) {
+  const title = recording.topic;
+  const level = `Level ${recording.level}`;
+  const duration = formatDuration(recording.durationSeconds);
+  const date = formatPracticeDate(recording.createdAt);
+  const audioRef = useRef(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+
+  useEffect(() => {
+    const audio = new Audio(recording.audioUrl);
+    const handleEnded = () => setIsPlaying(false);
+    audio.addEventListener("ended", handleEnded);
+    audioRef.current = audio;
+
+    return () => {
+      audio.pause();
+      audio.removeEventListener("ended", handleEnded);
+    };
+  }, [recording.audioUrl]);
+
+  const togglePlayback = async () => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    if (audio.paused) {
+      await audio.play();
+      setIsPlaying(true);
+    } else {
+      audio.pause();
+      setIsPlaying(false);
+    }
+  };
+
   return (
     <div className="activity-item">
       <div>
@@ -255,11 +307,27 @@ function Activity({ title, level, duration, date }) {
 
       {date && <span className="activity-date">{date}</span>}
 
-      <button className="play-button">
-        <Play size={15} fill="currentColor" />
+      <button
+        className="play-button"
+        onClick={togglePlayback}
+        aria-label={isPlaying ? "Pause recording" : "Play recording"}
+      >
+        {isPlaying ? <Pause size={15} fill="currentColor" /> : <Play size={15} fill="currentColor" />}
       </button>
     </div>
   );
+}
+
+function formatDuration(seconds) {
+  const minutes = Math.floor(seconds / 60);
+  const remainingSeconds = seconds % 60;
+  return minutes > 0 ? `${minutes}m ${remainingSeconds}s` : `${remainingSeconds}s`;
+}
+
+function formatPracticeDate(date) {
+  const practiceDate = new Date(date);
+  if (practiceDate.toDateString() === new Date().toDateString()) return "Today";
+  return practiceDate.toLocaleDateString(undefined, { month: "short", day: "numeric" });
 }
 
 function LeaderboardRow({ rank, name, value }) {

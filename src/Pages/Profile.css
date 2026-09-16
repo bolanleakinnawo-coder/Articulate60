@@ -55,6 +55,10 @@
   flex-shrink: 0;
 }
 
+.profile-avatar-image {
+  object-fit: cover;
+}
+
 .profile-info {
   flex: 1;
   min-width: 140px;

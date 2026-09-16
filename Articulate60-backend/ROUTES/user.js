@@ -1,13 +1,21 @@
 const express = require("express");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const multer = require("multer");
+const { PutObjectCommand } = require("@aws-sdk/client-s3");
+const { randomUUID } = require("crypto");
 const User = require("../MODELS/User"); // adjust path/casing to match your actual folder
+const r2 = require("../config/r2");
 
 const router = express.Router();
 
 const EMAIL_REGEX = /^\S+@\S+\.\S+$/;
 const USERNAME_REGEX = /^[a-zA-Z0-9_]{3,20}$/;
 const PHONE_REGEX = /^\+?[0-9]{10,15}$/;
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024 },
+});
 
 const generateToken = (userId) => {
   return jwt.sign({ id: userId }, process.env.JWT_SECRET, { expiresIn: "7d" });
@@ -31,7 +39,7 @@ const authenticate = async (req, res, next) => {
 };
 
 // ---------- SIGNUP ----------
-router.post("/signup", async (req, res) => {
+router.post("/signup", upload.single("profilePhoto"), async (req, res) => {
   try {
     const {
       fullName,
@@ -46,6 +54,8 @@ router.post("/signup", async (req, res) => {
       improvementOther,
       practiceFrequency,
     } = req.body;
+    const selectedImprovements =
+      typeof improvements === "string" ? JSON.parse(improvements) : improvements;
 
     const errors = {};
 
@@ -82,9 +92,9 @@ router.post("/signup", async (req, res) => {
       errors.roleOther = "Please tell us more.";
     }
 
-    if (!Array.isArray(improvements) || improvements.length === 0) {
+    if (!Array.isArray(selectedImprovements) || selectedImprovements.length === 0) {
       errors.improvements = "Please select at least one improvement area.";
-    } else if (improvements.includes("Other") && !improvementOther?.trim()) {
+    } else if (selectedImprovements.includes("Other") && !improvementOther?.trim()) {
       errors.improvementOther = "Please tell us more.";
     }
 
@@ -113,6 +123,25 @@ router.post("/signup", async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
+    let profileImageUrl = "";
+
+    if (req.file) {
+      if (!req.file.mimetype.startsWith("image/")) {
+        return res.status(400).json({ message: "Profile photo must be an image." });
+      }
+
+      const extension = req.file.mimetype.split("/")[1] || "jpg";
+      const key = `profiles/${randomUUID()}.${extension}`;
+      await r2.send(
+        new PutObjectCommand({
+          Bucket: process.env.R2_BUCKET_NAME,
+          Key: key,
+          Body: req.file.buffer,
+          ContentType: req.file.mimetype,
+        }),
+      );
+      profileImageUrl = `${process.env.R2_PUBLIC_URL}/${key}`;
+    }
 
     const newUser = await User.create({
       fullName: fullName.trim(),
@@ -122,11 +151,12 @@ router.post("/signup", async (req, res) => {
       password: hashedPassword,
       role,
       roleOther: role === "Other" ? roleOther.trim() : "",
-      improvements,
-      improvementOther: improvements.includes("Other")
+      improvements: selectedImprovements,
+      improvementOther: selectedImprovements.includes("Other")
         ? improvementOther.trim()
         : "",
       practiceFrequency,
+      profileImageUrl,
     });
 
     const token = generateToken(newUser._id);
@@ -139,6 +169,8 @@ router.post("/signup", async (req, res) => {
         fullName: newUser.fullName,
         username: newUser.username,
         email: newUser.email,
+        profileImageUrl: newUser.profileImageUrl,
+        createdAt: newUser.createdAt,
       },
     });
   } catch (err) {
@@ -186,6 +218,8 @@ router.post("/login", async (req, res) => {
         fullName: user.fullName,
         username: user.username,
         email: user.email,
+        profileImageUrl: user.profileImageUrl,
+        createdAt: user.createdAt,
       },
     });
   } catch (err) {
@@ -256,6 +290,8 @@ router.put("/profile", authenticate, async (req, res) => {
         fullName: req.user.fullName,
         username: req.user.username,
         email: req.user.email,
+        profileImageUrl: req.user.profileImageUrl,
+        createdAt: req.user.createdAt,
       },
     });
   } catch (err) {

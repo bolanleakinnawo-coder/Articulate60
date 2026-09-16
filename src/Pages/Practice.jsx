@@ -124,7 +124,13 @@ export default function Practice() {
   };
 
   const handleStartYapping = () => {
-    navigate("yap-session", { state: { level: selectedLevel } });
+    navigate("yap-session", {
+      state: {
+        level: selectedLevel,
+        category: { id: "yap", title: "Yap Mode" },
+        prompt: "Yap Mode — free talk",
+      },
+    });
   };
 
   const handleSelectLevel = (levelId) => {
@@ -313,6 +319,8 @@ export default function Practice() {
           </div>
         )}
       </div>
+
+=
 
       <div className="jar-wrapper">
         <img

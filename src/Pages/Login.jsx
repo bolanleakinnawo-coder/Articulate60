@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useLocation } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
 import axios from "axios";
 
@@ -12,6 +12,7 @@ function Login() {
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -33,7 +34,8 @@ function Login() {
       sessionStorage.setItem("token", response.data.token);
       sessionStorage.setItem("user", JSON.stringify(response.data.user));
 
-      navigate("/app/home", { state: { user: response.data.user } });
+      const destination = location.state?.from?.pathname || "/app/home";
+      navigate(destination, { replace: true, state: { user: response.data.user } });
     } catch (err) {
       console.error(err);
       setError(
