@@ -26,11 +26,7 @@ const navigation = [
     path: "/app/challenges",
     icon: Trophy,
   },
-  {
-    name: "Library",
-    path: "/app/library",
-    icon: BookOpen,
-  },
+
   {
     name: "Profile",
     path: "/app/profile",
