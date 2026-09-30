@@ -22,9 +22,9 @@ const navigation = [
     icon: Target,
   },
   {
-    name: "Challenges",
-    path: "/app/challenges",
-    icon: Trophy,
+    name: "Learn",
+    path: "/app/learn",
+    icon: BookOpen,
   },
 
   {

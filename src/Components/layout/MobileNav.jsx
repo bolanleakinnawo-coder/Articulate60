@@ -4,7 +4,7 @@ import { NavLink } from "react-router-dom";
 const navigation = [
   { name: "Home", path: "/app/home", icon: Home },
   { name: "Practice", path: "/app/practice", icon: Target },
-  { name: "Challenges", path: "/app/challenges", icon: Trophy },
+  { name: "Learn", path: "/app/learn", icon: BookOpen },
 
   { name: "Profile", path: "/app/profile", icon: User },
 ];

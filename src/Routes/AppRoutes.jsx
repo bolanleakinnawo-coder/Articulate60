@@ -5,6 +5,7 @@ import AppLayout from "../Components/layout/AppLayout";
 import Home from "../Pages/Home";
 import Practice from "../Pages/Practice";
 import Challenges from "../Pages/Challenges";
+import Learn from "../Pages/Learn";
 import Library from "../Pages/Library";
 import Profile from "../Pages/Profile";
 import Registration from "../Pages/Registration";
@@ -32,6 +33,7 @@ export default function AppRoutes() {
           <Route path="challenges" element={<Challenges />} />
           <Route path="library" element={<Library />} />
           <Route path="profile" element={<Profile />} />
+          <Route path="learn" element={<Learn />} />
 
           <Route path="practice/prepare" element={<PracticeSession />} />
           <Route path="practice/yap-session" element={<PracticeSession />} />
