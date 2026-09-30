@@ -8,7 +8,6 @@ import {
 } from "lucide-react";
 
 import { Lock } from "lucide-react";
-import "./Learn.css";
 
 /* ---------- Content (swap for API data later) ---------- */
 
