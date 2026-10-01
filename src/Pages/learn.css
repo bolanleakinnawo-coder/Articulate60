@@ -66,27 +66,18 @@
   box-sizing: border-box;
 }
 
-/* Serif display type for headings (falls back gracefully) */
-
-.learn-title {
-  margin: 0 0 6px;
-  font-family: inherit;
-  font-size: clamp(2rem, 7vw, 2.75rem);
-  font-weight: 700;
-  line-height: 1.2;
-  color: var(--text-primary);
-}
-
+.learn-title,
 .learn-hero-title,
 .learn-bundle-title,
-.learn-guide h3 {
-  font-family: var(
-    --font-serif,
-    "Cormorant Garamond",
-    "Playfair Display",
-    Georgia,
-    serif
-  );
+.learn-guide h3,
+.learn-section-head h2,
+.learn-hero-subtitle,
+.learn-bundle-subtitle,
+.learn-guide-meta,
+.learn-bundle-includes li,
+.learn-row-text strong,
+.learn-row-text span {
+  font-family: inherit;
 }
 
 /* ---------- Header ---------- */
@@ -226,6 +217,19 @@
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: 16px;
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.learn-hero:hover,
+.learn-bundle:hover,
+.learn-guide:hover,
+.learn-row:hover {
+  transform: translateY(-3px);
+  border-color: var(--olive-bright);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.22);
 }
 
 .learn-hero-main {
@@ -303,6 +307,10 @@
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: 16px;
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .learn-bundle-main {
@@ -392,11 +400,10 @@
   border: 1px solid var(--border);
   border-radius: 16px;
   cursor: pointer;
-  transition: border-color 0.2s;
-}
-
-.learn-guide:hover {
-  border-color: var(--olive-bright);
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .learn-guide-top {
