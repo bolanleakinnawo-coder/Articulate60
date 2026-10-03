@@ -10,6 +10,7 @@ const recordingSchema = new mongoose.Schema(
     },
     topic: { type: String, required: true },
     category: { type: String, default: "" },
+    isWordOfTheDay: { type: Boolean, default: false },
     level: { type: Number, required: true },
     durationSeconds: { type: Number, required: true },
     audioUrl: { type: String, required: true },

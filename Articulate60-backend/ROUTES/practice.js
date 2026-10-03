@@ -36,6 +36,7 @@ router.post(
         category,
         level,
         durationSeconds,
+        isWordOfTheDay,
         wentWell,
         improveNextTime,
       } = req.body;
@@ -66,6 +67,7 @@ router.post(
         user: req.userId,
         topic,
         category: category || "",
+        isWordOfTheDay: isWordOfTheDay === "true",
         level: Number(level),
         durationSeconds: Number(durationSeconds),
         audioUrl,

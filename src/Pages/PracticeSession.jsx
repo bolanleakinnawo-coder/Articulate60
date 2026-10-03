@@ -28,7 +28,8 @@ export default function PracticeSession() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const { level, category, prompt } = location.state || {};
+  const { level, category, prompt, isWordOfTheDay = false } =
+    location.state || {};
   const levelInfo = LEVEL_META.find((l) => l.id === level) || LEVEL_META[0];
 
   const prepareTotal = levelInfo.prepareSeconds;
@@ -320,6 +321,7 @@ export default function PracticeSession() {
       formData.append("category", category?.title || "");
       formData.append("level", level);
       formData.append("durationSeconds", actualDurationSeconds || speakTotal);
+      formData.append("isWordOfTheDay", String(isWordOfTheDay));
       formData.append("wentWell", answer1);
       formData.append("improveNextTime", answer2);
 

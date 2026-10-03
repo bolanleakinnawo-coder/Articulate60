@@ -5,11 +5,11 @@ import {
   Pause,
   Volume2,
   ArrowRight,
-  Trophy,
   X,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
-import logo from "../assets/Dashboardlogo.PNG";
 import api from "../api/axios";
 
 const API_URL = import.meta.env.VITE_API_URL;
@@ -38,18 +38,31 @@ const LEADERBOARD_DATA = {
     { username: "Tobi", displayValue: "2h 40m" },
   ],
 };
-function speakWord(word) {
-  if (!window.speechSynthesis) return; // very old browsers only
+function speakWord(word, availableVoices = []) {
+  if (!("speechSynthesis" in window)) return;
 
+  const voices = availableVoices.length
+    ? availableVoices
+    : window.speechSynthesis.getVoices();
+  const britishVoices = voices.filter((voice) =>
+    /^en[-_]gb\b/i.test(voice.lang),
+  );
+  const preferredFemaleNames =
+    /\b(serena|kate|sonia|hazel|libby|amy|charlotte|olivia|rosie|martha|flo|shelley|natasha)\b/i;
+  const knownMaleNames =
+    /\b(daniel|oliver|arthur|george|james|ryan|thomas|william|brian|male|man)\b/i;
+  const britishFemaleVoice =
+    britishVoices.find((voice) =>
+      /\b(female|woman)\b/i.test(voice.name),
+    ) ||
+    britishVoices.find((voice) => preferredFemaleNames.test(voice.name)) ||
+    britishVoices.find((voice) => !knownMaleNames.test(voice.name));
   const utterance = new SpeechSynthesisUtterance(word);
   utterance.lang = "en-GB";
-  utterance.rate = 0.9; // slightly slower for clarity
-
-  const voices = window.speechSynthesis.getVoices();
-  const britishVoice = voices.find((v) => v.lang === "en-GB");
-  if (britishVoice) {
-    utterance.voice = britishVoice;
-  }
+  utterance.rate = 0.88;
+  utterance.pitch = 1.08;
+  utterance.volume = 1;
+  if (britishFemaleVoice) utterance.voice = britishFemaleVoice;
 
   window.speechSynthesis.speak(utterance);
 }
@@ -58,9 +71,8 @@ export default function Home() {
   const location = useLocation();
   const navigate = useNavigate();
   const currentUser = location.state?.user || getStoredUser();
-  const [username, setUsername] = useState(
-    () => currentUser?.username || location.state?.username || "there",
-  );
+  const username =
+    currentUser?.username || location.state?.username || "there";
 
   // Word of the Day state — fetched from the backend instead of hardcoded
   const [wordOfDay, setWordOfDay] = useState(null);
@@ -69,6 +81,11 @@ export default function Home() {
   const [needsPracticeToday, setNeedsPracticeToday] = useState(false);
   const [showPracticeReminder, setShowPracticeReminder] = useState(true);
   const [recentActivity, setRecentActivity] = useState(null);
+  const [communityWins, setCommunityWins] = useState([]);
+  const [communityWinsError, setCommunityWinsError] = useState("");
+  const [activeCommunityWin, setActiveCommunityWin] = useState(0);
+  const [speechVoices, setSpeechVoices] = useState([]);
+  const communityWinsTrackRef = useRef(null);
 
   // Recent activity — only the single most recent item is shown on Home.
   // "See all" routes to the Profile tab, where the full history lives.
@@ -89,12 +106,6 @@ export default function Home() {
   }
 
   useEffect(() => {
-    if (location.state?.user?.username) {
-      setUsername(location.state.user.username);
-    }
-  }, [location.state]);
-
-  useEffect(() => {
     fetch(`${API_URL}/api/word-of-the-day`)
       .then((res) => {
         if (!res.ok) throw new Error("Word of the day request failed");
@@ -105,6 +116,17 @@ export default function Home() {
         setLoadingWord(false);
       })
       .catch(() => setLoadingWord(false));
+  }, []);
+
+  useEffect(() => {
+    if (!("speechSynthesis" in window)) return undefined;
+
+    const loadVoices = () => setSpeechVoices(window.speechSynthesis.getVoices());
+    loadVoices();
+    window.speechSynthesis.addEventListener("voiceschanged", loadVoices);
+
+    return () =>
+      window.speechSynthesis.removeEventListener("voiceschanged", loadVoices);
   }, []);
 
   useEffect(() => {
@@ -127,7 +149,52 @@ export default function Home() {
       .catch(() => setRecentActivity(null));
   }, []);
 
+  useEffect(() => {
+    api
+      .get("/api/testimonials")
+      .then((response) => setCommunityWins(response.data))
+      .catch((error) => {
+        console.error("Could not load approved community wins:", error);
+        setCommunityWinsError("Community wins couldn't be loaded right now.");
+      });
+  }, []);
+
+  useEffect(() => {
+    const track = communityWinsTrackRef.current;
+    if (!track) return undefined;
+
+    const updateActiveWin = () => {
+      if (track.clientWidth > 0) {
+        setActiveCommunityWin(
+          Math.min(
+            communityWins.length - 1,
+            Math.round(track.scrollLeft / track.clientWidth),
+          ),
+        );
+      }
+    };
+
+    updateActiveWin();
+    track.addEventListener("scroll", updateActiveWin, { passive: true });
+    const resizeObserver = new ResizeObserver(updateActiveWin);
+    resizeObserver.observe(track);
+
+    return () => {
+      track.removeEventListener("scroll", updateActiveWin);
+      resizeObserver.disconnect();
+    };
+  }, [communityWins.length]);
+
   const activeLeaderboardEntries = leaderboard[leaderboardTab] || [];
+  const showCommunityWin = (index) => {
+    const track = communityWinsTrackRef.current;
+    if (!track) return;
+
+    track.scrollTo({
+      left: index * track.clientWidth,
+      behavior: "smooth",
+    });
+  };
 
   return (
     <div className="page">
@@ -197,9 +264,9 @@ export default function Home() {
             <span>Word of the Day</span>
             <button
               className="icon-button word-of-day-audio"
-              onClick={() => wordOfDay && speakWord(wordOfDay.word)}
+              onClick={() => wordOfDay && speakWord(wordOfDay.word, speechVoices)}
               disabled={!wordOfDay}
-              aria-label="Play pronunciation"
+              aria-label="Play British pronunciation"
             >
               <Volume2 size={17} />
             </button>
@@ -218,7 +285,12 @@ export default function Home() {
 
           <button
             className="text-button"
-            onClick={() => navigate("/app/practice")}
+            disabled={!wordOfDay}
+            onClick={() =>
+              navigate("/app/practice", {
+                state: { wordOfTheDay: wordOfDay },
+              })
+            }
           >
             Try using it today
             <ArrowRight size={15} />
@@ -290,6 +362,80 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {(communityWins.length > 0 || communityWinsError) && (
+        <section className="section community-wins-section">
+          <div className="section-header community-wins-header">
+            <h2>See other people&apos;s wins</h2>
+          </div>
+
+          {communityWinsError ? (
+            <p className="community-wins-message" role="status">
+              {communityWinsError}
+            </p>
+          ) : (
+            <div className="community-wins-carousel">
+              <div
+                className="community-wins-track"
+                ref={communityWinsTrackRef}
+                role="region"
+                aria-label="Approved community wins"
+                tabIndex={0}
+              >
+                {communityWins.map((win) => (
+                  <article className="community-win-card" key={win._id}>
+                    <span className="community-win-label">Community win</span>
+                    <p className="community-win-quote">{win.quote}</p>
+                    <div className="community-win-author">
+                      <span className="community-win-avatar" aria-hidden="true">
+                        {win.displayName?.charAt(0)?.toUpperCase() || "A"}
+                      </span>
+                      <div>
+                        <strong>{win.displayName}</strong>
+                        <span>Articulate60 member</span>
+                      </div>
+                    </div>
+                  </article>
+                ))}
+              </div>
+              {communityWins.length > 1 && (
+                <div
+                  className="community-wins-pagination"
+                >
+                  <button
+                    type="button"
+                    className="community-wins-arrow"
+                    aria-label="Show previous win"
+                    disabled={activeCommunityWin === 0}
+                    onClick={() => showCommunityWin(activeCommunityWin - 1)}
+                  >
+                    <ChevronLeft size={18} />
+                  </button>
+                  {communityWins.map((win, index) => (
+                    <button
+                      key={win._id}
+                      type="button"
+                      className={`community-wins-dot${activeCommunityWin === index ? " active" : ""}`}
+                      aria-label={`Show community win ${index + 1}`}
+                      aria-current={activeCommunityWin === index ? "true" : undefined}
+                      onClick={() => showCommunityWin(index)}
+                    />
+                  ))}
+                  <button
+                    type="button"
+                    className="community-wins-arrow"
+                    aria-label="Show next win"
+                    disabled={activeCommunityWin === communityWins.length - 1}
+                    onClick={() => showCommunityWin(activeCommunityWin + 1)}
+                  >
+                    <ChevronRight size={18} />
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+        </section>
+      )}
     </div>
   );
 }

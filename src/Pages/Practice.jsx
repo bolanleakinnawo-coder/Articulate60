@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 import {
   Sparkles,
@@ -28,11 +28,20 @@ import {
 
 export default function Practice() {
   const navigate = useNavigate();
-  const [selectedLevel, setSelectedLevel] = useState(null);
+  const location = useLocation();
+  const wordOfTheDay = location.state?.wordOfTheDay;
+  const wordOfTheDayPrompt = wordOfTheDay
+    ? `Use "${wordOfTheDay.word}" in a clear, natural sentence. Explain what it means and share a situation where you might use it.`
+    : null;
+  const [selectedLevel, setSelectedLevel] = useState(
+    wordOfTheDay ? 1 : null,
+  );
   const [isLevelOpen, setIsLevelOpen] = useState(false);
-  const [view, setView] = useState("select"); // select | spinning | result | yap
-  const [activeCategory, setActiveCategory] = useState(null);
-  const [currentPrompt, setCurrentPrompt] = useState(null);
+  const [view, setView] = useState(wordOfTheDay ? "result" : "select"); // select | spinning | result | yap
+  const [activeCategory, setActiveCategory] = useState(
+    wordOfTheDay ? { id: "word-of-the-day", title: "Word of the Day" } : null,
+  );
+  const [currentPrompt, setCurrentPrompt] = useState(wordOfTheDayPrompt);
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const spinAudio = useRef(null);
 
@@ -104,6 +113,7 @@ export default function Practice() {
         level: selectedLevel,
         category: activeCategory,
         prompt: currentPrompt,
+        isWordOfTheDay: activeCategory?.id === "word-of-the-day",
       },
     });
   };
@@ -200,8 +210,16 @@ export default function Practice() {
   if (view === "result") {
     return (
       <div className="page practice-page">
-        <h1 className="spin-status-title">YOUR TOPIC IS HERE!</h1>
-        <p className="spin-status-subtitle">Read your topic below.</p>
+        <h1 className="spin-status-title">
+          {activeCategory?.id === "word-of-the-day"
+            ? "YOUR WORD OF THE DAY"
+            : "YOUR TOPIC IS HERE!"}
+        </h1>
+        <p className="spin-status-subtitle">
+          {activeCategory?.id === "word-of-the-day"
+            ? `Practise using ${wordOfTheDay.word}.`
+            : "Read your topic below."}
+        </p>
 
         <div className="jar-wrapper result-jar-wrapper">
           <img src={resultJar} alt="Jar" className="jar-image" />
@@ -226,10 +244,12 @@ export default function Practice() {
           <span className="arrow">→</span>
         </button>
 
-        <button className="change-topic-btn" onClick={handleChangeTopic}>
-          <RotateCw size={14} strokeWidth={2} />
-          Change topic
-        </button>
+        {activeCategory?.id !== "word-of-the-day" && (
+          <button className="change-topic-btn" onClick={handleChangeTopic}>
+            <RotateCw size={14} strokeWidth={2} />
+            Change topic
+          </button>
+        )}
 
         <button className="exit-result-btn" onClick={handleExitResult}>
           Back to practice

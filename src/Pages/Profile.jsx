@@ -130,7 +130,9 @@ export default function Profile({ user }) {
     : "Member since —";
   const stats = {
     current: streak.current,
-    vocabulary: "—",
+    vocabulary: recordings.filter(
+      (recording) => recording.isWordOfTheDay,
+    ).length,
     sessions: recordings.length,
     speakingTime: formatSpeakingTime(
       recordings.reduce(

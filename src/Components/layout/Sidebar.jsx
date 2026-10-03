@@ -4,7 +4,7 @@ import {
   Trophy,
   BookOpen,
   User,
-  Settings,
+
   LogOut,
 } from "lucide-react";
 
@@ -64,11 +64,6 @@ export default function Sidebar() {
       </nav>
 
       <div className="sidebar-bottom">
-        <button className="sidebar-action">
-          <Settings size={18} />
-          <span>Settings</span>
-        </button>
-
         <button className="sidebar-action">
           <LogOut size={18} />
           <span>Log out</span>

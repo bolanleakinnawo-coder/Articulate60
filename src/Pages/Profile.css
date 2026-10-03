@@ -10,7 +10,7 @@
     system-ui,
     -apple-system,
     sans-serif;
-  padding: 0 20px;
+  padding: 0;
   box-sizing: border-box;
 }
 
@@ -301,8 +301,8 @@
   border: none;
   border-radius: 0;
   padding: 0;
-  width: calc(100% + 20px);
-  margin-left: -10px;
+  width: 100%;
+  margin-left: 0;
 }
 
 @media (max-width: 759px) {
@@ -311,14 +311,14 @@
   }
 
   .profile-stats-section {
-    width: calc(100% + 24px);
-    margin-left: -12px;
+    width: 100%;
+    margin-left: 0;
     padding: 14px;
   }
 
   .profile-win-section {
-    width: calc(100% + 24px);
-    margin-left: -12px;
+    width: 100%;
+    margin-left: 0;
     padding: 14px;
   }
 }
