@@ -1373,6 +1373,33 @@ a {
   display: block;
 }
 
+.practice-main-jar::before {
+  position: absolute;
+  left: 50%;
+  z-index: 0;
+  content: "";
+  pointer-events: none;
+  transform: translateX(-50%);
+}
+
+.practice-main-jar::before {
+  bottom: -4%;
+  width: 180%;
+  height: 32%;
+  border-radius: 50%;
+  background: radial-gradient(
+    ellipse,
+    rgba(190, 164, 91, 0.58) 0%,
+    rgba(121, 119, 78, 0.38) 42%,
+    transparent 74%
+  );
+  filter: blur(18px);
+}
+
+.practice-main-jar .jar-image {
+  filter: drop-shadow(0 8px 18px rgba(121, 119, 78, 0.42));
+}
+
 /* ---------- SPIN BUTTON ---------- */
 .spin-jar-btn {
   display: flex;

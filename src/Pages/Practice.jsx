@@ -340,7 +340,7 @@ export default function Practice() {
         )}
       </div>
 
-      <div className="jar-wrapper">
+      <div className="jar-wrapper practice-main-jar">
         <img
           src={jarImg}
           alt="Jar with speaking topics"
