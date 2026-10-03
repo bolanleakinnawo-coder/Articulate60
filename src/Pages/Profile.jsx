@@ -322,7 +322,7 @@ export default function Profile({ user }) {
         </p>
         <form className="profile-win-form" onSubmit={handleWinSubmit}>
           <label className="profile-edit-field">
-            Your win
+          
             <textarea
               value={winText}
               onChange={(event) => setWinText(event.target.value)}

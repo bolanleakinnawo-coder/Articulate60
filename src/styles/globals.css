@@ -3046,6 +3046,325 @@ a {
 }
 
 /* ---------- INTRO / WELCOME QUOTE SCREENS ---------- */
+.welcome-page {
+  position: relative;
+  min-height: 100svh;
+  overflow: hidden;
+  padding: clamp(24px, 5vw, 56px);
+  background:
+    radial-gradient(
+      circle at 82% 18%,
+      rgba(121, 119, 78, 0.2),
+      transparent 30rem
+    ),
+    var(--bg-primary);
+}
+
+.welcome-page::before {
+  position: absolute;
+  top: -190px;
+  right: -170px;
+  width: 460px;
+  height: 460px;
+  border: 1px solid rgba(156, 177, 133, 0.1);
+  border-radius: 50%;
+  content: "";
+  pointer-events: none;
+}
+
+.welcome-shell {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 1040px);
+  margin: 0 auto;
+}
+
+.welcome-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: clamp(28px, 6vh, 64px);
+}
+
+.welcome-logo {
+  color: var(--text-primary);
+  font-size: 16px;
+  font-weight: 750;
+  letter-spacing: 0.01em;
+}
+
+.welcome-logo span {
+  color: var(--sage);
+}
+
+.welcome-step {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-muted);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.11em;
+}
+
+.welcome-step-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--sage);
+  box-shadow: 0 0 12px rgba(156, 177, 133, 0.5);
+}
+
+.welcome-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(230px, 0.64fr);
+  align-items: center;
+  gap: clamp(28px, 6vw, 76px);
+  padding: clamp(26px, 6vw, 64px);
+  border: 1px solid rgba(156, 177, 133, 0.18);
+  border-radius: 26px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.035), transparent 55%),
+    rgba(19, 21, 19, 0.86);
+  box-shadow: 0 26px 80px rgba(0, 0, 0, 0.22);
+}
+
+.welcome-copy {
+  min-width: 0;
+}
+
+.welcome-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 22px;
+  color: var(--sage);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.welcome-copy h1 {
+  max-width: 650px;
+  color: var(--text-primary);
+  font-size: clamp(32px, 4.2vw, 52px);
+  font-weight: 700;
+  letter-spacing: -0.045em;
+  line-height: 1.12;
+}
+
+.welcome-copy h1 span {
+  color: var(--sage);
+}
+
+.welcome-description {
+  max-width: 46ch;
+  margin-top: 20px;
+  color: var(--text-secondary);
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+.welcome-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  min-width: 190px;
+  min-height: 52px;
+  margin-top: 30px;
+  padding: 0 22px;
+  border: 1px solid var(--olive-primary);
+  border-radius: var(--radius-md);
+  background: var(--olive-primary);
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 650;
+  text-decoration: none;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.welcome-cta:hover {
+  transform: translateY(-2px);
+  border-color: var(--olive-bright);
+  background: var(--olive-bright);
+}
+
+.welcome-cta:focus-visible {
+  outline: 2px solid var(--sage);
+  outline-offset: 4px;
+}
+
+.welcome-reassurance {
+  margin-top: 14px;
+  color: var(--text-muted);
+  font-size: 11px;
+}
+
+.welcome-practice-card {
+  position: relative;
+  display: flex;
+  min-height: 300px;
+  flex-direction: column;
+  justify-content: space-between;
+  overflow: hidden;
+  padding: 22px;
+  border: 1px solid rgba(156, 177, 133, 0.2);
+  border-radius: 20px;
+  background:
+    radial-gradient(
+      circle at 50% 48%,
+      rgba(121, 119, 78, 0.18),
+      transparent 62%
+    ),
+    #10120f;
+}
+
+.welcome-practice-card::after {
+  position: absolute;
+  right: -45px;
+  bottom: -75px;
+  width: 200px;
+  height: 200px;
+  border: 1px solid rgba(156, 177, 133, 0.1);
+  border-radius: 50%;
+  content: "";
+  pointer-events: none;
+}
+
+.welcome-practice-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text-secondary);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+}
+
+.welcome-practice-icon {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  place-items: center;
+  border: 1px solid rgba(156, 177, 133, 0.22);
+  border-radius: 11px;
+  background: rgba(156, 177, 133, 0.1);
+  color: var(--sage);
+}
+
+.welcome-timer {
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+}
+
+.welcome-timer strong {
+  color: var(--text-primary);
+  font-size: clamp(64px, 8vw, 88px);
+  font-weight: 650;
+  letter-spacing: -0.08em;
+  line-height: 0.95;
+}
+
+.welcome-timer span {
+  color: var(--sage);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+}
+
+.welcome-wave {
+  display: flex;
+  height: 48px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 5px;
+  margin: 4px 0;
+}
+
+.welcome-wave span {
+  width: 4px;
+  height: var(--wave-height);
+  border-radius: 999px;
+  background: linear-gradient(180deg, var(--sage), var(--olive-primary));
+  opacity: 0.78;
+}
+
+.welcome-practice-caption {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-top: 15px;
+  border-top: 1px solid var(--border);
+  color: var(--text-secondary);
+  font-size: 11px;
+}
+
+.welcome-practice-caption svg {
+  color: var(--sage);
+}
+
+.welcome-footer {
+  margin-top: 22px;
+  color: var(--text-muted);
+  font-size: 12px;
+  text-align: center;
+}
+
+@media (max-width: 680px) {
+  .welcome-page {
+    align-items: flex-start;
+    padding: max(24px, env(safe-area-inset-top)) 18px
+      max(24px, env(safe-area-inset-bottom));
+  }
+
+  .welcome-topbar {
+    margin-bottom: 28px;
+  }
+
+  .welcome-card {
+    grid-template-columns: 1fr;
+    gap: 30px;
+    padding: 26px 22px;
+    border-radius: 22px;
+  }
+
+  .welcome-copy h1 {
+    font-size: clamp(31px, 9vw, 44px);
+  }
+
+  .welcome-eyebrow {
+    margin-bottom: 18px;
+    font-size: 11px;
+  }
+
+  .welcome-description {
+    margin-top: 16px;
+    font-size: 14px;
+  }
+
+  .welcome-cta {
+    width: 100%;
+    margin-top: 24px;
+  }
+
+  .welcome-reassurance {
+    text-align: center;
+  }
+
+  .welcome-practice-card {
+    min-height: 220px;
+  }
+
+  .welcome-footer {
+    padding: 0 10px;
+    line-height: 1.5;
+  }
+}
+
 .intro-container {
   text-align: left;
 }

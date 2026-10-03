@@ -1,8 +1,9 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Download, X } from "lucide-react";
 import "./InstallAppButton.css";
 
-const IOS_INSTRUCTIONS_SEEN_KEY = "articulate60-ios-install-instructions-seen";
+const IOS_INSTALL_DISMISSED_KEY =
+  "articulate60-ios-install-instructions-seen";
 
 function isIosDevice() {
   if (typeof navigator === "undefined") return false;
@@ -24,7 +25,7 @@ function isStandalone() {
 
 function hasSeenIosInstructions() {
   try {
-    return window.localStorage.getItem(IOS_INSTRUCTIONS_SEEN_KEY) === "true";
+    return window.localStorage.getItem(IOS_INSTALL_DISMISSED_KEY) === "true";
   } catch {
     return false;
   }
@@ -40,9 +41,23 @@ export default function InstallAppButton() {
   const [installed, setInstalled] = useState(isStandalone);
   const [nativePromptAvailable, setNativePromptAvailable] = useState(false);
   const [showIosInstructions, setShowIosInstructions] = useState(false);
-  const [iosInstructionsSeen, setIosInstructionsSeen] = useState(
+  const [installPromptDismissed, setInstallPromptDismissed] = useState(
     hasSeenIosInstructions,
   );
+
+  const dismissInstallPrompt = useCallback(() => {
+    setInstallPromptDismissed(true);
+    try {
+      window.localStorage.setItem(IOS_INSTALL_DISMISSED_KEY, "true");
+    } catch {
+      // Keep dismissal for this session if browser storage is unavailable.
+    }
+  }, []);
+
+  const closeIosInstructions = useCallback(() => {
+    dismissInstallPrompt();
+    setShowIosInstructions(false);
+  }, [dismissInstallPrompt]);
 
   useEffect(() => {
     const handleBeforeInstallPrompt = (event) => {
@@ -105,7 +120,7 @@ export default function InstallAppButton() {
 
     const handleKeyDown = (event) => {
       if (event.key === "Escape") {
-        setShowIosInstructions(false);
+        closeIosInstructions();
         return;
       }
 
@@ -127,7 +142,7 @@ export default function InstallAppButton() {
 
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [showIosInstructions]);
+  }, [closeIosInstructions, showIosInstructions]);
 
   useEffect(() => {
     if (showIosInstructions) {
@@ -136,15 +151,6 @@ export default function InstallAppButton() {
       triggerRef.current?.focus();
     }
   }, [showIosInstructions]);
-
-  const rememberIosInstructions = () => {
-    try {
-      window.localStorage.setItem(IOS_INSTRUCTIONS_SEEN_KEY, "true");
-      setIosInstructionsSeen(true);
-    } catch {
-      // The guide still works when browser storage is unavailable.
-    }
-  };
 
   const openIosInstructions = () => {
     setShowIosInstructions(true);
@@ -175,12 +181,13 @@ export default function InstallAppButton() {
     }
   };
 
-  const closeIosInstructions = () => {
-    rememberIosInstructions();
-    setShowIosInstructions(false);
-  };
-
-  if (installed || (!iosDevice && !nativePromptAvailable)) return null;
+  if (
+    installed ||
+    installPromptDismissed ||
+    (!iosDevice && !nativePromptAvailable)
+  ) {
+    return null;
+  }
 
   return (
     <div className="install-app-root">
@@ -231,8 +238,6 @@ export default function InstallAppButton() {
             <p id="install-ios-description" className="install-ios-description">
               Install this app on your iPhone for quick access from your Home
               Screen.
-              {iosInstructionsSeen &&
-                " You can open these instructions again any time by tapping Install App."}
             </p>
 
             <h3>How to install</h3>
