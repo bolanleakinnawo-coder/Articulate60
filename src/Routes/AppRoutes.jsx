@@ -9,6 +9,10 @@ import Learn from "../Pages/Learn";
 import Library from "../Pages/Library";
 import Profile from "../Pages/Profile";
 import AdminTestimonials from "../Pages/AdminTestimonials";
+import AdminLogin from "../Pages/AdminLogin";
+import AdminOverview from "../Pages/AdminOverview";
+import AdminLayout from "../Components/layout/AdminLayout";
+import AdminProtectedRoute from "./AdminProtectedRoute";
 import Registration from "../Pages/Registration";
 import Login from "../Pages/Login";
 import ProtectedRoute from "./ProtectedRoute";
@@ -26,6 +30,13 @@ export default function AppRoutes() {
       <Route path="/register" element={<Registration />} />
       <Route path="/ready" element={<ReadyIntro />} /> {/* NEW */}
       <Route path="/login" element={<Login />} />
+      <Route path="/admin/login" element={<AdminLogin />} />
+      <Route element={<AdminProtectedRoute />}>
+        <Route path="/admin" element={<AdminLayout />}>
+          <Route index element={<AdminOverview />} />
+          <Route path="testimonials" element={<AdminTestimonials />} />
+        </Route>
+      </Route>
       <Route element={<ProtectedRoute />}>
         <Route path="/app" element={<AppLayout />}>
           <Route index element={<Navigate to="/app/home" replace />} />
@@ -34,10 +45,6 @@ export default function AppRoutes() {
           <Route path="challenges" element={<Challenges />} />
           <Route path="library" element={<Library />} />
           <Route path="profile" element={<Profile />} />
-          <Route
-            path="admin/testimonials"
-            element={<AdminTestimonials />}
-          />
           <Route path="learn" element={<Learn />} />
 
           <Route path="practice/prepare" element={<PracticeSession />} />

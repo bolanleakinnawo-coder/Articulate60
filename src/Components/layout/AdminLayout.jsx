@@ -1,0 +1,58 @@
+import { NavLink, Outlet, useNavigate } from "react-router-dom";
+import { LayoutDashboard, LogOut, MessageSquareQuote } from "lucide-react";
+import "./AdminLayout.css";
+
+const ADMIN_SECTIONS = [
+  { to: "/admin", label: "Overview", icon: LayoutDashboard, end: true },
+  {
+    to: "/admin/testimonials",
+    label: "Testimonials",
+    icon: MessageSquareQuote,
+  },
+];
+
+export default function AdminLayout() {
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    sessionStorage.removeItem("adminToken");
+    navigate("/admin/login", { replace: true });
+  };
+
+  return (
+    <div className="admin-layout">
+      <aside className="admin-sidebar" aria-label="Admin navigation">
+        <div className="admin-brand">
+          <span className="admin-brand-mark">A60</span>
+          <span>Admin</span>
+        </div>
+        <nav className="admin-nav">
+          {ADMIN_SECTIONS.map(({ to, label, icon: Icon, end }) => (
+            <NavLink
+              key={to}
+              to={to}
+              end={end}
+              className={({ isActive }) =>
+                `admin-nav-link${isActive ? " active" : ""}`
+              }
+            >
+              <Icon size={18} />
+              {label}
+            </NavLink>
+          ))}
+        </nav>
+        <button
+          className="admin-logout"
+          type="button"
+          onClick={handleLogout}
+        >
+          <LogOut size={17} />
+          Sign out
+        </button>
+      </aside>
+      <main className="admin-main">
+        <Outlet />
+      </main>
+    </div>
+  );
+}

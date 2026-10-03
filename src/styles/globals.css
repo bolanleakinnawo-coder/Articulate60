@@ -93,6 +93,34 @@ a {
   text-decoration: none;
 }
 
+.install-app-button {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 30;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  min-height: 46px;
+  padding: 0 16px;
+  border: 1px solid var(--olive-bright);
+  border-radius: 12px;
+  background: var(--olive-primary);
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 600;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
+}
+
+.install-app-button:hover {
+  transform: translateY(-2px);
+  background: var(--olive-bright);
+}
+
 .app-layout {
   min-height: 100vh;
   display: flex;
@@ -610,6 +638,11 @@ a {
 }
 
 @media (max-width: 600px) {
+  .install-app-button {
+    right: 12px;
+    bottom: 86px;
+  }
+
   .practice-reminder {
     display: grid;
     grid-template-columns: 40px minmax(0, 1fr) 32px;

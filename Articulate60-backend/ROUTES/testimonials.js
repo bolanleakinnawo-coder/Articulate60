@@ -1,27 +1,10 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const Testimonial = require("../MODELS/Testimonial");
-const User = require("../MODELS/User");
 const authMiddleware = require("../middleware/auth");
+const adminAuth = require("../middleware/adminAuth");
 
 const router = express.Router();
-
-async function requireAdmin(req, res, next) {
-  try {
-    const user = await User.findById(req.userId).select("isAdmin");
-    if (!user) {
-      return res.status(404).json({ message: "User not found." });
-    }
-    if (!user.isAdmin) {
-      return res.status(403).json({ message: "Admin access required." });
-    }
-
-    next();
-  } catch (error) {
-    console.error("Failed to verify testimonial admin access:", error);
-    res.status(500).json({ message: "Could not verify admin access." });
-  }
-}
 
 router.get("/", async (req, res) => {
   try {
@@ -72,7 +55,7 @@ router.post("/", authMiddleware, async (req, res) => {
   }
 });
 
-router.get("/admin", authMiddleware, requireAdmin, async (req, res) => {
+router.get("/admin", adminAuth, async (req, res) => {
   const allowedStatuses = ["pending", "approved", "rejected"];
   const status = req.query.status || "pending";
   if (!allowedStatuses.includes(status)) {
@@ -94,8 +77,7 @@ router.get("/admin", authMiddleware, requireAdmin, async (req, res) => {
 
 router.patch(
   "/admin/:id",
-  authMiddleware,
-  requireAdmin,
+  adminAuth,
   async (req, res) => {
     const { id } = req.params;
     const { status } = req.body;
@@ -109,7 +91,7 @@ router.patch(
     try {
       const testimonial = await Testimonial.findOneAndUpdate(
         { _id: id, status: "pending" },
-        { status, reviewedBy: req.userId, reviewedAt: new Date() },
+        { status, reviewedAt: new Date() },
         { new: true, runValidators: true },
       )
         .select("quote displayName status createdAt reviewedAt")

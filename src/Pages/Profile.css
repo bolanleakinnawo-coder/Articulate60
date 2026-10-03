@@ -163,13 +163,6 @@
   background: var(--olive-bright);
 }
 
-.profile-admin-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  text-decoration: none;
-}
-
 .profile-win-section h2 {
   margin-bottom: 8px;
 }

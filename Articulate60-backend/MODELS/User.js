@@ -62,11 +62,6 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
-    isAdmin: {
-      type: Boolean,
-      default: false,
-    },
-
     // --- Streak tracking (used by /api/practice/complete) ---
     currentStreak: {
       type: Number,

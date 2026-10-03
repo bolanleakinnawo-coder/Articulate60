@@ -8,23 +8,32 @@ const STATUSES = ["pending", "approved", "rejected"];
 export default function AdminTestimonials() {
   const [status, setStatus] = useState("pending");
   const [testimonials, setTestimonials] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [loadedStatus, setLoadedStatus] = useState(null);
   const [reviewingId, setReviewingId] = useState(null);
   const [error, setError] = useState("");
+  const isLoading = loadedStatus !== status;
 
   useEffect(() => {
-    setIsLoading(true);
-    setError("");
+    let isCurrent = true;
     api
       .get("/api/testimonials/admin", { params: { status } })
-      .then((response) => setTestimonials(response.data))
+      .then((response) => {
+        if (!isCurrent) return;
+        setTestimonials(response.data);
+        setError("");
+        setLoadedStatus(status);
+      })
       .catch((requestError) => {
+        if (!isCurrent) return;
         setError(
           requestError.response?.data?.message ||
             "Could not load testimonials for review.",
         );
-      })
-      .finally(() => setIsLoading(false));
+        setLoadedStatus(status);
+      });
+    return () => {
+      isCurrent = false;
+    };
   }, [status]);
 
   const reviewTestimonial = async (id, decision) => {
@@ -47,7 +56,7 @@ export default function AdminTestimonials() {
   };
 
   return (
-    <main className="admin-testimonials">
+    <section className="admin-testimonials">
       <header className="admin-testimonials-header">
         <div>
           <p className="admin-testimonials-eyebrow">Admin</p>
@@ -119,6 +128,6 @@ export default function AdminTestimonials() {
           ))}
         </div>
       )}
-    </main>
+    </section>
   );
 }

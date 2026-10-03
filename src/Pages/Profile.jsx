@@ -9,12 +9,10 @@ import {
   Trophy,
   CircleCheck,
   Clock3,
-  LayoutDashboard,
   Send,
 } from "lucide-react";
 import axios from "axios";
 import api from "../api/axios";
-import { Link } from "react-router-dom";
 import "./Profile.css";
 
 const API_URL = import.meta.env.VITE_API_URL;
@@ -207,15 +205,6 @@ export default function Profile({ user }) {
         >
           Edit Profile
         </button>
-        {profileUser?.isAdmin && (
-          <Link
-            className="profile-edit-button profile-admin-link"
-            to="/app/admin/testimonials"
-          >
-            <LayoutDashboard size={15} />
-            Admin dashboard
-          </Link>
-        )}
       </div>
 
       {isEditing && (

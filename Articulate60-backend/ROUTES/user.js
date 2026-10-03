@@ -171,7 +171,6 @@ router.post("/signup", upload.single("profilePhoto"), async (req, res) => {
         email: newUser.email,
         profileImageUrl: newUser.profileImageUrl,
         createdAt: newUser.createdAt,
-        isAdmin: newUser.isAdmin,
       },
     });
   } catch (err) {
@@ -221,7 +220,6 @@ router.post("/login", async (req, res) => {
         email: user.email,
         profileImageUrl: user.profileImageUrl,
         createdAt: user.createdAt,
-        isAdmin: user.isAdmin,
       },
     });
   } catch (err) {
@@ -294,7 +292,6 @@ router.put("/profile", authenticate, async (req, res) => {
         email: req.user.email,
         profileImageUrl: req.user.profileImageUrl,
         createdAt: req.user.createdAt,
-        isAdmin: req.user.isAdmin,
       },
     });
   } catch (err) {
