@@ -9,9 +9,12 @@ import {
   Trophy,
   CircleCheck,
   Clock3,
+  LayoutDashboard,
+  Send,
 } from "lucide-react";
 import axios from "axios";
 import api from "../api/axios";
+import { Link } from "react-router-dom";
 import "./Profile.css";
 
 const API_URL = import.meta.env.VITE_API_URL;
@@ -31,6 +34,13 @@ export default function Profile({ user }) {
   const [error, setError] = useState("");
   const [streak, setStreak] = useState({ current: 0, longest: 0 });
   const [recordings, setRecordings] = useState([]);
+  const [winText, setWinText] = useState("");
+  const [winDisplayName, setWinDisplayName] = useState(
+    storedUser?.username || "",
+  );
+  const [isSubmittingWin, setIsSubmittingWin] = useState(false);
+  const [winError, setWinError] = useState("");
+  const [winMessage, setWinMessage] = useState("");
   const recordingAudioRef = useRef(null);
   const [playingRecordingId, setPlayingRecordingId] = useState(null);
   const [showNewPassword, setShowNewPassword] = useState(false);
@@ -67,6 +77,29 @@ export default function Profile({ user }) {
     }
   };
 
+  const handleWinSubmit = async (event) => {
+    event.preventDefault();
+    setWinError("");
+    setWinMessage("");
+    setIsSubmittingWin(true);
+
+    try {
+      await api.post("/api/testimonials", {
+        quote: winText,
+        displayName: winDisplayName,
+      });
+      setWinText("");
+      setWinMessage("Your win was submitted for review.");
+    } catch (requestError) {
+      setWinError(
+        requestError.response?.data?.message ||
+          "Could not submit your win. Please try again.",
+      );
+    } finally {
+      setIsSubmittingWin(false);
+    }
+  };
+
   useEffect(() => {
     api
       .get("/api/practice/streak")
@@ -89,17 +122,23 @@ export default function Profile({ user }) {
   const initial = name.trim().charAt(0).toUpperCase() || "?";
 
   const memberSince = profileUser?.createdAt
-    ? `Member since ${new Date(profileUser.createdAt).toLocaleDateString(undefined, {
-        month: "short",
-        year: "numeric",
-      })}`
+    ? `Member since ${new Date(profileUser.createdAt).toLocaleDateString(
+        undefined,
+        {
+          month: "short",
+          year: "numeric",
+        },
+      )}`
     : "Member since —";
   const stats = {
     current: streak.current,
     vocabulary: "—",
     sessions: recordings.length,
     speakingTime: formatSpeakingTime(
-      recordings.reduce((total, recording) => total + recording.durationSeconds, 0),
+      recordings.reduce(
+        (total, recording) => total + recording.durationSeconds,
+        0,
+      ),
     ),
   };
 
@@ -138,7 +177,10 @@ export default function Profile({ user }) {
             alt={`${name}'s profile`}
           />
         ) : (
-          <div className="profile-avatar" aria-label={`${name}'s profile initial`}>
+          <div
+            className="profile-avatar"
+            aria-label={`${name}'s profile initial`}
+          >
             {initial}
           </div>
         )}
@@ -165,6 +207,15 @@ export default function Profile({ user }) {
         >
           Edit Profile
         </button>
+        {profileUser?.isAdmin && (
+          <Link
+            className="profile-edit-button profile-admin-link"
+            to="/app/admin/testimonials"
+          >
+            <LayoutDashboard size={15} />
+            Admin dashboard
+          </Link>
+        )}
       </div>
 
       {isEditing && (
@@ -266,13 +317,54 @@ export default function Profile({ user }) {
                 size={20}
                 strokeWidth={2}
               />
-              <span className="profile-stat-value">
-                {stats[stat.key]}
-              </span>
+              <span className="profile-stat-value">{stats[stat.key]}</span>
               <span className="profile-stat-label">{stat.label}</span>
             </div>
           ))}
         </div>
+      </section>
+
+      <section className="profile-section profile-win-section">
+        <h2>Share a win</h2>
+        <p className="profile-win-intro">
+          Tell us how your communication has improved.
+        </p>
+        <form className="profile-win-form" onSubmit={handleWinSubmit}>
+          <label className="profile-edit-field">
+            Your win
+            <textarea
+              value={winText}
+              onChange={(event) => setWinText(event.target.value)}
+              maxLength={1000}
+              rows={4}
+              required
+              placeholder="What has changed for you since you started practising?"
+            />
+            <span className="profile-field-hint">
+              {winText.length}/1,000 characters
+            </span>
+          </label>
+          <label className="profile-edit-field">
+            Name to display publicly
+            <input
+              value={winDisplayName}
+              onChange={(event) => setWinDisplayName(event.target.value)}
+              minLength={2}
+              maxLength={40}
+              required
+            />
+          </label>
+          {winError && <p className="form-error">{winError}</p>}
+          {winMessage && <p className="profile-win-success">{winMessage}</p>}
+          <button
+            className="profile-save-button profile-win-submit"
+            type="submit"
+            disabled={isSubmittingWin}
+          >
+            <Send size={15} />
+            {isSubmittingWin ? "Submitting..." : "Submit for review"}
+          </button>
+        </form>
       </section>
 
       <section className="profile-section profile-recordings-section">
@@ -281,32 +373,38 @@ export default function Profile({ user }) {
         </div>
 
         <div className="profile-recordings-list">
-          {recordings.map((recording) => ({
-            ...recording,
-            title: recording.topic,
-            level: `Level ${recording.level}`,
-            duration: formatDuration(recording.durationSeconds),
-          })).map((recording) => (
-            <div className="activity-item" key={recording.title}>
-              <div>
-                <h3>{recording.title}</h3>
-                <p>
-                  {recording.level} · {recording.duration}
-                </p>
+          {recordings
+            .map((recording) => ({
+              ...recording,
+              title: recording.topic,
+              level: `Level ${recording.level}`,
+              duration: formatDuration(recording.durationSeconds),
+            }))
+            .map((recording) => (
+              <div className="activity-item" key={recording.title}>
+                <div>
+                  <h3>{recording.title}</h3>
+                  <p>
+                    {recording.level} · {recording.duration}
+                  </p>
+                </div>
+                <button
+                  className="play-button"
+                  aria-label={
+                    playingRecordingId === recording._id
+                      ? "Pause recording"
+                      : "Play recording"
+                  }
+                  onClick={() => toggleRecordingPlayback(recording)}
+                >
+                  {playingRecordingId === recording._id ? (
+                    <Pause size={14} fill="currentColor" />
+                  ) : (
+                    <Play size={14} fill="currentColor" />
+                  )}
+                </button>
               </div>
-              <button
-                className="play-button"
-                aria-label={playingRecordingId === recording._id ? "Pause recording" : "Play recording"}
-                onClick={() => toggleRecordingPlayback(recording)}
-              >
-                {playingRecordingId === recording._id ? (
-                  <Pause size={14} fill="currentColor" />
-                ) : (
-                  <Play size={14} fill="currentColor" />
-                )}
-              </button>
-            </div>
-          ))}
+            ))}
         </div>
       </section>
     </div>
@@ -324,7 +422,9 @@ function getStoredUser() {
 function formatDuration(seconds) {
   const minutes = Math.floor(seconds / 60);
   const remainingSeconds = seconds % 60;
-  return minutes > 0 ? `${minutes}m ${remainingSeconds}s` : `${remainingSeconds}s`;
+  return minutes > 0
+    ? `${minutes}m ${remainingSeconds}s`
+    : `${remainingSeconds}s`;
 }
 
 function formatSpeakingTime(seconds) {

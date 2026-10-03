@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 
 import "../../styles/Testimonials.css";
+import api from "../../api/axios";
 
 const TESTIMONIALS = [
   {
@@ -35,7 +36,18 @@ const TESTIMONIALS = [
 
 const Testimonials = () => {
   const [activeIndex, setActiveIndex] = useState(0);
+  const [communityTestimonials, setCommunityTestimonials] = useState([]);
   const trackRef = useRef(null);
+  const testimonials = [...TESTIMONIALS, ...communityTestimonials];
+
+  useEffect(() => {
+    api
+      .get("/api/testimonials")
+      .then((response) => setCommunityTestimonials(response.data))
+      .catch((error) => {
+        console.error("Could not load community testimonials:", error);
+      });
+  }, []);
 
   useEffect(() => {
     const track = trackRef.current;
@@ -68,15 +80,25 @@ const Testimonials = () => {
         <h2 className="testi-heading">Real People. Real Improvement.</h2>
 
         <div className="testi-track" ref={trackRef}>
-          {TESTIMONIALS.map((t) => (
-            <div className="testi-card" key={t.name}>
+          {testimonials.map((t) => (
+            <div className="testi-card" key={t._id || t.name}>
               <span className="testi-quote-mark">&ldquo;</span>
               <p className="testi-quote">{t.quote}</p>
               <div className="testi-author">
-                <img src={t.avatar} alt={t.name} className="testi-avatar" />
+                {t.avatar ? (
+                  <img
+                    src={t.avatar}
+                    alt=""
+                    className="testi-avatar"
+                  />
+                ) : (
+                  <span className="testi-avatar testi-avatar-initials" aria-hidden="true">
+                    {getInitials(t.displayName)}
+                  </span>
+                )}
                 <div>
-                  <p className="testi-name">{t.name}</p>
-                  <p className="testi-role">{t.role}</p>
+                  <p className="testi-name">{t.displayName || t.name}</p>
+                  {t.role && <p className="testi-role">{t.role}</p>}
                 </div>
               </div>
             </div>
@@ -84,7 +106,7 @@ const Testimonials = () => {
         </div>
 
         <div className="testi-dots">
-          {TESTIMONIALS.map((_, index) => (
+          {testimonials.map((_, index) => (
             <button
               key={index}
               className={`testi-dot ${index === activeIndex ? "active" : ""}`}
@@ -97,5 +119,14 @@ const Testimonials = () => {
     </section>
   );
 };
+
+function getInitials(name = "") {
+  return name
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((part) => part.charAt(0).toUpperCase())
+    .join("");
+}
 
 export default Testimonials;

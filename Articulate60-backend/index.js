@@ -22,6 +22,7 @@ app.use(express.json());
 app.use("/user", userRoutes);
 app.use(wordOfTheDayRoute);
 app.use("/api/practice", require("./ROUTES/practice"));
+app.use("/api/testimonials", require("./ROUTES/testimonials"));
 connectDB();
 
 app.listen(port, () => {

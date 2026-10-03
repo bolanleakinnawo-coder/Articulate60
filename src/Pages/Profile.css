@@ -163,6 +163,65 @@
   background: var(--olive-bright);
 }
 
+.profile-admin-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  text-decoration: none;
+}
+
+.profile-win-section h2 {
+  margin-bottom: 8px;
+}
+
+.profile-win-intro {
+  margin: 0 0 16px;
+  color: var(--text-secondary);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.profile-win-form {
+  display: grid;
+  gap: 14px;
+}
+
+.profile-edit-field textarea {
+  width: 100%;
+  min-height: 100px;
+  padding: 10px 12px;
+  resize: vertical;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  outline: none;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  font: inherit;
+}
+
+.profile-edit-field textarea:focus {
+  border-color: var(--olive-primary);
+}
+
+.profile-win-submit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: fit-content;
+  padding: 0 16px;
+}
+
+.profile-win-submit:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.profile-win-success {
+  color: var(--olive-bright);
+  font-size: 13px;
+}
+
 /* ---------- Sections ---------- */
 
 .profile-section {
@@ -259,6 +318,12 @@
   }
 
   .profile-stats-section {
+    width: calc(100% + 24px);
+    margin-left: -12px;
+    padding: 14px;
+  }
+
+  .profile-win-section {
     width: calc(100% + 24px);
     margin-left: -12px;
     padding: 14px;

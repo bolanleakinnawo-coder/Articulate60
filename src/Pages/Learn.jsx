@@ -211,7 +211,6 @@ export default function Learn({ onNavigate = () => {} }) {
                   <span className="learn-icon-circle">
                     <Icon size={18} />
                   </span>
-                  <ArrowRight size={16} className="learn-guide-arrow" />
                 </div>
                 <h3>{title}</h3>
                 <span className="learn-guide-meta">{meta}</span>

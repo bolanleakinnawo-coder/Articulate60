@@ -281,6 +281,96 @@ a {
   font-size: 11px;
 }
 
+.practice-reminder {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: -16px 0 24px;
+  padding: 14px 16px;
+  border: 1px solid rgba(121, 119, 78, 0.55);
+  border-radius: var(--radius-lg);
+  background:
+    radial-gradient(ellipse at left, rgba(121, 119, 78, 0.2), transparent 65%),
+    var(--bg-card);
+  animation: practice-reminder-enter 0.3s ease-out both;
+}
+
+.practice-reminder-icon {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  flex: 0 0 40px;
+  place-items: center;
+  border-radius: var(--radius-md);
+  background: var(--olive-primary);
+  color: var(--text-primary);
+}
+
+.practice-reminder-copy {
+  display: grid;
+  flex: 1;
+  gap: 3px;
+}
+
+.practice-reminder-copy strong {
+  font-size: 14px;
+}
+
+.practice-reminder-copy span {
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.practice-reminder-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 40px;
+  padding: 0 13px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--olive-primary);
+  color: var(--text-primary);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: background 0.2s ease;
+}
+
+.practice-reminder-action:hover {
+  background: var(--olive-bright);
+}
+
+.practice-reminder-dismiss {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  flex: 0 0 32px;
+  place-items: center;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-secondary);
+}
+
+.practice-reminder-dismiss:hover {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+@keyframes practice-reminder-enter {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .home-grid {
   display: grid;
   grid-template-columns: 1.4fr 1fr;
@@ -516,6 +606,33 @@ a {
   .mobile-nav-link.active {
     background: rgba(100, 103, 66, 0.2);
     color: var(--text-primary);
+  }
+}
+
+@media (max-width: 600px) {
+  .practice-reminder {
+    display: grid;
+    grid-template-columns: 40px minmax(0, 1fr) 32px;
+    gap: 10px;
+    margin: -14px 0 22px;
+    padding: 12px;
+  }
+
+  .practice-reminder-action {
+    grid-column: 2 / 3;
+    justify-self: start;
+  }
+
+  .practice-reminder-dismiss {
+    grid-column: 3;
+    grid-row: 1;
+    align-self: start;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .practice-reminder {
+    animation: none;
   }
 }
 
@@ -3015,11 +3132,6 @@ a {
   flex-shrink: 0;
 }
 
-.learn-guide-arrow {
-  color: var(--text-secondary);
-  flex-shrink: 0;
-}
-
 /* ---------- Live hero ---------- */
 
 .learn-hero {
@@ -3372,11 +3484,6 @@ a {
     grid-row: 1 / span 3;
   }
 
-  .learn-guide-arrow {
-    grid-column: 3;
-    grid-row: 1;
-  }
-
   .learn-guide h3,
   .learn-guide-meta,
   .learn-guide p {
@@ -3400,7 +3507,13 @@ a {
 }
 
 .learn-guide-link.locked {
-  opacity: 0.6;
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  border-radius: var(--radius-sm);
+  background: var(--olive-primary);
+  color: var(--text-primary);
   cursor: not-allowed;
 }
 

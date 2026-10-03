@@ -73,6 +73,15 @@
   flex-shrink: 0;
 }
 
+.testi-avatar-initials {
+  display: grid;
+  place-items: center;
+  background: var(--olive-deep);
+  color: var(--white);
+  font-size: 14px;
+  font-weight: 700;
+}
+
 .testi-name {
   font-size: 14px;
   font-weight: 700;

@@ -1,5 +1,13 @@
 import { useEffect, useRef, useState } from "react";
-import { Flame, Play, Pause, Volume2, ArrowRight, Trophy } from "lucide-react";
+import {
+  Flame,
+  Play,
+  Pause,
+  Volume2,
+  ArrowRight,
+  Trophy,
+  X,
+} from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import logo from "../assets/Dashboardlogo.PNG";
 import api from "../api/axios";
@@ -59,6 +67,7 @@ export default function Home() {
   const [loadingWord, setLoadingWord] = useState(true);
   const [currentStreak, setCurrentStreak] = useState(0);
   const [needsPracticeToday, setNeedsPracticeToday] = useState(false);
+  const [showPracticeReminder, setShowPracticeReminder] = useState(true);
   const [recentActivity, setRecentActivity] = useState(null);
 
   // Recent activity — only the single most recent item is shown on Home.
@@ -140,11 +149,29 @@ export default function Home() {
         </div>
       </header>
 
-      {needsPracticeToday && (
-        <p className="subtitle">
-          You have not practised today. Complete a practice to keep your streak
-          going.
-        </p>
+      {needsPracticeToday && showPracticeReminder && (
+        <aside className="practice-reminder" aria-live="polite">
+          <span className="practice-reminder-icon" aria-hidden="true">
+            <Flame size={20} />
+          </span>
+          <div className="practice-reminder-copy">
+            <strong>Your streak is waiting!</strong>
+            <span>A quick practice today keeps your momentum going.</span>
+          </div>
+          <button
+            className="practice-reminder-action"
+            onClick={() => navigate("/app/practice")}
+          >
+            Keep my streak <ArrowRight size={16} />
+          </button>
+          <button
+            className="practice-reminder-dismiss"
+            aria-label="Dismiss practice reminder"
+            onClick={() => setShowPracticeReminder(false)}
+          >
+            <X size={18} />
+          </button>
+        </aside>
       )}
 
       <section className="home-grid">
@@ -189,7 +216,10 @@ export default function Home() {
             <p>Couldn't load today's word.</p>
           )}
 
-          <button className="text-button">
+          <button
+            className="text-button"
+            onClick={() => navigate("/app/practice")}
+          >
             Try using it today
             <ArrowRight size={15} />
           </button>

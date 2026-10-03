@@ -1,0 +1,123 @@
+.admin-testimonials {
+  display: grid;
+  gap: 20px;
+}
+
+.admin-testimonials-header h1 {
+  margin: 0 0 8px;
+  font-size: clamp(26px, 4vw, 36px);
+}
+
+.admin-testimonials-header p {
+  color: var(--text-secondary);
+}
+
+.admin-testimonials-header .admin-testimonials-eyebrow {
+  margin-bottom: 8px;
+  color: var(--olive-bright);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.admin-testimonial-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.admin-testimonial-tabs button {
+  padding: 8px 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text-secondary);
+  text-transform: capitalize;
+}
+
+.admin-testimonial-tabs button.active {
+  border-color: var(--olive-primary);
+  background: var(--olive-primary);
+  color: var(--text-primary);
+}
+
+.admin-testimonial-list {
+  display: grid;
+  gap: 12px;
+}
+
+.admin-testimonial-card {
+  display: grid;
+  gap: 14px;
+  padding: 18px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--bg-card);
+}
+
+.admin-testimonial-quote {
+  line-height: 1.6;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.admin-testimonial-meta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px;
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.admin-testimonial-meta strong {
+  color: var(--text-primary);
+}
+
+.admin-testimonial-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.admin-testimonial-actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 8px 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text-primary);
+}
+
+.admin-approve-button {
+  background: var(--olive-primary);
+}
+
+.admin-reject-button {
+  background: var(--bg-secondary);
+}
+
+.admin-testimonial-actions button:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
+
+.admin-testimonial-empty,
+.admin-testimonial-error {
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--bg-card);
+}
+
+.admin-testimonial-empty {
+  color: var(--text-secondary);
+}
+
+.admin-testimonial-error {
+  color: #e99b94;
+}

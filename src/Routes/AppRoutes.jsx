@@ -8,6 +8,7 @@ import Challenges from "../Pages/Challenges";
 import Learn from "../Pages/Learn";
 import Library from "../Pages/Library";
 import Profile from "../Pages/Profile";
+import AdminTestimonials from "../Pages/AdminTestimonials";
 import Registration from "../Pages/Registration";
 import Login from "../Pages/Login";
 import ProtectedRoute from "./ProtectedRoute";
@@ -33,6 +34,10 @@ export default function AppRoutes() {
           <Route path="challenges" element={<Challenges />} />
           <Route path="library" element={<Library />} />
           <Route path="profile" element={<Profile />} />
+          <Route
+            path="admin/testimonials"
+            element={<AdminTestimonials />}
+          />
           <Route path="learn" element={<Learn />} />
 
           <Route path="practice/prepare" element={<PracticeSession />} />
