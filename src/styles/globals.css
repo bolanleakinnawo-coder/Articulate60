@@ -1417,28 +1417,22 @@ a {
   display: block;
 }
 
-.practice-main-jar {
-  isolation: isolate;
-}
-
-.practice-main-jar::before {
+.practice-main-jar::after {
   position: absolute;
+  bottom: -3%;
   left: 50%;
   z-index: 0;
-  content: "";
-  pointer-events: none;
-  transform: translateX(-50%);
-  bottom: 0;
   width: 72%;
-  height: 8%;
-  border-radius: 50%;
+  height: 12%;
+  content: "";
+  transform: translateX(-50%);
   background: radial-gradient(
     ellipse,
-    rgba(190, 164, 91, 0.42) 0%,
-    rgba(121, 119, 78, 0.2) 45%,
-    transparent 75%
+    rgba(190, 164, 91, 0.35) 0%,
+    rgba(121, 119, 78, 0.16) 42%,
+    transparent 72%
   );
-  filter: blur(8px);
+  pointer-events: none;
 }
 
 /* ---------- SPIN BUTTON ---------- */
