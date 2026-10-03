@@ -104,9 +104,6 @@ function Login() {
         <p className="login-switch">
           Don't have an account? <Link to="/register">Sign up</Link>
         </p>
-        <p className="login-switch">
-          <Link to="/admin/login">Admin sign in</Link>
-        </p>
       </div>
     </main>
   );

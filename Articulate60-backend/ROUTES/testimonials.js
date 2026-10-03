@@ -2,7 +2,6 @@ const express = require("express");
 const mongoose = require("mongoose");
 const Testimonial = require("../MODELS/Testimonial");
 const authMiddleware = require("../middleware/auth");
-const adminAuth = require("../middleware/adminAuth");
 
 const router = express.Router();
 
@@ -55,7 +54,7 @@ router.post("/", authMiddleware, async (req, res) => {
   }
 });
 
-router.get("/admin", adminAuth, async (req, res) => {
+router.get("/admin", async (req, res) => {
   const allowedStatuses = ["pending", "approved", "rejected"];
   const status = req.query.status || "pending";
   if (!allowedStatuses.includes(status)) {
@@ -75,10 +74,7 @@ router.get("/admin", adminAuth, async (req, res) => {
   }
 });
 
-router.patch(
-  "/admin/:id",
-  adminAuth,
-  async (req, res) => {
+router.patch("/admin/:id", async (req, res) => {
     const { id } = req.params;
     const { status } = req.body;
     if (!mongoose.isValidObjectId(id)) {
@@ -111,7 +107,6 @@ router.patch(
       console.error("Failed to review testimonial:", error);
       res.status(500).json({ message: "Could not update testimonial status." });
     }
-  },
-);
+});
 
 module.exports = router;

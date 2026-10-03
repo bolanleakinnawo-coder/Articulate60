@@ -4,13 +4,12 @@ const API_URL = import.meta.env.VITE_API_URL;
 
 const api = axios.create({ baseURL: API_URL });
 
-// Every request automatically carries the logged-in user's token —
-// no need to attach it manually in each component.
+// Admin review requests must not reuse a member token; admin authentication
+// will be added when the admin account flow is ready.
 api.interceptors.request.use((config) => {
   const isAdminRequest =
-    config.url?.startsWith("/api/admin") ||
     config.url?.startsWith("/api/testimonials/admin");
-  const token = sessionStorage.getItem(isAdminRequest ? "adminToken" : "token");
+  const token = isAdminRequest ? null : sessionStorage.getItem("token");
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }

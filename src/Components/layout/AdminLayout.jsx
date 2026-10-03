@@ -1,5 +1,5 @@
-import { NavLink, Outlet, useNavigate } from "react-router-dom";
-import { LayoutDashboard, LogOut, MessageSquareQuote } from "lucide-react";
+import { NavLink, Outlet } from "react-router-dom";
+import { LayoutDashboard, MessageSquareQuote } from "lucide-react";
 import "./AdminLayout.css";
 
 const ADMIN_SECTIONS = [
@@ -12,13 +12,6 @@ const ADMIN_SECTIONS = [
 ];
 
 export default function AdminLayout() {
-  const navigate = useNavigate();
-
-  const handleLogout = () => {
-    sessionStorage.removeItem("adminToken");
-    navigate("/admin/login", { replace: true });
-  };
-
   return (
     <div className="admin-layout">
       <aside className="admin-sidebar" aria-label="Admin navigation">
@@ -41,14 +34,6 @@ export default function AdminLayout() {
             </NavLink>
           ))}
         </nav>
-        <button
-          className="admin-logout"
-          type="button"
-          onClick={handleLogout}
-        >
-          <LogOut size={17} />
-          Sign out
-        </button>
       </aside>
       <main className="admin-main">
         <Outlet />
