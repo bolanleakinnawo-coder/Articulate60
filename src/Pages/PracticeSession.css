@@ -116,6 +116,43 @@
   width: 100%;
 }
 
+.session-prep-guidance,
+.session-ready-actions {
+  display: contents;
+}
+
+@media (min-width: 900px) {
+  .session-page.session-prepare-page {
+    width: min(100%, 1040px);
+    max-width: 1040px;
+  }
+
+  .session-page .session-prep-guidance {
+    display: grid;
+    width: 100%;
+    grid-template-columns: minmax(0, 1fr) minmax(240px, 0.75fr);
+    align-items: center;
+    gap: 32px;
+    text-align: left;
+  }
+
+  .session-page .session-tips-card {
+    margin: 0;
+  }
+
+  .session-page .session-ready-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .session-page .session-note {
+    margin: 0 0 12px;
+    text-align: center;
+  }
+}
+
 @media (max-width: 480px) {
   .session-ring circle {
     stroke-width: 11px;

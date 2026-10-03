@@ -1220,6 +1220,50 @@ a {
   color: var(--text-secondary);
 }
 
+.login-page {
+  height: 100vh;
+  height: 100dvh;
+  min-height: 0;
+  overflow: hidden;
+  padding: clamp(18px, 4vh, 36px) 24px;
+}
+
+.login-page .registration-header {
+  margin-bottom: 26px;
+}
+
+.login-page .registration-form {
+  gap: 15px;
+}
+
+.login-page .login-switch {
+  margin-top: 16px;
+}
+
+@media (max-height: 620px) {
+  .login-page {
+    padding-top: 14px;
+    padding-bottom: 14px;
+  }
+
+  .login-page .registration-header {
+    margin-bottom: 18px;
+  }
+
+  .login-page .registration-header h1 {
+    margin-bottom: 6px;
+    font-size: 28px;
+  }
+
+  .login-page .registration-form {
+    gap: 11px;
+  }
+
+  .login-page .login-switch {
+    margin-top: 10px;
+  }
+}
+
 .login-switch a {
   color: var(--olive-bright);
   font-weight: 600;
@@ -1373,6 +1417,10 @@ a {
   display: block;
 }
 
+.practice-main-jar {
+  isolation: isolate;
+}
+
 .practice-main-jar::before {
   position: absolute;
   left: 50%;
@@ -1380,9 +1428,6 @@ a {
   content: "";
   pointer-events: none;
   transform: translateX(-50%);
-}
-
-.practice-main-jar::before {
   bottom: -4%;
   width: 180%;
   height: 32%;
@@ -1397,7 +1442,9 @@ a {
 }
 
 .practice-main-jar .jar-image {
-  filter: drop-shadow(0 8px 18px rgba(121, 119, 78, 0.42));
+  filter:
+    drop-shadow(0 0 14px rgba(190, 164, 91, 0.54))
+    drop-shadow(0 8px 18px rgba(121, 119, 78, 0.42));
 }
 
 /* ---------- SPIN BUTTON ---------- */
@@ -1756,6 +1803,11 @@ a {
   margin-bottom: 20px;
 }
 
+.practice-page .practice-main-jar {
+  margin-left: auto;
+  margin-right: auto;
+}
+
 .practice-page .spin-jar-btn {
   padding: 14px;
   margin-bottom: 18px;
@@ -1789,6 +1841,10 @@ a {
   line-height: 1.35;
 }
 
+.practice-page .practice-select-actions {
+  display: contents;
+}
+
 @media (min-width: 760px) {
   .practice-page {
     padding-top: 50px;
@@ -1796,6 +1852,59 @@ a {
 
   .practice-page .mode-card {
     padding: 10px 12px;
+  }
+}
+
+@media (min-width: 900px) {
+  .practice-page .practice-select-layout {
+    display: grid;
+    width: min(100%, 1040px);
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.08fr);
+    grid-template-rows: auto auto auto;
+    align-items: center;
+    column-gap: clamp(36px, 6vw, 84px);
+    row-gap: 14px;
+    text-align: left;
+  }
+
+  .practice-page .practice-select-controls {
+    grid-column: 2;
+    grid-row: 1;
+    width: 100%;
+  }
+
+  .practice-page .practice-select-controls .practice-level-label {
+    margin-bottom: 12px;
+  }
+
+  .practice-page .practice-select-controls .level-dropdown {
+    width: 100%;
+  }
+
+  .practice-page .practice-main-jar {
+    grid-column: 1;
+    grid-row: 1 / span 3;
+    justify-self: center;
+    width: min(100%, 400px);
+    max-width: 400px;
+    margin: 0;
+  }
+
+  .practice-page .practice-select-actions {
+    grid-column: 2;
+    grid-row: 2 / span 2;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 14px;
+    width: 100%;
+  }
+
+  .practice-page .practice-select-actions .spin-jar-btn,
+  .practice-page .practice-select-actions .mode-cards {
+    width: 100%;
+    max-width: none;
+    margin: 0;
   }
 }
 
@@ -2093,6 +2202,11 @@ a {
   margin-top: 10px;
 }
 
+.result-layout,
+.result-actions {
+  display: contents;
+}
+
 .change-topic-btn {
   display: flex;
   align-items: center;
@@ -2138,6 +2252,61 @@ a {
   border-radius: var(--radius-md);
   padding: 28px 24px 24px;
   box-shadow: 0 12px 28px rgba(0, 0, 0, 0.4);
+}
+
+@media (min-width: 900px) {
+  .practice-page.practice-result-page {
+    width: min(100%, 1200px);
+  }
+
+  .practice-page .result-layout {
+    display: grid;
+    width: min(100%, 1040px);
+    grid-template-columns: minmax(0, 1.1fr) minmax(280px, 0.9fr);
+    align-items: start;
+    column-gap: clamp(36px, 5vw, 72px);
+    text-align: left;
+  }
+
+  .practice-page .result-jar-wrapper {
+    grid-column: 1;
+    grid-row: 1;
+    justify-self: center;
+    width: min(100%, 340px);
+    max-width: 340px;
+    margin: 0;
+  }
+
+  .practice-page .result-jar-wrapper .topic-note {
+    width: min(500px, calc(100% + 140px));
+    min-height: 200px;
+    padding: 24px 30px;
+  }
+
+  .practice-page .result-actions {
+    grid-column: 2;
+    grid-row: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding-top: 0;
+    text-align: center;
+  }
+
+  .practice-page .result-actions .result-cta {
+    width: 100%;
+    max-width: 420px;
+    margin: 0;
+  }
+
+  .practice-page .result-actions .change-topic-btn,
+  .practice-page .result-actions .exit-result-btn {
+    margin: 0;
+    justify-content: center;
+    text-align: center;
+  }
 }
 
 @media (max-width: 768px) {
@@ -3758,7 +3927,7 @@ a {
   }
 
   .learn-hero-title {
-    font-size: 23px;
+    font-size: 26px;
     font-weight: 700;
     line-height: 1.25;
   }

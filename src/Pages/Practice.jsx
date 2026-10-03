@@ -209,7 +209,7 @@ export default function Practice() {
   // ---------- RESULT VIEW ----------
   if (view === "result") {
     return (
-      <div className="page practice-page">
+      <div className="page practice-page practice-result-page">
         <h1 className="spin-status-title">
           {activeCategory?.id === "word-of-the-day"
             ? "YOUR WORD OF THE DAY"
@@ -221,39 +221,43 @@ export default function Practice() {
             : "Read your topic below."}
         </p>
 
-        <div className="jar-wrapper result-jar-wrapper">
-          <img src={resultJar} alt="Jar" className="jar-image" />
+        <div className="result-layout">
+          <div className="jar-wrapper result-jar-wrapper">
+            <img src={resultJar} alt="Jar" className="jar-image" />
 
-          <div className="topic-note">
-            <div className="topic-note-header">
-              <span className="topic-note-level">LEVEL {selectedLevel}</span>
-              <span className="topic-note-timer">
-                <Clock size={11} strokeWidth={2.5} />
-                {levelInfo?.prepare} PREP
-              </span>
+            <div className="topic-note">
+              <div className="topic-note-header">
+                <span className="topic-note-level">LEVEL {selectedLevel}</span>
+                <span className="topic-note-timer">
+                  <Clock size={11} strokeWidth={2.5} />
+                  {levelInfo?.prepare} PREP
+                </span>
+              </div>
+              <p className="topic-note-text">{currentPrompt}</p>
             </div>
-            <p className="topic-note-text">{currentPrompt}</p>
+          </div>
+
+          <div className="result-actions">
+            <button
+              className="spin-jar-btn result-cta"
+              onClick={handleStartPreparing}
+            >
+              START PREPARING
+              <span className="arrow">→</span>
+            </button>
+
+            {activeCategory?.id !== "word-of-the-day" && (
+              <button className="change-topic-btn" onClick={handleChangeTopic}>
+                <RotateCw size={14} strokeWidth={2} />
+                Change topic
+              </button>
+            )}
+
+            <button className="exit-result-btn" onClick={handleExitResult}>
+              Back to practice
+            </button>
           </div>
         </div>
-
-        <button
-          className="spin-jar-btn result-cta"
-          onClick={handleStartPreparing}
-        >
-          START PREPARING
-          <span className="arrow">→</span>
-        </button>
-
-        {activeCategory?.id !== "word-of-the-day" && (
-          <button className="change-topic-btn" onClick={handleChangeTopic}>
-            <RotateCw size={14} strokeWidth={2} />
-            Change topic
-          </button>
-        )}
-
-        <button className="exit-result-btn" onClick={handleExitResult}>
-          Back to practice
-        </button>
       </div>
     );
   }
@@ -266,118 +270,124 @@ export default function Practice() {
         <h1 className="practice-intro-title">Your 60 is waiting.</h1>
       </div>
 
-      <p className="eyebrow practice-level-label">CHOOSE YOUR LEVEL</p>
+      <div className="practice-select-layout">
+        <div className="practice-select-controls">
+          <p className="eyebrow practice-level-label">CHOOSE YOUR LEVEL</p>
 
-      <div className="level-dropdown">
-        <button
-          className={`level-dropdown-trigger ${isLevelOpen ? "open" : ""}`}
-          onClick={() => setIsLevelOpen((prev) => !prev)}
-        >
-          <span className="level-dropdown-trigger-text">
-            <span className="level-dropdown-label">
-              {levelInfo ? `LEVEL ${levelInfo.id}` : "LEVEL"}
-            </span>
-            <span className="level-dropdown-title">
-              {levelInfo?.title || "Choose your level"}
-            </span>
-          </span>
-          <ChevronDown
-            size={20}
-            strokeWidth={2}
-            className={`level-dropdown-chevron ${isLevelOpen ? "open" : ""}`}
-          />
-        </button>
+          <div className="level-dropdown">
+            <button
+              className={`level-dropdown-trigger ${isLevelOpen ? "open" : ""}`}
+              onClick={() => setIsLevelOpen((prev) => !prev)}
+            >
+              <span className="level-dropdown-trigger-text">
+                <span className="level-dropdown-label">
+                  {levelInfo ? `LEVEL ${levelInfo.id}` : "LEVEL"}
+                </span>
+                <span className="level-dropdown-title">
+                  {levelInfo?.title || "Choose your level"}
+                </span>
+              </span>
+              <ChevronDown
+                size={20}
+                strokeWidth={2}
+                className={`level-dropdown-chevron ${isLevelOpen ? "open" : ""}`}
+              />
+            </button>
 
-        {isLevelOpen && (
-          <div className="level-dropdown-list">
-            {LEVEL_META.map((level) => {
-              const isSelected = selectedLevel === level.id;
-              return (
-                <button
-                  key={level.id}
-                  className={`level-dropdown-item ${
-                    isSelected ? "selected" : ""
-                  }`}
-                  onClick={() => handleSelectLevel(level.id)}
-                >
-                  <span className="level-dropdown-item-number">
-                    {String(level.id).padStart(2, "0")}
-                  </span>
-
-                  <span className="level-dropdown-item-text">
-                    <span className="level-dropdown-item-title">
-                      {level.title}
-                    </span>
-                    {level.description && (
-                      <span className="level-dropdown-item-desc">
-                        {level.description}
+            {isLevelOpen && (
+              <div className="level-dropdown-list">
+                {LEVEL_META.map((level) => {
+                  const isSelected = selectedLevel === level.id;
+                  return (
+                    <button
+                      key={level.id}
+                      className={`level-dropdown-item ${
+                        isSelected ? "selected" : ""
+                      }`}
+                      onClick={() => handleSelectLevel(level.id)}
+                    >
+                      <span className="level-dropdown-item-number">
+                        {String(level.id).padStart(2, "0")}
                       </span>
-                    )}
-                  </span>
 
-                  <span className="level-dropdown-item-meta">
-                    <span className="level-dropdown-item-stat">
-                      <Clock size={13} strokeWidth={2.2} />
-                      {level.prepare}
-                    </span>
-                    <span className="level-dropdown-item-stat">
-                      <Volume2 size={13} strokeWidth={2.2} />
-                      {level.speak}
-                    </span>
-                  </span>
+                      <span className="level-dropdown-item-text">
+                        <span className="level-dropdown-item-title">
+                          {level.title}
+                        </span>
+                        {level.description && (
+                          <span className="level-dropdown-item-desc">
+                            {level.description}
+                          </span>
+                        )}
+                      </span>
 
-                  {isSelected && (
-                    <Check
-                      size={16}
-                      strokeWidth={2.5}
-                      className="level-dropdown-item-check"
-                    />
-                  )}
-                </button>
-              );
-            })}
+                      <span className="level-dropdown-item-meta">
+                        <span className="level-dropdown-item-stat">
+                          <Clock size={13} strokeWidth={2.2} />
+                          {level.prepare}
+                        </span>
+                        <span className="level-dropdown-item-stat">
+                          <Volume2 size={13} strokeWidth={2.2} />
+                          {level.speak}
+                        </span>
+                      </span>
+
+                      {isSelected && (
+                        <Check
+                          size={16}
+                          strokeWidth={2.5}
+                          className="level-dropdown-item-check"
+                        />
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
           </div>
-        )}
-      </div>
+        </div>
 
-      <div className="jar-wrapper practice-main-jar">
-        <img
-          src={jarImg}
-          alt="Jar with speaking topics"
-          className="jar-image"
-        />
-      </div>
+        <div className="jar-wrapper practice-main-jar">
+          <img
+            src={jarImg}
+            alt="Jar with speaking topics"
+            className="jar-image"
+          />
+        </div>
 
-      <button className="spin-jar-btn" onClick={handleSpinTheJar}>
-        <Sparkles size={18} strokeWidth={2} />
-        Spin the Jar
-      </button>
+        <div className="practice-select-actions">
+          <button className="spin-jar-btn" onClick={handleSpinTheJar}>
+            <Sparkles size={18} strokeWidth={2} />
+            Spin the Jar
+          </button>
 
-      <div className="mode-cards">
-        <button
-          className="mode-card"
-          onClick={() => setShowCategoryModal(true)}
-        >
-          <div className="mode-card-heading">
-            <div className="mode-card-icon">
-              <LayoutGrid size={18} strokeWidth={1.8} />
-            </div>
-            <h3 className="mode-card-title">Choose a category</h3>
+          <div className="mode-cards">
+            <button
+              className="mode-card"
+              onClick={() => setShowCategoryModal(true)}
+            >
+              <div className="mode-card-heading">
+                <div className="mode-card-icon">
+                  <LayoutGrid size={18} strokeWidth={1.8} />
+                </div>
+                <h3 className="mode-card-title">Choose a category</h3>
+              </div>
+              <p className="mode-card-desc">
+                Pick a category and get a tailored topic.
+              </p>
+            </button>
+
+            <button className="mode-card" onClick={handleYapMode}>
+              <div className="mode-card-heading">
+                <div className="mode-card-icon">
+                  <MessageCircle size={18} strokeWidth={1.8} />
+                </div>
+                <h3 className="mode-card-title">Yap Mode</h3>
+              </div>
+              <p className="mode-card-desc">No topic. Just you talking.</p>
+            </button>
           </div>
-          <p className="mode-card-desc">
-            Pick a category and get a tailored topic.
-          </p>
-        </button>
-
-        <button className="mode-card" onClick={handleYapMode}>
-          <div className="mode-card-heading">
-            <div className="mode-card-icon">
-              <MessageCircle size={18} strokeWidth={1.8} />
-            </div>
-            <h3 className="mode-card-title">Yap Mode</h3>
-          </div>
-          <p className="mode-card-desc">No topic. Just you talking.</p>
-        </button>
+        </div>
       </div>
 
       {showCategoryModal && (

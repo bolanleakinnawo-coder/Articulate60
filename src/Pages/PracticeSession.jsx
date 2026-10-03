@@ -40,12 +40,15 @@ export default function PracticeSession() {
     prepareTotal > 0 ? prepareTotal : speakTotal,
   );
   const [isRecording, setIsRecording] = useState(false);
+  const [isRequestingMic, setIsRequestingMic] = useState(false);
 
   // ---- real audio capture ----
   const streamRef = useRef(null);
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
   const recordStartRef = useRef(null);
+  const activeRecordingElapsedRef = useRef(0);
+  const activeRecordingSegmentStartRef = useRef(null);
   const audioContextRef = useRef(null);
   const animationFrameRef = useRef(null);
   const lastWaveformUpdateRef = useRef(0);
@@ -135,6 +138,7 @@ export default function PracticeSession() {
 
   const startRecording = useCallback(async () => {
     setMicError("");
+    setIsRequestingMic(true);
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: true,
@@ -167,19 +171,30 @@ export default function PracticeSession() {
         setAudioUrl(URL.createObjectURL(blob));
 
         if (recordStartRef.current) {
-          const elapsed = Math.round(
-            (Date.now() - recordStartRef.current) / 1000,
+          const elapsedMilliseconds =
+            activeRecordingElapsedRef.current +
+            (activeRecordingSegmentStartRef.current === null
+              ? 0
+              : performance.now() - activeRecordingSegmentStartRef.current);
+          setActualDurationSeconds(
+            elapsedMilliseconds >= speakTotal * 1000
+              ? speakTotal
+              : Math.ceil(elapsedMilliseconds / 1000),
           );
-          setActualDurationSeconds(elapsed);
         }
 
         // Release the mic
         stream.getTracks().forEach((track) => track.stop());
         stopAudioAnalysis();
+        setIsRecording(false);
       };
 
       recordStartRef.current = Date.now();
       mediaRecorder.start();
+      activeRecordingElapsedRef.current = 0;
+      activeRecordingSegmentStartRef.current = performance.now();
+      setTimeLeft(speakTotal);
+      setPhase("speak");
       setIsRecording(true);
     } catch (err) {
       console.error("Mic access denied or unavailable:", err);
@@ -187,9 +202,19 @@ export default function PracticeSession() {
         "We couldn't access your microphone. Check your browser permissions and try again.",
       );
       setIsRecording(false);
+      streamRef.current?.getTracks().forEach((track) => track.stop());
+      streamRef.current = null;
+      stopAudioAnalysis();
+    } finally {
+      setIsRequestingMic(false);
     }
-  }, [startAudioAnalysis, stopAudioAnalysis]);
+  }, [speakTotal, startAudioAnalysis, stopAudioAnalysis]);
   const stopRecording = useCallback(() => {
+    if (activeRecordingSegmentStartRef.current !== null) {
+      activeRecordingElapsedRef.current +=
+        performance.now() - activeRecordingSegmentStartRef.current;
+      activeRecordingSegmentStartRef.current = null;
+    }
     const recorder = mediaRecorderRef.current;
     if (recorder && recorder.state !== "inactive") {
       recorder.stop();
@@ -204,10 +229,16 @@ export default function PracticeSession() {
 
     if (recorder.state === "recording") {
       recorder.pause();
+      if (activeRecordingSegmentStartRef.current !== null) {
+        activeRecordingElapsedRef.current +=
+          performance.now() - activeRecordingSegmentStartRef.current;
+        activeRecordingSegmentStartRef.current = null;
+      }
       stopAudioAnalysis();
       setIsRecording(false);
     } else if (recorder.state === "paused") {
       recorder.resume();
+      activeRecordingSegmentStartRef.current = performance.now();
       if (streamRef.current) startAudioAnalysis(streamRef.current);
       setIsRecording(true);
     }
@@ -240,13 +271,12 @@ export default function PracticeSession() {
     navigate("/app/home");
   };
 
-  // countdown effect for prepare + speak
+  // Preparation time is independent of microphone permission requests.
   useEffect(() => {
-    if (phase !== "prepare" && phase !== "speak") return;
+    if (phase !== "prepare") return;
 
     if (timeLeft <= 0) {
-      if (phase === "prepare") goToSpeak();
-      if (phase === "speak") goToReflect();
+      goToSpeak();
       return;
     }
 
@@ -256,6 +286,32 @@ export default function PracticeSession() {
 
     return () => clearInterval(timer);
   }, [timeLeft, phase, goToSpeak, goToReflect]);
+
+  // Start the full speaking countdown only once the recorder is active.
+  useEffect(() => {
+    if (phase !== "speak" || !isRecording) return;
+
+    const timer = setInterval(() => {
+      const segmentStart = activeRecordingSegmentStartRef.current;
+      const elapsedMilliseconds =
+        activeRecordingElapsedRef.current +
+        (segmentStart === null ? 0 : performance.now() - segmentStart);
+      const remainingMilliseconds = speakTotal * 1000 - elapsedMilliseconds;
+      const remainingSeconds = Math.max(
+        0,
+        Math.ceil(remainingMilliseconds / 1000),
+      );
+
+      setTimeLeft(remainingSeconds);
+      if (remainingMilliseconds <= 0) {
+        activeRecordingElapsedRef.current = speakTotal * 1000;
+        activeRecordingSegmentStartRef.current = null;
+        goToReflect();
+      }
+    }, 100);
+
+    return () => clearInterval(timer);
+  }, [goToReflect, isRecording, phase, speakTotal]);
 
   // Clean up the object URL when we're done with it
   useEffect(() => {
@@ -320,7 +376,7 @@ export default function PracticeSession() {
       formData.append("topic", prompt);
       formData.append("category", category?.title || "");
       formData.append("level", level);
-      formData.append("durationSeconds", actualDurationSeconds || speakTotal);
+      formData.append("durationSeconds", speakTotal);
       formData.append("isWordOfTheDay", String(isWordOfTheDay));
       formData.append("wentWell", answer1);
       formData.append("improveNextTime", answer2);
@@ -369,7 +425,7 @@ export default function PracticeSession() {
   // ---------- PREPARE PHASE ----------
   if (phase === "prepare") {
     return (
-      <div className="page session-page">
+      <div className="page session-page session-prepare-page">
         <div className="session-topbar">
           <button
             className="session-icon-btn"
@@ -419,22 +475,29 @@ export default function PracticeSession() {
           </div>
         </div>
 
-        <div className="session-tips-card">
-          <p className="session-tips-title">Plan your response</p>
-          {tips.slice(0, 2).map((tip, i) => (
-            <p className="session-tip-line" key={i}>
-              {tip}
+        <div className="session-prep-guidance">
+          <div className="session-tips-card">
+            <p className="session-tips-title">Plan your response</p>
+            {tips.slice(0, 2).map((tip, i) => (
+              <p className="session-tip-line" key={i}>
+                {tip}
+              </p>
+            ))}
+          </div>
+
+          <div className="session-ready-actions">
+            <p className="session-note">
+              You can start speaking when you're ready.
             </p>
-          ))}
+
+            <button
+              className="spin-jar-btn session-ready-btn"
+              onClick={goToSpeak}
+            >
+              I'M READY
+            </button>
+          </div>
         </div>
-
-        <p className="session-note">
-          You can start speaking when you're ready.
-        </p>
-
-        <button className="spin-jar-btn session-ready-btn" onClick={goToSpeak}>
-          I'M READY
-        </button>
       </div>
     );
   }
@@ -465,8 +528,9 @@ export default function PracticeSession() {
 
         <h1 className="session-speak-title">Speak your response</h1>
         <p className="session-speak-subtitle">
-          You have up to {Math.round(speakTotal / 60)} minute
-          {speakTotal / 60 !== 1 ? "s" : ""}.
+          {isRequestingMic
+            ? "Waiting for microphone permission..."
+            : `You have one full minute to speak.`}
         </p>
 
         {micError && <p className="session-mic-error">{micError}</p>}
@@ -483,14 +547,31 @@ export default function PracticeSession() {
 
         <button
           className={`session-mic-btn ${isRecording ? "active" : ""}`}
-          onClick={togglePauseResume}
-          aria-label={isRecording ? "Pause" : "Resume"}
+          onClick={() => {
+            if (!mediaRecorderRef.current) {
+              startRecording();
+            } else {
+              togglePauseResume();
+            }
+          }}
+          disabled={isRequestingMic}
+          aria-label={
+            isRequestingMic
+              ? "Waiting for microphone permission"
+              : mediaRecorderRef.current?.state === "paused"
+                ? "Resume"
+                : mediaRecorderRef.current?.state === "recording"
+                  ? "Pause"
+                  : "Request microphone access"
+          }
         >
           <Mic size={42} strokeWidth={2} />
         </button>
 
         <p className="session-speak-time">{formatTime(timeLeft)}</p>
-        <p className="session-speak-time-label">Max time</p>
+        <p className="session-speak-time-label">
+          {isRecording ? "Time remaining" : "Recording starts after permission"}
+        </p>
       </div>
     );
   }
@@ -498,7 +579,7 @@ export default function PracticeSession() {
   // ---------- REFLECT PHASE ----------
   if (phase === "reflect") {
     return (
-      <div className="page session-page">
+      <div className="page session-page session-complete-page">
         <div className="session-topbar">
           <button
             className="session-icon-btn"
