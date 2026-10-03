@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 
 export default function WelcomeIntro() {
   return (
-    <main className="registration-page">
+    <main className="registration-page welcome-intro-page">
       <div className="registration-container intro-container">
         <p className="intro-logo">
           articulate<span className="intro-logo-accent">60</span>
