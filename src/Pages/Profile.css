@@ -200,6 +200,11 @@
   font: inherit;
 }
 
+.profile-win-section .profile-edit-field input,
+.profile-win-section .profile-edit-field textarea {
+  font-size: 16px;
+}
+
 .profile-edit-field textarea::placeholder {
   font-style: italic;
 }
