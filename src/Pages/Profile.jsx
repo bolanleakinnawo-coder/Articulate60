@@ -319,19 +319,21 @@ export default function Profile({ user }) {
         <p className="profile-win-intro">
           What's a communication win you're celebrating today?
         </p>
-        <p className="profile-win-prompt">Big or small, tell us about the moment</p>
+        <p className="profile-win-prompt">
+          Big or small, tell us about the moment
+        </p>
         <form className="profile-win-form" onSubmit={handleWinSubmit}>
           <label className="profile-edit-field">
             <textarea
               value={winText}
               onChange={(event) => setWinText(event.target.value)}
-              maxLength={400}
+              maxLength={280}
               rows={4}
               required
-              placeholder="I finally spoke up in a meeting at work?"
+              placeholder='E.g. "I finally spoke up in a meeting at work."'
             />
             <span className="profile-field-hint">
-              {winText.length}/400 characters
+              {winText.length}/280 characters
             </span>
           </label>
           <label className="profile-edit-field">
@@ -352,8 +354,12 @@ export default function Profile({ user }) {
             disabled={isSubmittingWin}
           >
             <Send size={15} />
-            {isSubmittingWin ? "Submitting..." : "Submit for review"}
+            {isSubmittingWin ? "Submitting..." : "Share my win"}
           </button>
+          <p className="profile-win-review-note">
+            Your win will be reviewed before it&apos;s shared with the
+            Articulate60 community.
+          </p>
         </form>
       </section>
 

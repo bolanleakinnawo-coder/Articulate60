@@ -6,8 +6,6 @@ import {
   Volume2,
   ArrowRight,
   X,
-  ChevronLeft,
-  ChevronRight,
 } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import api from "../api/axios";
@@ -52,9 +50,7 @@ function speakWord(word, availableVoices = []) {
   const knownMaleNames =
     /\b(daniel|oliver|arthur|george|james|ryan|thomas|william|brian|male|man)\b/i;
   const britishFemaleVoice =
-    britishVoices.find((voice) =>
-      /\b(female|woman)\b/i.test(voice.name),
-    ) ||
+    britishVoices.find((voice) => /\b(female|woman)\b/i.test(voice.name)) ||
     britishVoices.find((voice) => preferredFemaleNames.test(voice.name)) ||
     britishVoices.find((voice) => !knownMaleNames.test(voice.name));
   const utterance = new SpeechSynthesisUtterance(word);
@@ -71,8 +67,7 @@ export default function Home() {
   const location = useLocation();
   const navigate = useNavigate();
   const currentUser = location.state?.user || getStoredUser();
-  const username =
-    currentUser?.username || location.state?.username || "there";
+  const username = currentUser?.username || location.state?.username || "there";
 
   // Word of the Day state — fetched from the backend instead of hardcoded
   const [wordOfDay, setWordOfDay] = useState(null);
@@ -83,9 +78,7 @@ export default function Home() {
   const [recentActivity, setRecentActivity] = useState(null);
   const [communityWins, setCommunityWins] = useState([]);
   const [communityWinsError, setCommunityWinsError] = useState("");
-  const [activeCommunityWin, setActiveCommunityWin] = useState(0);
   const [speechVoices, setSpeechVoices] = useState([]);
-  const communityWinsTrackRef = useRef(null);
 
   // Recent activity — only the single most recent item is shown on Home.
   // "See all" routes to the Profile tab, where the full history lives.
@@ -121,7 +114,8 @@ export default function Home() {
   useEffect(() => {
     if (!("speechSynthesis" in window)) return undefined;
 
-    const loadVoices = () => setSpeechVoices(window.speechSynthesis.getVoices());
+    const loadVoices = () =>
+      setSpeechVoices(window.speechSynthesis.getVoices());
     loadVoices();
     window.speechSynthesis.addEventListener("voiceschanged", loadVoices);
 
@@ -159,42 +153,7 @@ export default function Home() {
       });
   }, []);
 
-  useEffect(() => {
-    const track = communityWinsTrackRef.current;
-    if (!track) return undefined;
-
-    const updateActiveWin = () => {
-      if (track.clientWidth > 0) {
-        setActiveCommunityWin(
-          Math.min(
-            communityWins.length - 1,
-            Math.round(track.scrollLeft / track.clientWidth),
-          ),
-        );
-      }
-    };
-
-    updateActiveWin();
-    track.addEventListener("scroll", updateActiveWin, { passive: true });
-    const resizeObserver = new ResizeObserver(updateActiveWin);
-    resizeObserver.observe(track);
-
-    return () => {
-      track.removeEventListener("scroll", updateActiveWin);
-      resizeObserver.disconnect();
-    };
-  }, [communityWins.length]);
-
   const activeLeaderboardEntries = leaderboard[leaderboardTab] || [];
-  const showCommunityWin = (index) => {
-    const track = communityWinsTrackRef.current;
-    if (!track) return;
-
-    track.scrollTo({
-      left: index * track.clientWidth,
-      behavior: "smooth",
-    });
-  };
 
   return (
     <div className="page">
@@ -264,7 +223,9 @@ export default function Home() {
             <span>Word of the Day</span>
             <button
               className="icon-button word-of-day-audio"
-              onClick={() => wordOfDay && speakWord(wordOfDay.word, speechVoices)}
+              onClick={() =>
+                wordOfDay && speakWord(wordOfDay.word, speechVoices)
+              }
               disabled={!wordOfDay}
               aria-label="Play British pronunciation"
             >
@@ -365,7 +326,7 @@ export default function Home() {
 
       {(communityWins.length > 0 || communityWinsError) && (
         <section className="section community-wins-section">
-          <div className="section-header community-wins-header">
+          <div className="section-header">
             <h2>See other people&apos;s wins</h2>
           </div>
 
@@ -374,70 +335,36 @@ export default function Home() {
               {communityWinsError}
             </p>
           ) : (
-            <div className="community-wins-carousel">
-              <div
-                className="community-wins-track"
-                ref={communityWinsTrackRef}
-                role="region"
-                aria-label="Approved community wins"
-                tabIndex={0}
-              >
-                {communityWins.map((win) => (
+            <div className="community-wins-list">
+              {communityWins.map((win) => {
+                const posted = timeAgo(win.createdAt);
+                return (
                   <article className="community-win-card" key={win._id}>
-                    <span className="community-win-label">Community win</span>
-                    <p className="community-win-quote">{win.quote}</p>
-                    <div className="community-win-author">
-                      <span className="community-win-avatar" aria-hidden="true">
-                        {win.displayName?.charAt(0)?.toUpperCase() || "A"}
+                    <span className="community-win-avatar" aria-hidden="true">
+                      {win.displayName?.charAt(0)?.toUpperCase() || "A"}
+                    </span>
+                    <div className="community-win-body">
+                      <p className="community-win-quote">“{win.quote}”</p>
+                      <strong className="community-win-name">
+                        {capitalizeFirstLetter(win.displayName)}
+                      </strong>
+                      <span className="community-win-meta">
+                        Articulate60 member{posted && ` · ${posted}`}
                       </span>
-                      <div>
-                        <strong>{win.displayName}</strong>
-                        <span>Articulate60 member</span>
-                      </div>
                     </div>
                   </article>
-                ))}
-              </div>
-              {communityWins.length > 1 && (
-                <div
-                  className="community-wins-pagination"
-                >
-                  <button
-                    type="button"
-                    className="community-wins-arrow"
-                    aria-label="Show previous win"
-                    disabled={activeCommunityWin === 0}
-                    onClick={() => showCommunityWin(activeCommunityWin - 1)}
-                  >
-                    <ChevronLeft size={18} />
-                  </button>
-                  {communityWins.map((win, index) => (
-                    <button
-                      key={win._id}
-                      type="button"
-                      className={`community-wins-dot${activeCommunityWin === index ? " active" : ""}`}
-                      aria-label={`Show community win ${index + 1}`}
-                      aria-current={activeCommunityWin === index ? "true" : undefined}
-                      onClick={() => showCommunityWin(index)}
-                    />
-                  ))}
-                  <button
-                    type="button"
-                    className="community-wins-arrow"
-                    aria-label="Show next win"
-                    disabled={activeCommunityWin === communityWins.length - 1}
-                    onClick={() => showCommunityWin(activeCommunityWin + 1)}
-                  >
-                    <ChevronRight size={18} />
-                  </button>
-                </div>
-              )}
+                );
+              })}
             </div>
           )}
         </section>
       )}
     </div>
   );
+}
+
+function capitalizeFirstLetter(value = "") {
+  return value ? value.charAt(0).toUpperCase() + value.slice(1) : "";
 }
 
 function getStoredUser() {
@@ -520,6 +447,21 @@ function formatDuration(seconds) {
   return minutes > 0
     ? `${minutes}m ${remainingSeconds}s`
     : `${remainingSeconds}s`;
+}
+
+function timeAgo(date) {
+  if (!date) return "";
+  const then = new Date(date);
+  const seconds = Math.floor((Date.now() - then.getTime()) / 1000);
+  if (Number.isNaN(seconds)) return "";
+  if (seconds < 60) return "Just now";
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  if (days < 7) return `${days}d ago`;
+  return then.toLocaleDateString(undefined, { month: "short", day: "numeric" });
 }
 
 function formatPracticeDate(date) {

@@ -170,7 +170,7 @@
 .profile-win-intro {
   margin: 0 0 16px;
   color: var(--text-secondary);
-  font-size: 18px;
+  font-size: 15px;
   font-weight: 600;
   line-height: 1.5;
 }
@@ -220,6 +220,13 @@
 .profile-win-submit:disabled {
   cursor: wait;
   opacity: 0.65;
+}
+
+.profile-win-review-note {
+  margin: -8px 0 0;
+  color: var(--text-muted);
+  font-size: 12px;
+  line-height: 1.45;
 }
 
 .profile-win-success {
