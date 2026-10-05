@@ -130,9 +130,8 @@ export default function Profile({ user }) {
     : "Member since —";
   const stats = {
     current: streak.current,
-    vocabulary: recordings.filter(
-      (recording) => recording.isWordOfTheDay,
-    ).length,
+    vocabulary: recordings.filter((recording) => recording.isWordOfTheDay)
+      .length,
     sessions: recordings.length,
     speakingTime: formatSpeakingTime(
       recordings.reduce(
@@ -318,21 +317,21 @@ export default function Profile({ user }) {
       <section className="profile-section profile-win-section">
         <h2>Share a win</h2>
         <p className="profile-win-intro">
-          Tell us how your communication has improved.
+          What's a communication win you're celebrating today?
         </p>
+        <p className="profile-win-prompt">Big or small, tell us about the moment</p>
         <form className="profile-win-form" onSubmit={handleWinSubmit}>
           <label className="profile-edit-field">
-          
             <textarea
               value={winText}
               onChange={(event) => setWinText(event.target.value)}
-              maxLength={1000}
+              maxLength={400}
               rows={4}
               required
-              placeholder="What has changed for you since you started practising?"
+              placeholder="I finally spoke up in a meeting at work?"
             />
             <span className="profile-field-hint">
-              {winText.length}/1,000 characters
+              {winText.length}/400 characters
             </span>
           </label>
           <label className="profile-edit-field">

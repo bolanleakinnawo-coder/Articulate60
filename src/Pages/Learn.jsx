@@ -1,13 +1,18 @@
 import { useState } from "react";
 import {
   ArrowRight,
+  BookOpen,
   Check,
-  MessageCircle,
-  Settings,
-  Users,
+  Layers,
+  Mic,
+  Presentation,
+  Radio,
 } from "lucide-react";
-
-import { Lock } from "lucide-react";
+import heroImage from "../assets/learn-hero.jpeg";
+import auditImage from "../assets/audit.jpeg";
+import speakWithEaseImage from "../assets/speakwithease.jpeg";
+import whatDoISayImage from "../assets/whatdoisay.PNG";
+import whatDoIDoImage from "../assets/whatdoido.jpeg";
 
 /* ---------- Content (swap for API data later) ---------- */
 
@@ -17,76 +22,80 @@ const CATEGORIES = [
   { id: "self", label: "Self-paced" },
 ];
 
+// Subtitle shown under the chips (none for "All")
+const CATEGORY_SUBTITLES = {
+  all: null,
+  instructor: "Someone to guide you.",
+  self: "Learn at your own pace.",
+};
+
 const LIVE_SESSION = {
   label: "Live",
-  title: "The Communication Upgrade",
-  subtitle: "A 7-Day Intensive Programme",
+  title: "The 7-Day Communication Reset",
   description:
-    "Go from struggling to get your thoughts across to communicating them clearly, confidently and intentionally.",
-
+    "Go from struggling to express your thoughts to communicating them clearly, confidently, and intentionally.",
   cta: "Save My Spot",
+  image: heroImage,
+  imageAlt: "Two people having a conversation",
 };
 
-const BUNDLE = {
-  badge: "Complete bundle",
-  title: "Speak With Ease",
-  subtitle: "Your Communication Backup",
-  description:
-    "The complete bundle for navigating real-life communication situations.",
-  cta: "Coming soon",
-  includes: [
-    "What Do I Say?",
-    "What Do I Do?",
-    "Communication Personality Map",
-    "Conversation Recovery Kit",
-  ],
-};
-
-const AUDIT = {
-  badge: "Coming soon",
-  title: "Communication Audit with Azimah",
-  subtitle: "Know what's holding you back.",
-  description:
-    "Understand your communication strengths, identify your gaps, and get a personalised 90-day plan to improve how you communicate.",
-  cta: "Coming soon",
-};
-
-const GUIDES = [
+const UPCOMING = [
   {
-    id: "say",
-    icon: MessageCircle,
+    id: "communication-audit",
+    category: "instructor",
+    icon: Presentation,
+    title: "Communication Audit With Azimah",
+    description: "Understand what’s holding your communication back.",
+    image: auditImage,
+  },
+  {
+    id: "speak-with-ease",
+    category: "self",
+    icon: Layers,
+    title: "Speak With Ease Bundle",
+    description: "Make difficult communication moments easier to navigate.",
+    image: speakWithEaseImage,
+  },
+  {
+    id: "what-do-i-say",
+    category: "self",
+    icon: BookOpen,
     title: "What Do I Say?",
-    meta: "100 Real-Life Communication Situations",
     description:
-      "For the moments when you know you need to say something, but you're not sure what to say.",
+      "Find the right words when you’re not sure how to express yourself.",
+    image: whatDoISayImage,
   },
   {
-    id: "do",
-    icon: Settings,
+    id: "what-do-i-do",
+    category: "self",
+    icon: Mic,
     title: "What Do I Do?",
-    meta: "120 Real-Life Communication Situations",
-    description:
-      "For the moments when you know something needs to change, but you're not sure how to handle it.",
-  },
-];
-
-const LIVE_LEARNING = [
-  {
-    id: "masterclasses",
-    icon: Users,
-    title: "Masterclasses",
-    description:
-      "Short, focused live sessions on specific communication skills.",
+    description: "Know what to do in difficult communication situations.",
+    image: whatDoIDoImage,
   },
 ];
 
 /* ---------- Component ---------- */
 
-export default function Learn({ onNavigate = () => {} }) {
+export default function Learn({
+  onNavigate = () => {},
+  onNotify = () => {},
+}) {
   const [category, setCategory] = useState("all");
+  const [notified, setNotified] = useState([]);
 
-  const showInstructor = category === "all" || category === "instructor";
-  const showSelf = category === "all" || category === "self";
+  const showHero = category === "all" || category === "instructor";
+  const subtitle = CATEGORY_SUBTITLES[category];
+
+  const visibleItems = UPCOMING.filter(
+    (item) => category === "all" || item.category === category,
+  );
+
+  const handleNotify = (id) => {
+    if (notified.includes(id)) return;
+    setNotified((prev) => [...prev, id]);
+    onNotify(id);
+  };
 
   return (
     <div className="learn-content">
@@ -117,109 +126,90 @@ export default function Learn({ onNavigate = () => {} }) {
         ))}
       </div>
 
-      {/* Featured live session */}
-      {showInstructor && (
-        <section className="learn-hero">
+      {/* Category subtitle */}
+      {subtitle && <p className="learn-category-subtitle">{subtitle}</p>}
+
+      {/* Hero banner */}
+      {showHero && (
+        <section className="learn-hero" aria-labelledby="learn-hero-title">
           <div className="learn-hero-main">
             <span className="learn-badge">
-              <span className="learn-badge-dot" />
+              <Radio size={14} aria-hidden="true" />
               {LIVE_SESSION.label}
             </span>
-            <h2 className="learn-hero-title">{LIVE_SESSION.title}</h2>
-            <h3 className="learn-hero-subtitle">{LIVE_SESSION.subtitle}</h3>
+            <h2 id="learn-hero-title" className="learn-hero-title">
+              {LIVE_SESSION.title}
+            </h2>
             <p className="learn-hero-text">{LIVE_SESSION.description}</p>
             <button
               className="learn-cta"
               onClick={() => onNavigate("save-spot")}
             >
-              {LIVE_SESSION.cta} <ArrowRight size={16} />
+              {LIVE_SESSION.cta} <ArrowRight size={18} />
             </button>
           </div>
-          <div className="learn-hero-date">
-            <span>{LIVE_SESSION.date}</span>
-            <span>{LIVE_SESSION.time}</span>
+
+          <div className="learn-hero-media">
+            {LIVE_SESSION.image ? (
+              <img
+                src={LIVE_SESSION.image}
+                alt={LIVE_SESSION.imageAlt}
+                className="learn-hero-img"
+              />
+            ) : (
+              <div className="learn-image-slot" aria-hidden="true" />
+            )}
           </div>
         </section>
       )}
 
-      {/* Instructor-led */}
-      {showInstructor && (
+      {/* Next on Learn */}
+      {visibleItems.length > 0 && (
         <section className="learn-section">
           <div className="learn-section-head">
-            <h2>Instructor-led</h2>
-            <p>Someone to guide you.</p>
+            <h2>Next on Learn</h2>
+            <p>More learning experiences are on the way.</p>
           </div>
 
-          <div className="learn-bundle">
-            <div className="learn-bundle-main">
-              <span className="learn-badge">{AUDIT.badge}</span>
-              <h3 className="learn-bundle-title">{AUDIT.title}</h3>
-              <h4 className="learn-bundle-subtitle">{AUDIT.subtitle}</h4>
-              <p className="learn-bundle-text">{AUDIT.description}</p>
-              <button className="learn-cta" disabled>
-                {AUDIT.cta}
-              </button>
-            </div>
-          </div>
-        </section>
-      )}
+          <div className="learn-grid">
+            {visibleItems.map(
+              ({ id, icon: Icon, title, description, image }, index) => {
+                const isNotified = notified.includes(id);
+                return (
+                  <article key={id} className="learn-card">
+                    <div
+                      className={`learn-card-media ${
+                        index % 2 === 0 ? "tone-a" : "tone-b"
+                      }`}
+                    >
+                      {image ? (
+                        <img src={image} alt="" className="learn-card-img" />
+                      ) : (
+                        <Icon size={26} aria-hidden="true" />
+                      )}
+                    </div>
 
-      {/* Self-paced */}
-      {showSelf && (
-        <section className="learn-section">
-          <div className="learn-section-head">
-            <h2>Self-paced</h2>
-            <p>Learn at your own pace.</p>
-          </div>
+                    <span className="learn-card-tag">Coming soon</span>
+                    <h3 className="learn-card-title">{title}</h3>
+                    <p className="learn-card-text">{description}</p>
 
-          <div className="learn-bundle">
-            <div className="learn-bundle-main">
-              <span className="learn-badge">{BUNDLE.badge}</span>
-              <h3 className="learn-bundle-title">{BUNDLE.title}</h3>
-              <h4 className="learn-bundle-subtitle">{BUNDLE.subtitle}</h4>
-              <p className="learn-bundle-text">{BUNDLE.description}</p>
-              <button
-                className="learn-cta"
-                onClick={() => onNavigate("bundle")}
-              >
-                {BUNDLE.cta}
-              </button>
-            </div>
-            <div className="learn-bundle-includes">
-              <span className="learn-includes-label">Includes</span>
-              <ul>
-                {BUNDLE.includes.map((item) => (
-                  <li key={item}>
-                    <span className="learn-check">
-                      <Check size={11} strokeWidth={3} />
-                    </span>
-                    {item}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-
-          <div className="learn-guides">
-            {GUIDES.map(({ id, icon: Icon, title, meta, description }) => (
-              <button
-                key={id}
-                className="learn-guide"
-                onClick={() => onNavigate(id)}
-              >
-                <div className="learn-guide-top">
-                  <span className="learn-icon-circle">
-                    <Icon size={18} />
-                  </span>
-                </div>
-                <h3>{title}</h3>
-                <span className="learn-guide-meta">{meta}</span>
-                <p>{description}</p>
-                <span className="learn-guide-link locked">
-                  <Lock size={14} />
-                </span>
-              </button>
-            ))}
+                    <button
+                      className={`learn-notify ${isNotified ? "done" : ""}`}
+                      onClick={() => handleNotify(id)}
+                      disabled={isNotified}
+                    >
+                      {isNotified ? (
+                        <>
+                          <Check size={14} strokeWidth={3} /> We'll notify you
+                        </>
+                      ) : (
+                        "Notify me"
+                      )}
+                    </button>
+                  </article>
+                );
+              },
+            )}
           </div>
         </section>
       )}

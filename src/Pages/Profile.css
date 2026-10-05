@@ -170,8 +170,16 @@
 .profile-win-intro {
   margin: 0 0 16px;
   color: var(--text-secondary);
-  font-size: 13px;
+  font-size: 18px;
+  font-weight: 600;
   line-height: 1.5;
+}
+
+.profile-win-prompt {
+  margin: 0 0 12px;
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 1.4;
 }
 
 .profile-win-form {
@@ -190,6 +198,10 @@
   background: var(--bg-secondary);
   color: var(--text-primary);
   font: inherit;
+}
+
+.profile-edit-field textarea::placeholder {
+  font-style: italic;
 }
 
 .profile-edit-field textarea:focus {
