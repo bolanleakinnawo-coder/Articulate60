@@ -163,28 +163,38 @@
   background: var(--olive-bright);
 }
 
-.profile-win-section h2 {
-  margin-bottom: 8px;
+.profile-win-section {
+  width: 100%;
+}
+
+.profile-win-title {
+  margin: 0 0 14px;
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
 .profile-win-intro {
-  margin: 0 0 16px;
+  margin: 0 0 6px;
   color: var(--text-secondary);
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 600;
   line-height: 1.5;
 }
 
 .profile-win-prompt {
-  margin: 0 0 12px;
+  margin: 0 0 10px;
   color: var(--text-secondary);
-  font-size: 12px;
+  font-size: 11px;
   line-height: 1.4;
 }
 
 .profile-win-form {
   display: grid;
-  gap: 14px;
+  gap: 11px;
+  padding: 14px;
 }
 
 .profile-edit-field textarea {
@@ -202,7 +212,7 @@
 
 .profile-win-section .profile-edit-field input,
 .profile-win-section .profile-edit-field textarea {
-  font-size: 16px;
+  font-size: 14px;
 }
 
 .profile-edit-field textarea::placeholder {
@@ -219,7 +229,9 @@
   justify-content: center;
   gap: 8px;
   width: fit-content;
-  padding: 0 16px;
+  min-height: 40px;
+  padding: 0 14px;
+  font-size: 13px;
 }
 
 .profile-win-submit:disabled {
@@ -228,9 +240,9 @@
 }
 
 .profile-win-review-note {
-  margin: -8px 0 0;
+  margin: 8px 0 0;
   color: var(--text-muted);
-  font-size: 12px;
+  font-size: 11px;
   line-height: 1.45;
 }
 
@@ -240,6 +252,23 @@
 }
 
 /* ---------- Sections ---------- */
+
+.profile-stats-section {
+  width: 100%;
+}
+
+.profile-stats-section > h2 {
+  margin: 0 0 14px;
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.profile-stats-card {
+  width: 100%;
+}
 
 .profile-section {
   background: var(--bg-card);
@@ -337,13 +366,16 @@
   .profile-stats-section {
     width: 100%;
     margin-left: 0;
+    padding: 0;
+  }
+
+  .profile-stats-card {
     padding: 14px;
   }
 
-  .profile-win-section {
+  .profile-win-form {
     width: 100%;
-    margin-left: 0;
-    padding: 14px;
+    padding: 12px;
   }
 }
 

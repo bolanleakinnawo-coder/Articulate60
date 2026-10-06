@@ -1,7 +1,10 @@
 import { useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import StructureGuide from "../Components/StructureGuide";
+import { HELP_LAYER_1, HELP_LINK_TEXT } from "../data/help";
 
 import {
+  HelpCircle,
   Sparkles,
   LayoutGrid,
   MessageCircle,
@@ -29,13 +32,12 @@ import {
 export default function Practice() {
   const navigate = useNavigate();
   const location = useLocation();
+  const [showHelp, setShowHelp] = useState(false);
   const wordOfTheDay = location.state?.wordOfTheDay;
   const wordOfTheDayPrompt = wordOfTheDay
     ? `Use "${wordOfTheDay.word}" in a clear, natural sentence. Explain what it means and share a situation where you might use it.`
     : null;
-  const [selectedLevel, setSelectedLevel] = useState(
-    wordOfTheDay ? 1 : null,
-  );
+  const [selectedLevel, setSelectedLevel] = useState(wordOfTheDay ? 1 : null);
   const [isLevelOpen, setIsLevelOpen] = useState(false);
   const [view, setView] = useState(wordOfTheDay ? "result" : "select"); // select | spinning | result | yap
   const [activeCategory, setActiveCategory] = useState(
@@ -43,6 +45,7 @@ export default function Practice() {
   );
   const [currentPrompt, setCurrentPrompt] = useState(wordOfTheDayPrompt);
   const [showCategoryModal, setShowCategoryModal] = useState(false);
+  const [promptError, setPromptError] = useState("");
   const spinAudio = useRef(null);
 
   const levelInfo = LEVEL_META.find((l) => l.id === selectedLevel);
@@ -82,9 +85,18 @@ export default function Practice() {
       return;
     }
 
-    const { categoryId, categoryTitle, prompt } =
-      getRandomCategoryPrompt(selectedLevel);
-    runSpin(categoryId, categoryTitle, prompt);
+    const randomTopic = getRandomCategoryPrompt();
+    if (!randomTopic) {
+      setPromptError("No practice topics are available right now.");
+      return;
+    }
+
+    setPromptError("");
+    runSpin(
+      randomTopic.categoryId,
+      randomTopic.categoryTitle,
+      randomTopic.prompt,
+    );
   };
 
   const handleChooseCategory = (categoryId, categoryTitle) => {
@@ -95,13 +107,27 @@ export default function Practice() {
     }
 
     setShowCategoryModal(false);
-    const prompt = getRandomPrompt(categoryId, selectedLevel);
+    const prompt = getRandomPrompt(categoryId);
+    if (!prompt) {
+      setPromptError(`${categoryTitle} doesn't have any topics available yet.`);
+      return;
+    }
+
+    setPromptError("");
     runSpin(categoryId, categoryTitle, prompt);
   };
 
   const handleChangeTopic = () => {
     if (!activeCategory) return;
-    const prompt = getRandomPrompt(activeCategory.id, selectedLevel);
+    const prompt = getRandomPrompt(activeCategory.id);
+    if (!prompt) {
+      setPromptError(
+        `${activeCategory.title} doesn't have any topics available yet.`,
+      );
+      return;
+    }
+
+    setPromptError("");
     setCurrentPrompt(prompt);
     setView("spinning");
     setTimeout(() => setView("result"), 1200);
@@ -122,6 +148,7 @@ export default function Practice() {
     setView("select");
     setCurrentPrompt(null);
     setActiveCategory(null);
+    setPromptError("");
   };
 
   const handleYapMode = () => {
@@ -163,8 +190,8 @@ export default function Practice() {
         <p className="eyebrow practice-eyebrow">YAP MODE</p>
         <h1 className="yap-title">No prompt. Just talk.</h1>
         <p className="yap-subtitle">
-          Pick something on your mind and start. No topic, no structure — just
-          you, thinking out loud.
+          Pick something on your mind and start. No topic to answer, no
+          structure to follow. Just you, thinking out loud.
         </p>
 
         <div className="yap-help-card">
@@ -176,7 +203,7 @@ export default function Practice() {
           </ul>
         </div>
 
-        <p className="yap-quote">"{YAP_QUOTE}"</p>
+        <p className="yap-quote">“{YAP_QUOTE}”</p>
 
         <button
           className="spin-jar-btn yap-start-btn"
@@ -206,8 +233,13 @@ export default function Practice() {
     );
   }
 
+  if (view === "structures") {
+    return <StructureGuide onBack={() => setView("result")} />;
+  }
+
   // ---------- RESULT VIEW ----------
   if (view === "result") {
+    const help = HELP_LAYER_1[activeCategory?.id];
     return (
       <div className="page practice-page practice-result-page">
         <h1 className="spin-status-title">
@@ -222,19 +254,31 @@ export default function Practice() {
         </p>
 
         <div className="result-layout">
-          <div className="jar-wrapper result-jar-wrapper">
-            <img src={resultJar} alt="Jar" className="jar-image" />
+          <div className="result-jar-column">
+            <div className="jar-wrapper result-jar-wrapper">
+              <img src={resultJar} alt="Jar" className="jar-image" />
 
-            <div className="topic-note">
-              <div className="topic-note-header">
-                <span className="topic-note-level">LEVEL {selectedLevel}</span>
-                <span className="topic-note-timer">
-                  <Clock size={11} strokeWidth={2.5} />
-                  {levelInfo?.prepare} PREP
-                </span>
+              <div className="topic-note">
+                <div className="topic-note-header">
+                  <span className="topic-note-level">LEVEL {selectedLevel}</span>
+                  <span className="topic-note-timer">
+                    <Clock size={11} strokeWidth={2.5} />
+                    {levelInfo?.prepare} PREP
+                  </span>
+                </div>
+                <p className="topic-note-text">{currentPrompt}</p>
               </div>
-              <p className="topic-note-text">{currentPrompt}</p>
             </div>
+
+            {help && (
+              <button
+                className="help-link-btn"
+                onClick={() => setShowHelp(true)}
+              >
+                <HelpCircle size={17} strokeWidth={2} />
+                <span>Need a little help?</span>
+              </button>
+            )}
           </div>
 
           <div className="result-actions">
@@ -252,12 +296,66 @@ export default function Practice() {
                 Change topic
               </button>
             )}
+            {promptError && <p role="alert">{promptError}</p>}
 
             <button className="exit-result-btn" onClick={handleExitResult}>
               Back to practice
             </button>
           </div>
         </div>
+
+        {showHelp && help && (
+          <div
+            className="help-modal-backdrop"
+            onClick={() => setShowHelp(false)}
+          >
+            <div
+              className="help-modal"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="practice-help-title"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="help-modal-header">
+                <div>
+                  <p className="help-modal-eyebrow">A QUICK POINTER</p>
+                  <h2 id="practice-help-title">Need a little help?</h2>
+                </div>
+                <button
+                  className="help-modal-close"
+                  onClick={() => setShowHelp(false)}
+                  aria-label="Close help"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+
+              <div className="help-modal-body">
+                <h3 className="help-modal-heading">{help.heading}</h3>
+                {help.body.map((line, i) => (
+                  <p className="help-modal-copy" key={i}>
+                    {line}
+                  </p>
+                ))}
+                <button
+                  className="help-structures-link"
+                  onClick={() => {
+                    setShowHelp(false);
+                    setView("structures");
+                  }}
+                >
+                  <span className="help-structures-link-copy">
+                    <strong>{HELP_LINK_TEXT.question}</strong>
+                    <span>{HELP_LINK_TEXT.action}</span>
+                  </span>
+                  <span className="help-structures-link-arrow" aria-hidden="true">
+                    →
+                  </span>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
@@ -321,17 +419,7 @@ export default function Practice() {
                         )}
                       </span>
 
-                      <span className="level-dropdown-item-meta">
-                        <span className="level-dropdown-item-stat">
-                          <Clock size={13} strokeWidth={2.2} />
-                          {level.prepare}
-                        </span>
-                        <span className="level-dropdown-item-stat">
-                          <Volume2 size={13} strokeWidth={2.2} />
-                          {level.speak}
-                        </span>
-                      </span>
-
+                 
                       {isSelected && (
                         <Check
                           size={16}
@@ -360,6 +448,7 @@ export default function Practice() {
             <Sparkles size={18} strokeWidth={2} />
             Spin the Jar
           </button>
+          {promptError && <p role="alert">{promptError}</p>}
 
           <div className="mode-cards">
             <button

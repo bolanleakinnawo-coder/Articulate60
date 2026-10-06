@@ -1,12 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import {
-  Flame,
-  Play,
-  Pause,
-  Volume2,
-  ArrowRight,
-  X,
-} from "lucide-react";
+import { Flame, Play, Pause, Volume2, ArrowRight, X } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import api from "../api/axios";
 
@@ -286,13 +279,6 @@ export default function Home() {
       <section className="section">
         <div className="section-header">
           <h2>Articulate Leaderboard</h2>
-
-          <button
-            className="text-button"
-            onClick={() => navigate("/app/profile")}
-          >
-            See all
-          </button>
         </div>
 
         <div className="card leaderboard-card">

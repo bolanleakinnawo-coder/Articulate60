@@ -297,32 +297,37 @@ export default function Profile({ user }) {
         </form>
       )}
 
-      <section className="profile-section profile-stats-section">
+      <section className="profile-stats-section">
         <h2>Your Stats</h2>
-        <div className="profile-stats-grid">
-          {STATS.map((stat) => (
-            <div className="profile-stat-card" key={stat.label}>
-              <stat.icon
-                className="profile-stat-icon"
-                size={20}
-                strokeWidth={2}
-              />
-              <span className="profile-stat-value">{stats[stat.key]}</span>
-              <span className="profile-stat-label">{stat.label}</span>
-            </div>
-          ))}
+        <div className="profile-section profile-stats-card">
+          <div className="profile-stats-grid">
+            {STATS.map((stat) => (
+              <div className="profile-stat-card" key={stat.label}>
+                <stat.icon
+                  className="profile-stat-icon"
+                  size={20}
+                  strokeWidth={2}
+                />
+                <span className="profile-stat-value">{stats[stat.key]}</span>
+                <span className="profile-stat-label">{stat.label}</span>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
-      <section className="profile-section profile-win-section">
-        <h2>Share a win</h2>
+      <section className="profile-win-section">
+        <h2 className="profile-win-title">Share a win</h2>
         <p className="profile-win-intro">
           What's a communication win you're celebrating today?
         </p>
         <p className="profile-win-prompt">
           Big or small, tell us about the moment
         </p>
-        <form className="profile-win-form" onSubmit={handleWinSubmit}>
+        <form
+          className="profile-section profile-win-form"
+          onSubmit={handleWinSubmit}
+        >
           <label className="profile-edit-field">
             <textarea
               value={winText}
@@ -336,16 +341,7 @@ export default function Profile({ user }) {
               {winText.length}/280 characters
             </span>
           </label>
-          <label className="profile-edit-field">
-            Name to display publicly
-            <input
-              value={winDisplayName}
-              onChange={(event) => setWinDisplayName(event.target.value)}
-              minLength={2}
-              maxLength={40}
-              required
-            />
-          </label>
+
           {winError && <p className="form-error">{winError}</p>}
           {winMessage && <p className="profile-win-success">{winMessage}</p>}
           <button
@@ -356,11 +352,11 @@ export default function Profile({ user }) {
             <Send size={15} />
             {isSubmittingWin ? "Submitting..." : "Share my win"}
           </button>
-          <p className="profile-win-review-note">
-            Your win will be reviewed before it&apos;s shared with the
-            Articulate60 community.
-          </p>
         </form>
+        <p className="profile-win-review-note">
+          Your win will be reviewed before it&apos;s shared with the
+          Articulate60 community.
+        </p>
       </section>
 
       <section className="profile-section profile-recordings-section">

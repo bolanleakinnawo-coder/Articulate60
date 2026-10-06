@@ -8,7 +8,7 @@ import {
   LogOut,
 } from "lucide-react";
 
-import { NavLink } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 
 const navigation = [
   {
@@ -35,13 +35,23 @@ const navigation = [
 ];
 
 export default function Sidebar() {
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    sessionStorage.removeItem("token");
+    sessionStorage.removeItem("user");
+    navigate("/login", { replace: true });
+  };
+
   return (
     <aside className="sidebar">
-      <div className="sidebar-logo">
-        <div className="logo-mark">A</div>
-
-        <span>ARTICULATE 60</span>
-      </div>
+      <Link
+        className="sidebar-logo"
+        to="/app/home"
+        aria-label="Articulate60 home"
+      >
+        articulate<span>60</span>
+      </Link>
 
       <nav className="sidebar-nav">
         {navigation.map((item) => {
@@ -64,7 +74,7 @@ export default function Sidebar() {
       </nav>
 
       <div className="sidebar-bottom">
-        <button className="sidebar-action">
+        <button className="sidebar-action" onClick={handleLogout}>
           <LogOut size={18} />
           <span>Log out</span>
         </button>

@@ -11,7 +11,7 @@ import {
   CheckCircle2,
   Flame,
 } from "lucide-react";
-import { LEVEL_META, HELP_TIPS } from "../data/prompts";
+import { LEVEL_META } from "../data/prompts";
 import amazingImage from "../assets/amazing.png";
 import api from "../api/axios";
 import "./PracticeSession.css";
@@ -24,12 +24,28 @@ const formatTime = (totalSeconds) => {
   return `${m}:${s}`;
 };
 
+function capitalizeFirstLetter(value = "") {
+  return value ? value.charAt(0).toUpperCase() + value.slice(1) : "";
+}
+
+function getStoredUser() {
+  try {
+    return JSON.parse(sessionStorage.getItem("user")) || null;
+  } catch {
+    return null;
+  }
+}
+
 export default function PracticeSession() {
   const location = useLocation();
   const navigate = useNavigate();
 
   const { level, category, prompt, isWordOfTheDay = false } =
     location.state || {};
+  const currentUser = location.state?.user || getStoredUser();
+  const username = capitalizeFirstLetter(
+    currentUser?.username || location.state?.username || "there",
+  );
   const levelInfo = LEVEL_META.find((l) => l.id === level) || LEVEL_META[0];
 
   const prepareTotal = levelInfo.prepareSeconds;
@@ -71,15 +87,6 @@ export default function PracticeSession() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
   const [streak, setStreak] = useState(null);
-
-  const tips =
-    category?.id && HELP_TIPS[category.id]?.[level]
-      ? HELP_TIPS[category.id][level]
-      : [
-          "Plan your key point.",
-          "Think of one example.",
-          "Then speak with clarity.",
-        ];
 
   // ---------- MIC / RECORDING ----------
   const stopAudioAnalysis = useCallback(() => {
@@ -477,12 +484,12 @@ export default function PracticeSession() {
 
         <div className="session-prep-guidance">
           <div className="session-tips-card">
-            <p className="session-tips-title">Plan your response</p>
-            {tips.slice(0, 2).map((tip, i) => (
-              <p className="session-tip-line" key={i}>
-                {tip}
-              </p>
-            ))}
+            <p className="session-tips-title">Remember, {username}</p>
+            <p className="session-tip-line">
+              You don’t have to have your whole answer figured out before you
+              speak. Take a breath, find one thought, and start there. You can
+              build from it as you go.
+            </p>
           </div>
 
           <div className="session-ready-actions">
