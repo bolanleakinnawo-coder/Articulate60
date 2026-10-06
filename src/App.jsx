@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { BrowserRouter, useLocation } from "react-router-dom";
 import AppRoutes from "./Routes/AppRoutes";
 import InstallAppButton from "./Components/layout/InstallAppButton";
@@ -17,17 +17,59 @@ function ScrollToTop() {
 function NavigationSplash() {
   const { pathname } = useLocation();
   const [isVisible, setIsVisible] = useState(false);
+  const pathnameRef = useRef(pathname);
+  const wasAwayRef = useRef(false);
+
+  pathnameRef.current = pathname;
 
   useEffect(() => {
-    if (pathname === "/" || pathname === "/landingpage") {
-      setIsVisible(false);
-      return undefined;
-    }
+    let timeoutId;
 
-    setIsVisible(true);
-    const timeoutId = window.setTimeout(() => setIsVisible(false), 2000);
-    return () => window.clearTimeout(timeoutId);
-  }, [pathname]);
+    const showSplashOnReturn = () => {
+      if (
+        !wasAwayRef.current ||
+        document.visibilityState !== "visible"
+      ) {
+        return;
+      }
+
+      wasAwayRef.current = false;
+      if (
+        pathnameRef.current === "/" ||
+        pathnameRef.current === "/landingpage"
+      ) {
+        return;
+      }
+
+      window.clearTimeout(timeoutId);
+      setIsVisible(true);
+      timeoutId = window.setTimeout(() => setIsVisible(false), 2000);
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "hidden") {
+        wasAwayRef.current = true;
+      } else {
+        showSplashOnReturn();
+      }
+    };
+
+    const handlePageShow = () => showSplashOnReturn();
+    const handlePageHide = () => {
+      wasAwayRef.current = true;
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    window.addEventListener("pageshow", handlePageShow);
+    window.addEventListener("pagehide", handlePageHide);
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("pageshow", handlePageShow);
+      window.removeEventListener("pagehide", handlePageHide);
+      window.clearTimeout(timeoutId);
+    };
+  }, []);
 
   if (!isVisible) return null;
 
