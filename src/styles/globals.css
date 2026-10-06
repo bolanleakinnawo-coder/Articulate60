@@ -2341,8 +2341,32 @@ a {
 }
 
 @media (max-width: 768px) {
-  .result-jar-wrapper {
-    padding-top: 171px;
+  .practice-page.practice-result-page {
+    padding-top: 8px;
+  }
+
+  .practice-result-page .spin-status-title {
+    margin-top: 4px;
+    margin-bottom: 4px;
+  }
+
+  .practice-result-page .spin-status-subtitle {
+    margin-bottom: 8px;
+  }
+
+  .practice-result-page .result-jar-wrapper {
+    width: min(100%, 220px);
+    margin-top: 0;
+    padding-top: 128px;
+    margin-bottom: 12px;
+  }
+
+  .practice-result-page .result-jar-column {
+    gap: 6px;
+  }
+
+  .practice-result-page .result-actions .result-cta {
+    margin: 0 0 10px;
   }
 
   .topic-note {
@@ -2351,8 +2375,9 @@ a {
 }
 
 @media (max-width: 480px) {
-  .result-jar-wrapper {
-    padding-top: 141px;
+  .practice-result-page .result-jar-wrapper {
+    width: min(100%, 190px);
+    padding-top: 108px;
   }
 
   .topic-note {
@@ -4059,6 +4084,7 @@ a {
 /* Layer 2 page */
 .structure-page {
   width: min(100%, 820px);
+  align-items: stretch;
   margin: 0 auto;
   padding: 12px 20px 64px;
   text-align: left;
@@ -4069,6 +4095,7 @@ a {
   top: 12px;
   z-index: 30;
   display: inline-flex;
+  align-self: flex-start;
   align-items: center;
   justify-content: center;
   width: 44px;
@@ -4244,8 +4271,12 @@ a {
   }
 
   .structure-page {
-    padding-right: 16px;
-    padding-left: 16px;
+    width: calc(100% + 28px);
+    max-width: none;
+    margin-right: -14px;
+    margin-left: -14px;
+    padding-right: 6px;
+    padding-left: 6px;
   }
 
   .structure-intro {
@@ -4254,5 +4285,7 @@ a {
 
   .structure-card {
     gap: 12px;
+    width: 100%;
+    padding: 16px;
   }
 }
