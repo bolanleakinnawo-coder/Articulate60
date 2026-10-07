@@ -44,7 +44,7 @@ const HowItWorks = () => {
   return (
     <section className="hiw" id="how-it-works">
       <div className="hiw-container">
-        <h2 className="hiw-heading">HOW ARTICULATE 60 WORKS</h2>
+        <h2 className="hiw-heading">HOW LOQUIEX WORKS</h2>
 
         <div className="hiw-steps">
           {STEPS.map((step, index) => (

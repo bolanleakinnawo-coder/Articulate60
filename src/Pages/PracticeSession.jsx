@@ -8,11 +8,11 @@ import {
   Pause,
   Lightbulb,
   Pencil,
+  Check,
   CheckCircle2,
   Flame,
 } from "lucide-react";
 import { LEVEL_META } from "../data/prompts";
-import amazingImage from "../assets/amazing.png";
 import api from "../api/axios";
 import "./PracticeSession.css";
 
@@ -197,6 +197,7 @@ export default function PracticeSession() {
       };
 
       recordStartRef.current = Date.now();
+      setActualDurationSeconds(0);
       mediaRecorder.start();
       activeRecordingElapsedRef.current = 0;
       activeRecordingSegmentStartRef.current = performance.now();
@@ -222,13 +223,16 @@ export default function PracticeSession() {
         performance.now() - activeRecordingSegmentStartRef.current;
       activeRecordingSegmentStartRef.current = null;
     }
+    setActualDurationSeconds(
+      Math.min(speakTotal, Math.ceil(activeRecordingElapsedRef.current / 1000)),
+    );
     const recorder = mediaRecorderRef.current;
     if (recorder && recorder.state !== "inactive") {
       recorder.stop();
     }
     stopAudioAnalysis();
     setIsRecording(false);
-  }, [stopAudioAnalysis]);
+  }, [speakTotal, stopAudioAnalysis]);
 
   const togglePauseResume = () => {
     const recorder = mediaRecorderRef.current;
@@ -383,7 +387,7 @@ export default function PracticeSession() {
       formData.append("topic", prompt);
       formData.append("category", category?.title || "");
       formData.append("level", level);
-      formData.append("durationSeconds", speakTotal);
+      formData.append("durationSeconds", String(actualDurationSeconds));
       formData.append("isWordOfTheDay", String(isWordOfTheDay));
       formData.append("wentWell", answer1);
       formData.append("improveNextTime", answer2);
@@ -537,7 +541,7 @@ export default function PracticeSession() {
         <p className="session-speak-subtitle">
           {isRequestingMic
             ? "Waiting for microphone permission..."
-            : `You have one full minute to speak.`}
+            : "Speak for up to one minute, and finish whenever you're ready."}
         </p>
 
         {micError && <p className="session-mic-error">{micError}</p>}
@@ -579,6 +583,17 @@ export default function PracticeSession() {
         <p className="session-speak-time-label">
           {isRecording ? "Time remaining" : "Recording starts after permission"}
         </p>
+        <button
+          className="spin-jar-btn session-done-btn"
+          onClick={goToReflect}
+          disabled={
+            isRequestingMic ||
+            !mediaRecorderRef.current ||
+            mediaRecorderRef.current.state === "inactive"
+          }
+        >
+          I’m done speaking
+        </button>
       </div>
     );
   }
@@ -683,17 +698,26 @@ export default function PracticeSession() {
 
   // ---------- COMPLETE PHASE ----------
   if (phase === "complete") {
-    const timeSpentMinutes = Math.round(
-      (actualDurationSeconds || speakTotal) / 60,
-    );
+    const timeSpentMinutes = Math.floor(actualDurationSeconds / 60);
+    const remainingSeconds = actualDurationSeconds % 60;
+    const timeSpent = [
+      timeSpentMinutes > 0
+        ? `${timeSpentMinutes} minute${timeSpentMinutes !== 1 ? "s" : ""}`
+        : null,
+      remainingSeconds > 0 || timeSpentMinutes === 0
+        ? `${remainingSeconds} second${remainingSeconds !== 1 ? "s" : ""}`
+        : null,
+    ]
+      .filter(Boolean)
+      .join(" ");
 
     return (
       <div className="page session-page">
         <div className="complete-icon">
-          <img src={amazingImage} alt="Practice completed" />
+          <Check size={56} strokeWidth={3} aria-hidden="true" />
         </div>
 
-        <h1 className="complete-title">Amazing work!</h1>
+        <h1 className="complete-title">Amazing!</h1>
         <p className="complete-subtitle">You showed up for yourself today.</p>
 
         <div className="complete-stats">
@@ -703,7 +727,7 @@ export default function PracticeSession() {
               Time spent
             </span>
             <span className="complete-stat-value">
-              {timeSpentMinutes} minute{timeSpentMinutes !== 1 ? "s" : ""}
+              {timeSpent}
               <CheckCircle2 size={14} strokeWidth={2} />
             </span>
           </div>

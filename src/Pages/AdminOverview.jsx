@@ -25,7 +25,7 @@ export default function AdminOverview() {
       <header className="admin-overview-header">
         <p className="admin-overview-eyebrow">Admin dashboard</p>
         <h1>Overview</h1>
-        <p>Manage the content and community experience for Articulate60.</p>
+        <p>Manage the content and community experience for Loquiex.</p>
       </header>
 
       {error && (

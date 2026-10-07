@@ -18,7 +18,7 @@ const Hero = () => {
           </h1>
 
           <p className="hero-subtext">
-            Articulate 60 gives you daily speaking practice, expert-led
+            Loquiex gives you daily speaking practice, expert-led
             masterclasses, structured challenges, and practical resources to
             help you become a more articulate and confident communicator.
           </p>

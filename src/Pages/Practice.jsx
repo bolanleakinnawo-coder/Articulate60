@@ -35,7 +35,7 @@ export default function Practice() {
   const [showHelp, setShowHelp] = useState(false);
   const wordOfTheDay = location.state?.wordOfTheDay;
   const wordOfTheDayPrompt = wordOfTheDay
-    ? `Use "${wordOfTheDay.word}" in a clear, natural sentence. Explain what it means and share a situation where you might use it.`
+    ? `What does “${wordOfTheDay.word}” mean? Use it naturally in a short response.`
     : null;
   const [selectedLevel, setSelectedLevel] = useState(wordOfTheDay ? 1 : null);
   const [isLevelOpen, setIsLevelOpen] = useState(false);
@@ -119,18 +119,18 @@ export default function Practice() {
 
   const handleChangeTopic = () => {
     if (!activeCategory) return;
-    const prompt = getRandomPrompt(activeCategory.id);
-    if (!prompt) {
-      setPromptError(
-        `${activeCategory.title} doesn't have any topics available yet.`,
-      );
+    const randomTopic = getRandomCategoryPrompt(activeCategory.id);
+    if (!randomTopic) {
+      setPromptError("No topics are available in other categories right now.");
       return;
     }
 
     setPromptError("");
-    setCurrentPrompt(prompt);
-    setView("spinning");
-    setTimeout(() => setView("result"), 1200);
+    runSpin(
+      randomTopic.categoryId,
+      randomTopic.categoryTitle,
+      randomTopic.prompt,
+    );
   };
 
   const handleStartPreparing = () => {
@@ -249,7 +249,7 @@ export default function Practice() {
         </h1>
         <p className="spin-status-subtitle">
           {activeCategory?.id === "word-of-the-day"
-            ? `Practise using ${wordOfTheDay.word}.`
+            ? "Read your prompt below."
             : "Read your topic below."}
         </p>
 
@@ -260,7 +260,9 @@ export default function Practice() {
 
               <div className="topic-note">
                 <div className="topic-note-header">
-                  <span className="topic-note-level">LEVEL {selectedLevel}</span>
+                  <span className="topic-note-level">
+                    LEVEL {selectedLevel}
+                  </span>
                   <span className="topic-note-timer">
                     <Clock size={11} strokeWidth={2.5} />
                     {levelInfo?.prepare} PREP
@@ -313,13 +315,12 @@ export default function Practice() {
               className="help-modal"
               role="dialog"
               aria-modal="true"
-              aria-labelledby="practice-help-title"
+              aria-label="A quick pointer"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="help-modal-header">
                 <div>
                   <p className="help-modal-eyebrow">A QUICK POINTER</p>
-                  <h2 id="practice-help-title">Need a little help?</h2>
                 </div>
                 <button
                   className="help-modal-close"
@@ -332,11 +333,19 @@ export default function Practice() {
 
               <div className="help-modal-body">
                 <h3 className="help-modal-heading">{help.heading}</h3>
-                {help.body.map((line, i) => (
-                  <p className="help-modal-copy" key={i}>
-                    {line}
-                  </p>
-                ))}
+
+                <p className="help-modal-copy">{help.intro}</p>
+
+                <ul className="help-modal-questions">
+                  {help.questions.map((q, i) => (
+                    <li className="help-modal-question" key={i}>
+                      {q}
+                    </li>
+                  ))}
+                </ul>
+
+                <p className="help-modal-copy">{help.outro}</p>
+
                 <button
                   className="help-structures-link"
                   onClick={() => {
@@ -348,7 +357,10 @@ export default function Practice() {
                     <strong>{HELP_LINK_TEXT.question}</strong>
                     <span>{HELP_LINK_TEXT.action}</span>
                   </span>
-                  <span className="help-structures-link-arrow" aria-hidden="true">
+                  <span
+                    className="help-structures-link-arrow"
+                    aria-hidden="true"
+                  >
                     →
                   </span>
                 </button>
@@ -419,7 +431,6 @@ export default function Practice() {
                         )}
                       </span>
 
-                 
                       {isSelected && (
                         <Check
                           size={16}

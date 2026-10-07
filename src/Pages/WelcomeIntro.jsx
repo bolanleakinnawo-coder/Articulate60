@@ -1,12 +1,13 @@
 import { Link } from "react-router-dom";
+import brandLogo from "../assets/brandlogo.PNG";
 
 export default function WelcomeIntro() {
   return (
     <main className="registration-page welcome-intro-page">
       <div className="registration-container intro-container">
-        <p className="intro-logo">
-          articulate<span className="intro-logo-accent">60</span>
-        </p>
+        <div className="intro-logo" aria-label="Loquiex">
+          <img src={brandLogo} alt="Loquiex" />
+        </div>
 
         <h1 className="intro-heading">
           Communication isn’t a talent you either have or don’t.{" "}
@@ -14,7 +15,7 @@ export default function WelcomeIntro() {
             It’s a skill you can build.
           </span>
         </h1>
-        <p className="intro-note">Welcome to Articulate60.</p>
+        <p className="intro-note">Welcome to Loquiex.</p>
 
         <Link to="/register" className="registration-next intro-cta">
           Get Started

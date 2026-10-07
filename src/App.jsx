@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { BrowserRouter, useLocation } from "react-router-dom";
 import AppRoutes from "./Routes/AppRoutes";
 import InstallAppButton from "./Components/layout/InstallAppButton";
-import splashScreenLogo from "./assets/splashscreen.PNG";
+import splashScreenLogo from "./assets/brandlogo.PNG";
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -75,7 +75,11 @@ function NavigationSplash() {
 
   return (
     <div className="navigation-splash" role="status" aria-label="Loading">
-      <img src={splashScreenLogo} alt="Articulate60" />
+      <img
+        className="navigation-splash-logo"
+        src={splashScreenLogo}
+        alt="Loquiex"
+      />
     </div>
   );
 }

@@ -59,7 +59,7 @@ const ChallengesShowcase = () => {
             </button>
 
             <p className="chs-availability">
-              Available to Articulate60 members.
+              Available to Loquiex members.
             </p>
           </div>
         </div>

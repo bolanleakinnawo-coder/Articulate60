@@ -42,7 +42,7 @@ export default function ChallengeLanding() {
           <span className="a60-eyebrow">Become a confident communicator</span>
           <h1>Stop learning. Start practicing.</h1>
           <p>
-            Articulate 60 helps you build real speaking skills through daily
+            Loquiex helps you build real speaking skills through daily
             practice, expert teaching, and a community that keeps you
             accountable.
           </p>

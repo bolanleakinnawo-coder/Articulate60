@@ -335,7 +335,7 @@ export default function Home() {
                         {capitalizeFirstLetter(win.displayName)}
                       </strong>
                       <span className="community-win-meta">
-                        Articulate60 member{posted && ` · ${posted}`}
+                        Loquiex member{posted && ` · ${posted}`}
                       </span>
                     </div>
                   </article>

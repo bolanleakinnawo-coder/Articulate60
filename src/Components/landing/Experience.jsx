@@ -45,7 +45,7 @@ const Experience = () => {
   return (
     <section className="exp">
       <div className="exp-container">
-        <span className="exp-badge">THE ARTICULATE 60 EXPERIENCE</span>
+        <span className="exp-badge">THE LOQUIEX EXPERIENCE</span>
 
         <h2 className="exp-heading">
           More than practice. <br />

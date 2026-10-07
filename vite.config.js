@@ -9,8 +9,8 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       manifest: {
-        name: 'Articulate60',
-        short_name: 'Articulate60',
+        name: 'Loquiex',
+        short_name: 'Loquiex',
         description: 'Build confidence and clarity through daily speaking practice.',
         theme_color: '#131513',
         background_color: '#131513',

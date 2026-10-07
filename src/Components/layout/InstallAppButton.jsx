@@ -221,7 +221,7 @@ export default function InstallAppButton() {
           >
             <div className="install-ios-dialog-header">
               <div>
-                <p className="install-ios-eyebrow">Articulate60</p>
+                <p className="install-ios-eyebrow">Loquiex</p>
                 <h2 id="install-ios-title">Install App</h2>
               </div>
               <button

@@ -46,9 +46,12 @@ export function getRandomPrompt(categoryId) {
   return pool[Math.floor(Math.random() * pool.length)];
 }
 
-export function getRandomCategoryPrompt() {
+export function getRandomCategoryPrompt(excludedCategoryId) {
   const availableCategories = CATEGORIES.filter(
-    ({ id }) => Array.isArray(PROMPTS[id]) && PROMPTS[id].length > 0,
+    ({ id }) =>
+      id !== excludedCategoryId &&
+      Array.isArray(PROMPTS[id]) &&
+      PROMPTS[id].length > 0,
   );
   if (availableCategories.length === 0) return null;
 

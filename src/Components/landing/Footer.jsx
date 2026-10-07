@@ -56,7 +56,7 @@ const Footer = () => {
 
         <div className="footer-bottom">
           <p className="footer-copyright">
-            © {year} Articulate60. All rights reserved.
+            © {year} Loquiex. All rights reserved.
           </p>
         </div>
       </div>

@@ -117,6 +117,11 @@ a {
   object-fit: contain;
 }
 
+.navigation-splash .navigation-splash-logo {
+  width: min(72vw, 360px);
+  transform: scale(2.8);
+}
+
 @keyframes navigation-splash-appear {
   from {
     opacity: 0;
@@ -149,17 +154,21 @@ a {
 .sidebar-logo {
   display: flex;
   align-items: center;
-  width: fit-content;
-  padding: 0 10px;
-  margin-bottom: 50px;
+  justify-content: center;
+
+  height: 100px;
+  padding: 0;
+  margin-bottom: 15px;
+  overflow: hidden;
   color: var(--text-primary);
-  font-size: 15px;
-  font-weight: 700;
-  letter-spacing: 0.02em;
 }
 
-.sidebar-logo span {
-  color: var(--olive-bright);
+.sidebar-logo img {
+  display: block;
+  width: 90%;
+  height: 90%;
+  object-fit: cover;
+  transform: translate(-25px, -10px) scale(2.4);
 }
 
 .logo-mark {
@@ -1814,6 +1823,10 @@ a {
   padding-top: 34px;
 }
 
+.practice-page {
+  padding-top: 0;
+}
+
 .practice-page .practice-eyebrow {
   margin-bottom: 12px;
 }
@@ -1873,7 +1886,7 @@ a {
 
 @media (min-width: 760px) {
   .practice-page {
-    padding-top: 50px;
+    padding-top: 0;
   }
 
   .practice-page .mode-card {
@@ -2016,12 +2029,12 @@ a {
   left: 50%;
 
   width: 680px;
-  min-height: 235px;
+  min-height: 200px;
   font-family: inherit;
 
   transform: translateX(-50%) rotate(-5deg);
 
-  padding: 28px 38px 30px;
+  padding: 22px 30px 24px;
 
   box-sizing: border-box;
 
@@ -2154,13 +2167,13 @@ a {
     width: 120vw;
     min-height: auto;
 
-    padding: 23px 25px 25px;
+    padding: 18px 22px;
 
     border-radius: 22px;
   }
 
   .topic-note-header {
-    margin-bottom: 17px;
+    margin-bottom: 12px;
   }
 
   .topic-note-level {
@@ -2191,13 +2204,13 @@ a {
 
 @media (max-width: 480px) {
   .topic-note {
-    padding: 19px 20px 21px;
+    padding: 16px 18px;
 
     border-radius: 19px;
   }
 
   .topic-note-header {
-    margin-bottom: 14px;
+    margin-bottom: 10px;
   }
 
   .topic-note-level {
@@ -2310,8 +2323,8 @@ a {
 
   .practice-page .result-jar-wrapper .topic-note {
     width: min(500px, calc(100% + 140px));
-    min-height: 200px;
-    padding: 24px 30px;
+    min-height: 160px;
+    padding: 18px 24px;
   }
 
   .practice-page .result-actions {
@@ -2346,7 +2359,7 @@ a {
   }
 
   .topic-note {
-    padding: 24px 22px 22px;
+    padding: 18px 22px;
   }
 }
 
@@ -2356,7 +2369,7 @@ a {
   }
 
   .topic-note {
-    padding: 22px 18px 20px;
+    padding: 16px 18px;
   }
 
   .topic-note-text {
@@ -3264,10 +3277,6 @@ a {
   text-align: left;
 }
 
-.welcome-intro-page .intro-logo {
-  margin-bottom: clamp(24px, 7vh, 60px);
-}
-
 .intro-logo {
   font-size: 15px;
   font-weight: 700;
@@ -3278,6 +3287,21 @@ a {
 
 .intro-logo-accent {
   color: var(--olive-bright);
+}
+
+.welcome-intro-page .intro-logo {
+  width: 204px;
+  height: 100px;
+  margin-bottom: 0;
+  overflow: hidden;
+}
+
+.welcome-intro-page .intro-logo img {
+  display: block;
+  width: 90%;
+  height: 90%;
+  object-fit: cover;
+  transform: translate(-25px, -8px) scale(2.4);
 }
 
 .intro-heading {
@@ -3323,7 +3347,7 @@ a {
   }
 
   .welcome-intro-page .intro-logo {
-    margin-bottom: clamp(20px, 5vh, 36px);
+    margin-bottom: 0;
   }
 
   .intro-heading {
@@ -4242,8 +4266,8 @@ a {
   }
 
   .structure-page {
-    padding-right: 16px;
-    padding-left: 16px;
+    padding-right: 0;
+    padding-left: 0;
   }
 
   .structure-intro {
@@ -4251,6 +4275,20 @@ a {
   }
 
   .structure-card {
+    width: 100%;
     gap: 12px;
   }
+}
+
+.help-modal-questions {
+  list-style: none;
+  margin: 12px 0;
+  padding: 0 0 0 14px;
+  border-left: 3px solid var(--olive-bright);
+  opacity: 0.9;
+}
+
+.help-modal-question {
+  margin: 6px 0;
+  font-style: italic;
 }

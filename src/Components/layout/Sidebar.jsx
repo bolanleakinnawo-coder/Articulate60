@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 
 import { Link, NavLink, useNavigate } from "react-router-dom";
+import brandLogo from "../../assets/brandlogo.PNG";
 
 const navigation = [
   {
@@ -48,9 +49,9 @@ export default function Sidebar() {
       <Link
         className="sidebar-logo"
         to="/app/home"
-        aria-label="Articulate60 home"
+        aria-label="Loquiex home"
       >
-        articulate<span>60</span>
+        <img src={brandLogo} alt="Loquiex" />
       </Link>
 
       <nav className="sidebar-nav">

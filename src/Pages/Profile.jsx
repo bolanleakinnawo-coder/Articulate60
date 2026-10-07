@@ -355,7 +355,7 @@ export default function Profile({ user }) {
         </form>
         <p className="profile-win-review-note">
           Your win will be reviewed before it&apos;s shared with the
-          Articulate60 community.
+          Loquiex community.
         </p>
       </section>
 

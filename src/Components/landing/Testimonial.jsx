@@ -6,7 +6,7 @@ import api from "../../api/axios";
 const TESTIMONIALS = [
   {
     quote:
-      "Articulate60 keeps me consistent. The daily practice, topics, and structure make a huge difference in how I speak and show up.",
+      "Loquiex keeps me consistent. The daily practice, topics, and structure make a huge difference in how I speak and show up.",
     name: "Aisha M.",
     role: "Product Manager",
     avatar: "/avatars/aisha.jpg",
