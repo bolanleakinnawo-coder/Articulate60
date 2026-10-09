@@ -17,7 +17,7 @@ export default function AdminLayout() {
     <div className="admin-layout">
       <aside className="admin-sidebar" aria-label="Admin navigation">
         <div className="admin-brand">
-          <span className="admin-brand-mark">A60</span>
+          <span className="admin-brand-mark">Loquiex</span>
           <span>Admin</span>
         </div>
         <nav className="admin-nav">
