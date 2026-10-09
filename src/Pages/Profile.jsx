@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import api from "../api/axios";
 import ProfileImageCropper from "../Components/ProfileImageCropper";
+import { SCREENSHOT_STATS, SHOW_SCREENSHOT_STATS } from "../data/screenshotStats";
 import "./Profile.css";
 
 const STATS = [
@@ -145,6 +146,14 @@ export default function Profile({ user }) {
       ),
     ),
   };
+  const displayedStats = SHOW_SCREENSHOT_STATS
+    ? {
+        current: SCREENSHOT_STATS.streak,
+        vocabulary: SCREENSHOT_STATS.vocabulary,
+        sessions: SCREENSHOT_STATS.sessions,
+        speakingTime: SCREENSHOT_STATS.speakingTime,
+      }
+    : stats;
 
   const toggleRecordingPlayback = async (recording) => {
     const currentAudio = recordingAudioRef.current;
@@ -365,7 +374,9 @@ export default function Profile({ user }) {
                   size={20}
                   strokeWidth={2}
                 />
-                <span className="profile-stat-value">{stats[stat.key]}</span>
+                <span className="profile-stat-value">
+                  {displayedStats[stat.key]}
+                </span>
                 <span className="profile-stat-label">{stat.label}</span>
               </div>
             ))}

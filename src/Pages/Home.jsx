@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Flame, Play, Pause, Volume2, ArrowRight, X } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import api from "../api/axios";
+import { SCREENSHOT_STATS, SHOW_SCREENSHOT_STATS } from "../data/screenshotStats";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -160,7 +161,9 @@ export default function Home() {
         <div className="streak">
           <Flame size={20} />
           <div>
-            <strong>{currentStreak}</strong>
+            <strong>
+              {SHOW_SCREENSHOT_STATS ? SCREENSHOT_STATS.streak : currentStreak}
+            </strong>
             <span>Day streak</span>
           </div>
         </div>
