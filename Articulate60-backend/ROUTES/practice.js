@@ -105,6 +105,93 @@ router.post(
   },
 );
 
+// GET /api/practice/leaderboard
+// Ranks all users with saved recordings by current streak, sessions, and
+// total recorded speaking time.
+router.get("/leaderboard", authMiddleware, async (_req, res) => {
+  try {
+    const statsByUser = await Recording.aggregate([
+      {
+        $group: {
+          _id: {
+            user: "$user",
+            day: {
+              $dateToString: {
+                format: "%Y-%m-%d",
+                date: "$createdAt",
+                timezone: "UTC",
+              },
+            },
+          },
+          sessions: { $sum: 1 },
+          speakingTimeSeconds: { $sum: "$durationSeconds" },
+        },
+      },
+      {
+        $group: {
+          _id: "$_id.user",
+          sessions: { $sum: "$sessions" },
+          speakingTimeSeconds: { $sum: "$speakingTimeSeconds" },
+          practiceDays: { $push: "$_id.day" },
+        },
+      },
+    ]);
+
+    const users = await User.find({
+      _id: { $in: statsByUser.map((stats) => stats._id) },
+    })
+      .select("username")
+      .lean();
+    const usernames = new Map(
+      users.map((user) => [user._id.toString(), user.username]),
+    );
+
+    const entries = statsByUser
+      .filter((stats) => usernames.has(stats._id.toString()))
+      .map((stats) => {
+        const streak = calculateStreak(
+          stats.practiceDays.map((day) => ({ createdAt: new Date(day) })),
+        ).current;
+
+        return {
+          userId: stats._id.toString(),
+          username: usernames.get(stats._id.toString()),
+          currentStreak: streak,
+          sessions: stats.sessions,
+          speakingTimeSeconds: stats.speakingTimeSeconds,
+        };
+      });
+
+    const rankBy = (metric) =>
+      [...entries]
+        .sort(
+          (left, right) =>
+            right[metric] - left[metric] ||
+            left.username.localeCompare(right.username),
+        )
+        .slice(0, 10)
+        .map((entry) => ({
+          userId: entry.userId,
+          username: entry.username,
+          displayValue:
+            metric === "currentStreak"
+              ? `${entry.currentStreak} day${entry.currentStreak === 1 ? "" : "s"}`
+              : metric === "sessions"
+                ? `${entry.sessions} session${entry.sessions === 1 ? "" : "s"}`
+                : formatSpeakingTime(entry.speakingTimeSeconds),
+        }));
+
+    res.json({
+      streak: rankBy("currentStreak"),
+      sessions: rankBy("sessions"),
+      speakingTime: rankBy("speakingTimeSeconds"),
+    });
+  } catch (err) {
+    console.error("Failed to fetch leaderboard:", err);
+    res.status(500).json({ message: "Failed to fetch leaderboard." });
+  }
+});
+
 // GET /api/practice/recent?limit=1
 // Powers the "Your Recent Activity" section on Home.
 router.get("/recent", authMiddleware, async (req, res) => {
@@ -154,5 +241,15 @@ router.get("/streak", authMiddleware, async (req, res) => {
     res.status(500).json({ message: "Failed to fetch streak." });
   }
 });
+
+function formatSpeakingTime(totalSeconds) {
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+
+  if (hours > 0) return `${hours}h ${minutes}m`;
+  if (minutes > 0) return `${minutes}m`;
+  return `${seconds}s`;
+}
 
 module.exports = router;

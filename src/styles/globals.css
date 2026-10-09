@@ -1336,9 +1336,9 @@ a {
   margin: 0 0 10px;
   color: var(--text-primary);
   font-family: inherit;
-  font-size: clamp(1.75rem, 7vw, 2rem);
+  font-size: clamp(28px, 3vw, 42px);
   font-weight: 700;
-  line-height: 1.25;
+  line-height: 1.1;
 }
 
 .practice-intro-title {
@@ -3958,12 +3958,18 @@ a {
 }
 
 .help-modal-header {
+  position: relative;
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
+  align-items: center;
+  justify-content: center;
   gap: 20px;
   padding-bottom: 18px;
   border-bottom: 1px solid var(--border);
+}
+
+.help-modal-header > div {
+  flex: 1;
+  text-align: center;
 }
 
 .help-modal-header h2 {
@@ -3993,6 +3999,12 @@ a {
   background: var(--bg-secondary);
   color: var(--text-secondary);
   cursor: pointer;
+}
+
+.help-modal-header .help-modal-close {
+  position: absolute;
+  top: 0;
+  right: 0;
 }
 
 .help-modal-close:hover,

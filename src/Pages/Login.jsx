@@ -52,7 +52,7 @@ function Login() {
       <div className="registration-container">
         <div className="registration-header">
           <h1>Welcome back</h1>
-          <p>Log in to continue practising.</p>
+          <p>Log in to continue with Loquiex.</p>
         </div>
 
         <form className="registration-form" onSubmit={handleSubmit}>

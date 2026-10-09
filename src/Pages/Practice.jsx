@@ -377,7 +377,9 @@ export default function Practice() {
     <div className="page practice-page">
       <div className="practice-intro">
         <p className="practice-time-label">Practice Time</p>
-        <h1 className="practice-intro-title">Your 60 is waiting.</h1>
+        <h1 className="practice-intro-title">
+          🔒 Only you can access your recordings. Speak freely.
+        </h1>
       </div>
 
       <div className="practice-select-layout">

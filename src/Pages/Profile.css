@@ -26,9 +26,9 @@
 
 .profile-eyebrow {
   font-family: inherit;
-  font-size: clamp(2rem, 7vw, 2.75rem);
+  font-size: clamp(28px, 3vw, 42px);
   font-weight: 700;
-  line-height: 1.2;
+  line-height: 1.1;
   color: var(--text-primary);
 }
 

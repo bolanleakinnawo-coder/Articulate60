@@ -11,24 +11,6 @@ const LEADERBOARD_TABS = [
   { key: "speakingTime", label: "Most Speaking Time" },
 ];
 
-// Hardcoded for now — swap for a real API call once the backend
-// endpoint exists.
-// Hardcoded for now — swap for a real API call once the backend
-// endpoint exists.
-const LEADERBOARD_DATA = {
-  streak: [
-    { username: "Amara", displayValue: "41 days" },
-    { username: "Tobi", displayValue: "29 days" },
-  ],
-  sessions: [
-    { username: "Amara", displayValue: "58 sessions" },
-    { username: "Tobi", displayValue: "45 sessions" },
-  ],
-  speakingTime: [
-    { username: "Amara", displayValue: "3h 12m" },
-    { username: "Tobi", displayValue: "2h 40m" },
-  ],
-};
 function speakWord(word, availableVoices = []) {
   if (!("speechSynthesis" in window)) return;
 
@@ -72,12 +54,17 @@ export default function Home() {
   const [communityWins, setCommunityWins] = useState([]);
   const [communityWinsError, setCommunityWinsError] = useState("");
   const [speechVoices, setSpeechVoices] = useState([]);
+  const [leaderboard, setLeaderboard] = useState({
+    streak: [],
+    sessions: [],
+    speakingTime: [],
+  });
+  const [loadingLeaderboard, setLoadingLeaderboard] = useState(true);
+  const [leaderboardError, setLeaderboardError] = useState("");
 
   // Recent activity — only the single most recent item is shown on Home.
   // "See all" routes to the Profile tab, where the full history lives.
-  // Leaderboard state
   const [leaderboardTab, setLeaderboardTab] = useState("streak");
-  const leaderboard = LEADERBOARD_DATA;
 
   function getGreeting() {
     const hour = new Date().getHours();
@@ -134,6 +121,17 @@ export default function Home() {
       .get("/api/practice/recent?limit=1")
       .then((response) => setRecentActivity(response.data[0] || null))
       .catch(() => setRecentActivity(null));
+  }, []);
+
+  useEffect(() => {
+    api
+      .get("/api/practice/leaderboard")
+      .then((response) => setLeaderboard(response.data))
+      .catch((error) => {
+        console.error("Could not load the leaderboard:", error);
+        setLeaderboardError("The leaderboard couldn't be loaded right now.");
+      })
+      .finally(() => setLoadingLeaderboard(false));
   }, []);
 
   useEffect(() => {
@@ -298,14 +296,22 @@ export default function Home() {
           </div>
 
           <div className="leaderboard-list">
-            {activeLeaderboardEntries.map((entry, index) => (
-              <LeaderboardRow
-                key={entry.userId || entry.username || index}
-                rank={index + 1}
-                name={entry.username}
-                value={entry.displayValue}
-              />
-            ))}
+            {loadingLeaderboard ? (
+              <p role="status">Loading leaderboard...</p>
+            ) : leaderboardError ? (
+              <p role="alert">{leaderboardError}</p>
+            ) : activeLeaderboardEntries.length > 0 ? (
+              activeLeaderboardEntries.map((entry, index) => (
+                <LeaderboardRow
+                  key={entry.userId}
+                  rank={index + 1}
+                  name={entry.username}
+                  value={entry.displayValue}
+                />
+              ))
+            ) : (
+              <p>No practice stats to show yet. Be the first to practise!</p>
+            )}
           </div>
         </div>
       </section>

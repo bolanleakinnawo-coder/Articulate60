@@ -387,6 +387,7 @@
 
 /* ---------- COMPLETE PHASE ---------- */
 .complete-icon {
+  position: relative;
   width: 88px;
   height: 88px;
   display: flex;
@@ -394,7 +395,56 @@
   justify-content: center;
   margin-top: 20px;
   margin-bottom: 20px;
+  border: 2px solid var(--olive-bright);
+  border-radius: 50%;
   color: var(--olive-bright);
+  animation: complete-icon-appear 500ms ease-out both;
+}
+
+.complete-icon::after {
+  position: absolute;
+  inset: -7px;
+  border: 1px solid var(--olive-bright);
+  border-radius: 50%;
+  content: "";
+  opacity: 0;
+  animation: complete-icon-ring 1.8s ease-out 500ms infinite;
+}
+
+@keyframes complete-icon-appear {
+  from {
+    transform: scale(0.75);
+    opacity: 0;
+  }
+
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes complete-icon-ring {
+  0% {
+    transform: scale(0.9);
+    opacity: 0.65;
+  }
+
+  100% {
+    transform: scale(1.2);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .complete-icon,
+  .complete-icon::after {
+    animation: none;
+  }
+
+  .complete-icon {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 .complete-title {

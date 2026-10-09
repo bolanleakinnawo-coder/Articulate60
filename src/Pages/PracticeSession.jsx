@@ -490,9 +490,8 @@ export default function PracticeSession() {
           <div className="session-tips-card">
             <p className="session-tips-title">Remember, {username}</p>
             <p className="session-tip-line">
-              You don’t have to have your whole answer figured out before you
-              speak. Take a breath, find one thought, and start there. You can
-              build from it as you go.
+              Your recordings are only visible to you. Practise freely, make
+              mistakes, and get better without worrying about anyone listening.
             </p>
           </div>
 
