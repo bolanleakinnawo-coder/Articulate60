@@ -12,6 +12,7 @@ import {
   RotateCw,
   ArrowLeft,
   Clock,
+  LockKeyhole,
   Volume2,
   ChevronDown,
   Check,
@@ -377,9 +378,10 @@ export default function Practice() {
     <div className="page practice-page">
       <div className="practice-intro">
         <p className="practice-time-label">Practice Time</p>
-        <h1 className="practice-intro-title">
-          🔒 Only you can access your recordings. Speak freely.
-        </h1>
+        <p className="practice-intro-title">
+          <LockKeyhole size={16} strokeWidth={1.8} aria-hidden="true" />
+          <span>Only you can access your recordings. Speak freely.</span>
+        </p>
       </div>
 
       <div className="practice-select-layout">
