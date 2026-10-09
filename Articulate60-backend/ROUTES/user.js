@@ -246,8 +246,14 @@ router.put(
   upload.single("profilePhoto"),
   async (req, res) => {
     try {
-      const { fullName, username, email, newPassword, confirmPassword } =
-        req.body;
+      const {
+        fullName,
+        username,
+        email,
+        newPassword,
+        confirmPassword,
+        removeProfilePhoto,
+      } = req.body;
       const errors = {};
 
       if (!fullName || fullName.trim().length < 2) {
@@ -309,6 +315,8 @@ router.put(
           }),
         );
         req.user.profileImageUrl = `${process.env.R2_PUBLIC_URL}/${key}`;
+      } else if (removeProfilePhoto === "true") {
+        req.user.profileImageUrl = "";
       }
       if (newPassword) {
         req.user.password = await bcrypt.hash(newPassword, 10);

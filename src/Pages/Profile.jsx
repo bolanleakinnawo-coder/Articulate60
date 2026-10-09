@@ -42,6 +42,7 @@ export default function Profile({ user }) {
   const profilePhotoInputRef = useRef(null);
   const [playingRecordingId, setPlayingRecordingId] = useState(null);
   const [profilePhoto, setProfilePhoto] = useState(null);
+  const [removeProfilePhoto, setRemoveProfilePhoto] = useState(false);
   const [cropFile, setCropFile] = useState(null);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -64,12 +65,14 @@ export default function Profile({ user }) {
         payload.append(key, value),
       );
       if (profilePhoto) payload.append("profilePhoto", profilePhoto);
+      if (removeProfilePhoto) payload.append("removeProfilePhoto", "true");
 
       const response = await api.put("/user/profile", payload);
       const updatedUser = response.data.user;
       setProfileUser(updatedUser);
       sessionStorage.setItem("user", JSON.stringify(updatedUser));
       setProfilePhoto(null);
+      setRemoveProfilePhoto(false);
       setIsEditing(false);
     } catch (requestError) {
       setError(
@@ -216,6 +219,7 @@ export default function Profile({ user }) {
             setShowNewPassword(false);
             setShowConfirmPassword(false);
             setProfilePhoto(null);
+            setRemoveProfilePhoto(false);
             setIsEditing(true);
           }}
         >
@@ -239,10 +243,14 @@ export default function Profile({ user }) {
           <div className="profile-edit-photo">
             <div className="profile-edit-photo-preview">
               {profileUser?.profileImageUrl ? (
-                <img
-                  src={profileUser.profileImageUrl}
-                  alt={`${name}'s current profile`}
-                />
+                removeProfilePhoto ? (
+                  <span aria-hidden="true">{initial}</span>
+                ) : (
+                  <img
+                    src={profileUser.profileImageUrl}
+                    alt={`${name}'s current profile`}
+                  />
+                )
               ) : (
                 <span aria-hidden="true">{initial}</span>
               )}
@@ -250,11 +258,12 @@ export default function Profile({ user }) {
             <div className="profile-edit-photo-copy">
               <strong>Profile photo</strong>
               <span>
-                {profilePhoto
-                  ? profilePhoto.name
-                  : profileUser?.profileImageUrl
-                    ? "Change your current photo"
-                    : "Add a photo whenever you're ready"}
+                {removeProfilePhoto
+                  ? "Your photo will be removed when you save"
+                  : profilePhoto
+                    ? profilePhoto.name
+                    : !profileUser?.profileImageUrl &&
+                      "Add a photo whenever you're ready"}
               </span>
               <input
                 ref={profilePhotoInputRef}
@@ -272,9 +281,24 @@ export default function Profile({ user }) {
                 onClick={() => profilePhotoInputRef.current?.click()}
               >
                 {profileUser?.profileImageUrl || profilePhoto
-                  ? "Choose a different photo"
+                  ? "Edit picture"
                   : "Upload a photo"}
               </button>
+              {(profileUser?.profileImageUrl || profilePhoto) &&
+                !removeProfilePhoto && (
+                  <button
+                    type="button"
+                    className="profile-photo-remove-button"
+                    onClick={() => {
+                      setProfilePhoto(null);
+                      setRemoveProfilePhoto(
+                        Boolean(profileUser?.profileImageUrl),
+                      );
+                    }}
+                  >
+                    Remove photo
+                  </button>
+                )}
             </div>
           </div>
           {[
@@ -358,6 +382,7 @@ export default function Profile({ user }) {
           onCancel={() => setCropFile(null)}
           onCrop={(photo) => {
             setProfilePhoto(photo);
+            setRemoveProfilePhoto(false);
             setCropFile(null);
           }}
         />

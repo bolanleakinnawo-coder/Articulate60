@@ -171,6 +171,15 @@
   text-align: left;
 }
 
+.profile-photo-remove-button {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #e99b94;
+  font-size: 12px;
+  text-align: left;
+}
+
 .profile-close-button {
   display: grid;
   place-items: center;
