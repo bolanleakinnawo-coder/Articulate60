@@ -12,14 +12,18 @@ export default function ProfileImageCropper({ file, onCancel, onCrop }) {
   const pointersRef = useRef(new Map());
   const dragRef = useRef(null);
   const pinchRef = useRef(null);
-  const [imageUrl] = useState(() => URL.createObjectURL(file));
+  const [imageUrl, setImageUrl] = useState("");
   const [zoom, setZoom] = useState(MIN_ZOOM);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const [imageSize, setImageSize] = useState(null);
   const [isCropping, setIsCropping] = useState(false);
   const [error, setError] = useState("");
 
-  useEffect(() => () => URL.revokeObjectURL(imageUrl), [imageUrl]);
+  useEffect(() => {
+    const url = URL.createObjectURL(file);
+    setImageUrl(url);
+    return () => URL.revokeObjectURL(url);
+  }, [file]);
 
   useEffect(() => {
     const handleKeyDown = (event) => {
@@ -171,9 +175,9 @@ export default function ProfileImageCropper({ file, onCancel, onCrop }) {
       const renderedWidth = imageSize.width * imageScale;
       const renderedHeight = imageSize.height * imageScale;
       const sourceX =
-        ((stage.clientWidth - renderedWidth) / 2 - offset.x) / imageScale;
+        ((renderedWidth - stage.clientWidth) / 2 - offset.x) / imageScale;
       const sourceY =
-        ((stage.clientHeight - renderedHeight) / 2 - offset.y) / imageScale;
+        ((renderedHeight - stage.clientHeight) / 2 - offset.y) / imageScale;
       const sourceSize = stage.clientWidth / imageScale;
       const canvas = document.createElement("canvas");
       canvas.width = OUTPUT_SIZE;

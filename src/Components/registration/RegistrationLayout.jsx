@@ -11,8 +11,6 @@ import StepSix from "./StepSix";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
-console.log("API_URL is:", API_URL); // temporary debug line
-
 function RegistrationLayout() {
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);

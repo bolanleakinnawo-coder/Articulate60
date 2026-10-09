@@ -64,10 +64,7 @@ export default function Profile({ user }) {
       );
       if (profilePhoto) payload.append("profilePhoto", profilePhoto);
 
-      const token = sessionStorage.getItem("token");
-      const response = await api.put("/user/profile", payload, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await api.put("/user/profile", payload);
       const updatedUser = response.data.user;
       setProfileUser(updatedUser);
       sessionStorage.setItem("user", JSON.stringify(updatedUser));

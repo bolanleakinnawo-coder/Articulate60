@@ -241,93 +241,93 @@ router.put(
   authenticate,
   upload.single("profilePhoto"),
   async (req, res) => {
-  try {
-    const { fullName, username, email, newPassword, confirmPassword } =
-      req.body;
-    const errors = {};
+    try {
+      const { fullName, username, email, newPassword, confirmPassword } =
+        req.body;
+      const errors = {};
 
-    if (!fullName || fullName.trim().length < 2) {
-      errors.fullName = "Full name must be at least 2 characters.";
-    }
-    if (!username || !USERNAME_REGEX.test(username.trim())) {
-      errors.username =
-        "Username must be 3–20 characters (letters, numbers, underscores only).";
-    }
-    if (!email || !EMAIL_REGEX.test(email.trim())) {
-      errors.email = "Please enter a valid email address.";
-    }
-    if (newPassword || confirmPassword) {
-      if (
-        !newPassword ||
-        newPassword.length < 8 ||
-        !/[a-zA-Z]/.test(newPassword) ||
-        !/[0-9]/.test(newPassword)
-      ) {
-        errors.newPassword =
-          "New password must be at least 8 characters and include a letter and a number.";
-      } else if (newPassword !== confirmPassword) {
-        errors.confirmPassword = "Passwords do not match.";
+      if (!fullName || fullName.trim().length < 2) {
+        errors.fullName = "Full name must be at least 2 characters.";
       }
-    }
-    if (Object.keys(errors).length) {
-      return res.status(400).json({ message: "Validation failed.", errors });
-    }
+      if (!username || !USERNAME_REGEX.test(username.trim())) {
+        errors.username =
+          "Username must be 3–20 characters (letters, numbers, underscores only).";
+      }
+      if (!email || !EMAIL_REGEX.test(email.trim())) {
+        errors.email = "Please enter a valid email address.";
+      }
+      if (newPassword || confirmPassword) {
+        if (
+          !newPassword ||
+          newPassword.length < 8 ||
+          !/[a-zA-Z]/.test(newPassword) ||
+          !/[0-9]/.test(newPassword)
+        ) {
+          errors.newPassword =
+            "New password must be at least 8 characters and include a letter and a number.";
+        } else if (newPassword !== confirmPassword) {
+          errors.confirmPassword = "Passwords do not match.";
+        }
+      }
+      if (Object.keys(errors).length) {
+        return res.status(400).json({ message: "Validation failed.", errors });
+      }
 
-    if (req.file && !PROFILE_IMAGE_EXTENSIONS[req.file.mimetype]) {
-      return res.status(400).json({
-        message: "Profile photo must be a JPEG, PNG, or WebP image.",
+      if (req.file && !PROFILE_IMAGE_EXTENSIONS[req.file.mimetype]) {
+        return res.status(400).json({
+          message: "Profile photo must be a JPEG, PNG, or WebP image.",
+        });
+      }
+
+      const normalizedEmail = email.trim().toLowerCase();
+      const existingUser = await User.findOne({
+        $or: [{ email: normalizedEmail }, { username: username.trim() }],
+        _id: { $ne: req.user._id },
       });
-    }
+      if (existingUser) {
+        return res
+          .status(409)
+          .json({ message: "That email or username is already in use." });
+      }
 
-    const normalizedEmail = email.trim().toLowerCase();
-    const existingUser = await User.findOne({
-      $or: [{ email: normalizedEmail }, { username: username.trim() }],
-      _id: { $ne: req.user._id },
-    });
-    if (existingUser) {
-      return res
-        .status(409)
-        .json({ message: "That email or username is already in use." });
-    }
+      req.user.fullName = fullName.trim();
+      req.user.username = username.trim();
+      req.user.email = normalizedEmail;
+      if (req.file) {
+        const extension = PROFILE_IMAGE_EXTENSIONS[req.file.mimetype];
+        const key = `profiles/${randomUUID()}.${extension}`;
+        await r2.send(
+          new PutObjectCommand({
+            Bucket: process.env.R2_BUCKET_NAME,
+            Key: key,
+            Body: req.file.buffer,
+            ContentType: req.file.mimetype,
+          }),
+        );
+        req.user.profileImageUrl = `${process.env.R2_PUBLIC_URL}/${key}`;
+      }
+      if (newPassword) {
+        req.user.password = await bcrypt.hash(newPassword, 10);
+      }
+      await req.user.save();
 
-    req.user.fullName = fullName.trim();
-    req.user.username = username.trim();
-    req.user.email = normalizedEmail;
-    if (req.file) {
-      const extension = PROFILE_IMAGE_EXTENSIONS[req.file.mimetype];
-      const key = `profiles/${randomUUID()}.${extension}`;
-      await r2.send(
-        new PutObjectCommand({
-          Bucket: process.env.R2_BUCKET_NAME,
-          Key: key,
-          Body: req.file.buffer,
-          ContentType: req.file.mimetype,
-        }),
-      );
-      req.user.profileImageUrl = `${process.env.R2_PUBLIC_URL}/${key}`;
+      res.json({
+        message: "Profile updated successfully.",
+        user: {
+          id: req.user._id,
+          fullName: req.user.fullName,
+          username: req.user.username,
+          email: req.user.email,
+          profileImageUrl: req.user.profileImageUrl,
+          createdAt: req.user.createdAt,
+        },
+      });
+    } catch (err) {
+      console.error(err);
+      res
+        .status(500)
+        .json({ message: "Something went wrong updating your profile." });
     }
-    if (newPassword) {
-      req.user.password = await bcrypt.hash(newPassword, 10);
-    }
-    await req.user.save();
-
-    res.json({
-      message: "Profile updated successfully.",
-      user: {
-        id: req.user._id,
-        fullName: req.user.fullName,
-        username: req.user.username,
-        email: req.user.email,
-        profileImageUrl: req.user.profileImageUrl,
-        createdAt: req.user.createdAt,
-      },
-    });
-  } catch (err) {
-    console.error(err);
-    res
-      .status(500)
-      .json({ message: "Something went wrong updating your profile." });
-  }
   },
 );
 
