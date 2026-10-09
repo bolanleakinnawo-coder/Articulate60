@@ -13,7 +13,10 @@ import {
 } from "lucide-react";
 import api from "../api/axios";
 import ProfileImageCropper from "../Components/ProfileImageCropper";
-import { SCREENSHOT_STATS, SHOW_SCREENSHOT_STATS } from "../data/screenshotStats";
+import {
+  SCREENSHOT_STATS,
+  SHOW_SCREENSHOT_STATS,
+} from "../data/screenshotStats";
 import "./Profile.css";
 
 const STATS = [
@@ -256,7 +259,7 @@ export default function Profile({ user }) {
               )}
             </div>
             <div className="profile-edit-photo-copy">
-              <strong>Profile photo</strong>
+              <strong>Profile picture</strong>
               <span>
                 {removeProfilePhoto
                   ? "Your photo will be removed when you save"
@@ -296,7 +299,7 @@ export default function Profile({ user }) {
                       );
                     }}
                   >
-                    Remove photo
+                    Remove picture
                   </button>
                 )}
             </div>
@@ -447,8 +450,8 @@ export default function Profile({ user }) {
           </button>
         </form>
         <p className="profile-win-review-note">
-          Your win will be reviewed before it&apos;s shared with the
-          Loquiex community.
+          Your win will be reviewed before it&apos;s shared with the Loquiex
+          community.
         </p>
       </section>
 
