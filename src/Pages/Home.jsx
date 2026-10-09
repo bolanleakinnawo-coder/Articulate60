@@ -276,7 +276,7 @@ export default function Home() {
 
       <section className="section">
         <div className="section-header">
-          <h2>Articulate Leaderboard</h2>
+          <h2>Loquiex Leaderboard</h2>
         </div>
 
         <div className="card leaderboard-card">
