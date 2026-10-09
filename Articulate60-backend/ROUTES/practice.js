@@ -169,7 +169,7 @@ router.get("/leaderboard", authMiddleware, async (_req, res) => {
             right[metric] - left[metric] ||
             left.username.localeCompare(right.username),
         )
-        .slice(0, 10)
+        .slice(0, 5)
         .map((entry) => ({
           userId: entry.userId,
           username: entry.username,

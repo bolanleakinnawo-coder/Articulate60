@@ -1,6 +1,10 @@
 import { ImagePlus } from "lucide-react";
+import { useState } from "react";
+import ProfileImageCropper from "../ProfileImageCropper";
 
 function StepSix({ onSubmit, isSubmitting, formData, updateFormData }) {
+  const [cropFile, setCropFile] = useState(null);
+
   return (
     <div className="registration-step-content success-step">
       <div className="success-icon">✓</div>
@@ -23,10 +27,11 @@ function StepSix({ onSubmit, isSubmitting, formData, updateFormData }) {
           <input
             id="registration-profile-photo"
             type="file"
-            accept="image/*"
-            onChange={(event) =>
-              updateFormData({ profilePhoto: event.target.files?.[0] || null })
-            }
+            accept="image/jpeg,image/png,image/webp"
+            onChange={(event) => {
+              setCropFile(event.target.files?.[0] || null);
+              event.target.value = "";
+            }}
           />
           {formData.profilePhoto && (
             <span className="profile-photo-filename">
@@ -42,6 +47,16 @@ function StepSix({ onSubmit, isSubmitting, formData, updateFormData }) {
           {isSubmitting ? "Creating your account..." : "Submit and get started"}
         </button>
       </form>
+      {cropFile && (
+        <ProfileImageCropper
+          file={cropFile}
+          onCancel={() => setCropFile(null)}
+          onCrop={(photo) => {
+            updateFormData({ profilePhoto: photo });
+            setCropFile(null);
+          }}
+        />
+      )}
     </div>
   );
 }

@@ -11,11 +11,9 @@ import {
   Clock3,
   Send,
 } from "lucide-react";
-import axios from "axios";
 import api from "../api/axios";
+import ProfileImageCropper from "../Components/ProfileImageCropper";
 import "./Profile.css";
-
-const API_URL = import.meta.env.VITE_API_URL;
 
 const STATS = [
   { key: "current", label: "Current streak", icon: Flame },
@@ -40,7 +38,10 @@ export default function Profile({ user }) {
   const [winError, setWinError] = useState("");
   const [winMessage, setWinMessage] = useState("");
   const recordingAudioRef = useRef(null);
+  const profilePhotoInputRef = useRef(null);
   const [playingRecordingId, setPlayingRecordingId] = useState(null);
+  const [profilePhoto, setProfilePhoto] = useState(null);
+  const [cropFile, setCropFile] = useState(null);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [formData, setFormData] = useState({
@@ -57,13 +58,20 @@ export default function Profile({ user }) {
     setIsSaving(true);
 
     try {
+      const payload = new FormData();
+      Object.entries(formData).forEach(([key, value]) =>
+        payload.append(key, value),
+      );
+      if (profilePhoto) payload.append("profilePhoto", profilePhoto);
+
       const token = sessionStorage.getItem("token");
-      const response = await axios.put(`${API_URL}/user/profile`, formData, {
+      const response = await api.put("/user/profile", payload, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const updatedUser = response.data.user;
       setProfileUser(updatedUser);
       sessionStorage.setItem("user", JSON.stringify(updatedUser));
+      setProfilePhoto(null);
       setIsEditing(false);
     } catch (requestError) {
       setError(
@@ -201,6 +209,7 @@ export default function Profile({ user }) {
             setError("");
             setShowNewPassword(false);
             setShowConfirmPassword(false);
+            setProfilePhoto(null);
             setIsEditing(true);
           }}
         >
@@ -220,6 +229,47 @@ export default function Profile({ user }) {
             >
               <X size={18} />
             </button>
+          </div>
+          <div className="profile-edit-photo">
+            <div className="profile-edit-photo-preview">
+              {profileUser?.profileImageUrl ? (
+                <img
+                  src={profileUser.profileImageUrl}
+                  alt={`${name}'s current profile`}
+                />
+              ) : (
+                <span aria-hidden="true">{initial}</span>
+              )}
+            </div>
+            <div className="profile-edit-photo-copy">
+              <strong>Profile photo</strong>
+              <span>
+                {profilePhoto
+                  ? profilePhoto.name
+                  : profileUser?.profileImageUrl
+                    ? "Change your current photo"
+                    : "Add a photo whenever you're ready"}
+              </span>
+              <input
+                ref={profilePhotoInputRef}
+                className="profile-edit-photo-input"
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                onChange={(event) => {
+                  setCropFile(event.target.files?.[0] || null);
+                  event.target.value = "";
+                }}
+              />
+              <button
+                type="button"
+                className="profile-photo-change-button"
+                onClick={() => profilePhotoInputRef.current?.click()}
+              >
+                {profileUser?.profileImageUrl || profilePhoto
+                  ? "Choose a different photo"
+                  : "Upload a photo"}
+              </button>
+            </div>
           </div>
           {[
             ["fullName", "Full name", "text"],
@@ -295,6 +345,16 @@ export default function Profile({ user }) {
             {isSaving ? "Saving..." : "Save changes"}
           </button>
         </form>
+      )}
+      {cropFile && (
+        <ProfileImageCropper
+          file={cropFile}
+          onCancel={() => setCropFile(null)}
+          onCrop={(photo) => {
+            setProfilePhoto(photo);
+            setCropFile(null);
+          }}
+        />
       )}
 
       <section className="profile-stats-section">

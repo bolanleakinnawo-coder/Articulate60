@@ -16,6 +16,11 @@ const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 5 * 1024 * 1024 },
 });
+const PROFILE_IMAGE_EXTENSIONS = {
+  "image/jpeg": "jpg",
+  "image/png": "png",
+  "image/webp": "webp",
+};
 
 const generateToken = (userId) => {
   return jwt.sign({ id: userId }, process.env.JWT_SECRET, { expiresIn: "7d" });
@@ -231,7 +236,11 @@ router.post("/login", async (req, res) => {
 });
 
 // ---------- UPDATE PROFILE ----------
-router.put("/profile", authenticate, async (req, res) => {
+router.put(
+  "/profile",
+  authenticate,
+  upload.single("profilePhoto"),
+  async (req, res) => {
   try {
     const { fullName, username, email, newPassword, confirmPassword } =
       req.body;
@@ -264,6 +273,12 @@ router.put("/profile", authenticate, async (req, res) => {
       return res.status(400).json({ message: "Validation failed.", errors });
     }
 
+    if (req.file && !PROFILE_IMAGE_EXTENSIONS[req.file.mimetype]) {
+      return res.status(400).json({
+        message: "Profile photo must be a JPEG, PNG, or WebP image.",
+      });
+    }
+
     const normalizedEmail = email.trim().toLowerCase();
     const existingUser = await User.findOne({
       $or: [{ email: normalizedEmail }, { username: username.trim() }],
@@ -278,6 +293,19 @@ router.put("/profile", authenticate, async (req, res) => {
     req.user.fullName = fullName.trim();
     req.user.username = username.trim();
     req.user.email = normalizedEmail;
+    if (req.file) {
+      const extension = PROFILE_IMAGE_EXTENSIONS[req.file.mimetype];
+      const key = `profiles/${randomUUID()}.${extension}`;
+      await r2.send(
+        new PutObjectCommand({
+          Bucket: process.env.R2_BUCKET_NAME,
+          Key: key,
+          Body: req.file.buffer,
+          ContentType: req.file.mimetype,
+        }),
+      );
+      req.user.profileImageUrl = `${process.env.R2_PUBLIC_URL}/${key}`;
+    }
     if (newPassword) {
       req.user.password = await bcrypt.hash(newPassword, 10);
     }
@@ -300,6 +328,7 @@ router.put("/profile", authenticate, async (req, res) => {
       .status(500)
       .json({ message: "Something went wrong updating your profile." });
   }
-});
+  },
+);
 
 module.exports = router;
