@@ -71,6 +71,11 @@
   cursor: pointer;
 }
 
+.admin-nav-link:focus-visible {
+  outline: 2px solid var(--olive-bright);
+  outline-offset: 2px;
+}
+
 .admin-main {
   width: calc(100% - 240px);
   min-height: 100vh;

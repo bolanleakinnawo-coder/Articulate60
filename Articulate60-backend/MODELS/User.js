@@ -28,6 +28,14 @@ const userSchema = new mongoose.Schema(
       lowercase: true,
       match: [/^\S+@\S+\.\S+$/, "Invalid email address."],
     },
+    marketingOptIn: {
+      type: Boolean,
+      default: false,
+    },
+    marketingOptInAt: {
+      type: Date,
+      default: null,
+    },
 
     password: {
       type: String,

@@ -123,6 +123,62 @@
   font-size: 13px;
 }
 
+.admin-subscribers {
+  display: grid;
+  align-content: start;
+  gap: 20px;
+}
+
+.admin-subscriber-count {
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.admin-subscriber-list {
+  display: grid;
+  gap: 10px;
+}
+
+.admin-subscriber-card {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--bg-card);
+}
+
+.admin-subscriber-icon {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: var(--radius-md);
+  background: var(--olive-primary);
+  color: var(--text-primary);
+}
+
+.admin-subscriber-card > div {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.admin-subscriber-card strong {
+  overflow-wrap: anywhere;
+  font-size: 14px;
+}
+
+.admin-subscriber-card > div > span,
+.admin-subscriber-empty {
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
 .admin-login-back {
   justify-self: center;
   color: var(--text-secondary);

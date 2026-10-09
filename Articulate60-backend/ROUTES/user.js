@@ -50,6 +50,7 @@ router.post("/signup", upload.single("profilePhoto"), async (req, res) => {
       fullName,
       username,
       email,
+      marketingOptIn,
       phoneNumber,
       password,
       confirmPassword,
@@ -162,6 +163,9 @@ router.post("/signup", upload.single("profilePhoto"), async (req, res) => {
         : "",
       practiceFrequency,
       profileImageUrl,
+      marketingOptIn: marketingOptIn === "true",
+      marketingOptInAt:
+        marketingOptIn === "true" ? new Date() : null,
     });
 
     const token = generateToken(newUser._id);

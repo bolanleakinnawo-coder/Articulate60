@@ -10,6 +10,7 @@ import Library from "../Pages/Library";
 import Profile from "../Pages/Profile";
 import AdminTestimonials from "../Pages/AdminTestimonials";
 import AdminOverview from "../Pages/AdminOverview";
+import AdminSubscribers from "../Pages/AdminSubscribers";
 import AdminLayout from "../Components/layout/AdminLayout";
 import Registration from "../Pages/Registration";
 import Login from "../Pages/Login";
@@ -31,6 +32,7 @@ export default function AppRoutes() {
       <Route path="/admin" element={<AdminLayout />}>
         <Route index element={<AdminOverview />} />
         <Route path="testimonials" element={<AdminTestimonials />} />
+        <Route path="subscribers" element={<AdminSubscribers />} />
       </Route>
       <Route element={<ProtectedRoute />}>
         <Route path="/app" element={<AppLayout />}>

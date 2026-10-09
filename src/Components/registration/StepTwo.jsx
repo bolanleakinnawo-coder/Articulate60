@@ -114,6 +114,20 @@ function StepTwo({ onNext, onBack, formData, updateFormData }) {
             onChange={handleChange("email")}
           />
           {errors.email && <p className="form-error">{errors.email}</p>}
+          <div className="registration-email-opt-in">
+            <input
+              id="marketingOptIn"
+              type="checkbox"
+              checked={formData.marketingOptIn}
+              onChange={(event) =>
+                updateFormData({ marketingOptIn: event.target.checked })
+              }
+            />
+            <label htmlFor="marketingOptIn">
+              I&apos;d love to receive helpful communication tips, practice
+              reminders, and updates from Loquiex.
+            </label>
+          </div>
         </div>
 
         {/* Password */}

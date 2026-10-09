@@ -20,6 +20,7 @@ function RegistrationLayout() {
     fullName: "",
     username: "",
     email: "",
+    marketingOptIn: false,
     password: "",
     confirmPassword: "",
     phoneNumber: "",

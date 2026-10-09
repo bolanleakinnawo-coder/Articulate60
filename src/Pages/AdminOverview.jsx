@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ArrowRight, MessageSquareQuote } from "lucide-react";
+import { ArrowRight, Mail, MessageSquareQuote } from "lucide-react";
 import { Link } from "react-router-dom";
 import api from "../api/axios";
 import "./Admin.css";
@@ -45,6 +45,18 @@ export default function AdminOverview() {
           </strong>
           <span className="admin-overview-card-caption">
             {pendingCount === 1 ? "win awaiting review" : "wins awaiting review"}
+          </span>
+          <span className="admin-overview-card-link">
+            Open section <ArrowRight size={15} />
+          </span>
+        </Link>
+        <Link className="admin-overview-card" to="/admin/subscribers">
+          <span className="admin-overview-card-icon">
+            <Mail size={20} />
+          </span>
+          <span className="admin-overview-card-label">Email subscribers</span>
+          <span className="admin-overview-card-caption">
+            View members who opted in to Loquiex emails.
           </span>
           <span className="admin-overview-card-link">
             Open section <ArrowRight size={15} />
