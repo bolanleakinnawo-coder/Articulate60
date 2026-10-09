@@ -118,8 +118,8 @@ a {
 }
 
 .navigation-splash .navigation-splash-logo {
-  width: min(72vw, 360px);
-  transform: scale(2.8);
+  width: min(58vw, 280px);
+  transform: scale(1.25);
 }
 
 @keyframes navigation-splash-appear {
