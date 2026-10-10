@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import StepIndicator from "./StepIndicator";
@@ -14,6 +14,8 @@ const API_URL = import.meta.env.VITE_API_URL;
 function RegistrationLayout() {
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
+  const submitInProgress = useRef(false);
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
@@ -53,6 +55,10 @@ function RegistrationLayout() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (submitInProgress.current) return;
+
+    submitInProgress.current = true;
+    setSubmitError("");
     setIsSubmitting(true);
 
     try {
@@ -72,15 +78,18 @@ function RegistrationLayout() {
       navigate("/app/home", { replace: true });
     } catch (error) {
       console.error(error);
-
-      if (error.response?.data?.errors) {
-        alert(Object.values(error.response.data.errors)[0]);
-      } else if (error.response?.data?.message) {
-        alert(error.response.data.message);
-      } else {
-        alert("Something went wrong. Please try again.");
-      }
+      const validationMessage = error.response?.data?.errors
+        ? Object.values(error.response.data.errors)[0]
+        : null;
+      setSubmitError(
+        validationMessage ||
+          error.response?.data?.message ||
+          (error.request
+            ? "We couldn't reach the server. Check your connection and try again."
+            : "Something went wrong. Please try again."),
+      );
     } finally {
+      submitInProgress.current = false;
       setIsSubmitting(false);
     }
   };
@@ -132,6 +141,7 @@ function RegistrationLayout() {
           <StepSix
             onSubmit={handleSubmit}
             isSubmitting={isSubmitting}
+            submitError={submitError}
             formData={formData}
             updateFormData={updateFormData}
           />

@@ -2,7 +2,13 @@ import { ImagePlus } from "lucide-react";
 import { useState } from "react";
 import ProfileImageCropper from "../ProfileImageCropper";
 
-function StepSix({ onSubmit, isSubmitting, formData, updateFormData }) {
+function StepSix({
+  onSubmit,
+  isSubmitting,
+  submitError,
+  formData,
+  updateFormData,
+}) {
   const [cropFile, setCropFile] = useState(null);
 
   return (
@@ -39,6 +45,11 @@ function StepSix({ onSubmit, isSubmitting, formData, updateFormData }) {
             </span>
           )}
         </label>
+        {submitError && (
+          <p className="form-error" role="alert">
+            {submitError}
+          </p>
+        )}
         <button
           type="submit"
           className="registration-next"

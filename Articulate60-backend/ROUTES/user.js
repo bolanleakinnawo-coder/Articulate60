@@ -16,6 +16,20 @@ const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 5 * 1024 * 1024 },
 });
+const handleProfilePhotoUpload = (req, res, next) => {
+  upload.single("profilePhoto")(req, res, (error) => {
+    if (!error) return next();
+
+    if (error instanceof multer.MulterError && error.code === "LIMIT_FILE_SIZE") {
+      return res
+        .status(413)
+        .json({ message: "Profile photos must be smaller than 5 MB." });
+    }
+
+    console.error("Failed to receive profile photo:", error);
+    return res.status(400).json({ message: "Could not process the profile photo." });
+  });
+};
 const PROFILE_IMAGE_EXTENSIONS = {
   "image/jpeg": "jpg",
   "image/png": "png",
@@ -44,7 +58,7 @@ const authenticate = async (req, res, next) => {
 };
 
 // ---------- SIGNUP ----------
-router.post("/signup", upload.single("profilePhoto"), async (req, res) => {
+router.post("/signup", handleProfilePhotoUpload, async (req, res) => {
   try {
     const {
       fullName,
@@ -184,6 +198,22 @@ router.post("/signup", upload.single("profilePhoto"), async (req, res) => {
     });
   } catch (err) {
     console.error(err);
+    if (err.code === 11000) {
+      const duplicateField = Object.keys(err.keyPattern || {})[0];
+      const message =
+        duplicateField === "email"
+          ? "An account with this email already exists."
+          : duplicateField === "username"
+            ? "This username is already taken."
+            : "An account with these details already exists.";
+      return res.status(409).json({ message });
+    }
+    if (err.name === "ValidationError") {
+      const validationMessage = Object.values(err.errors)
+        .map((validationError) => validationError.message)
+        .join(" ");
+      return res.status(400).json({ message: validationMessage });
+    }
     res
       .status(500)
       .json({ message: "Something went wrong. Please try again." });
