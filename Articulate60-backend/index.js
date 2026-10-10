@@ -21,6 +21,7 @@ app.use(express.json());
 
 app.use("/user", userRoutes);
 app.use("/api/admin", require("./ROUTES/admin"));
+app.use("/api/waitlist", require("./ROUTES/waitlist"));
 app.use(wordOfTheDayRoute);
 app.use("/api/practice", require("./ROUTES/practice"));
 app.use("/api/testimonials", require("./ROUTES/testimonials"));

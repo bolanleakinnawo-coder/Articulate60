@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ArrowRight, Mail, MessageSquareQuote } from "lucide-react";
+import { ArrowRight, Mail, MessageSquareQuote, Users } from "lucide-react";
 import { Link } from "react-router-dom";
 import api from "../api/axios";
 import "./Admin.css";
@@ -57,6 +57,18 @@ export default function AdminOverview() {
           <span className="admin-overview-card-label">Email subscribers</span>
           <span className="admin-overview-card-caption">
             View members who opted in to Loquiex emails.
+          </span>
+          <span className="admin-overview-card-link">
+            Open section <ArrowRight size={15} />
+          </span>
+        </Link>
+        <Link className="admin-overview-card" to="/admin/waitlist">
+          <span className="admin-overview-card-icon">
+            <Users size={20} />
+          </span>
+          <span className="admin-overview-card-label">Waitlist signups</span>
+          <span className="admin-overview-card-caption">
+            View names and email addresses from the Loquiex waitlist.
           </span>
           <span className="admin-overview-card-link">
             Open section <ArrowRight size={15} />

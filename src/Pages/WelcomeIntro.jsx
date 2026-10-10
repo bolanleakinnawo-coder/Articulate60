@@ -9,17 +9,19 @@ export default function WelcomeIntro() {
           <img src={brandLogo} alt="Loquiex" />
         </div>
 
-        <h1 className="intro-heading">
-          Communication isn’t a talent you either have or don’t.{" "}
-          <span className="intro-heading-accent">
-            It’s a skill you can build.
-          </span>
-        </h1>
-        <p className="intro-note">Welcome to Loquiex.</p>
+        <div className="intro-main">
+          <h1 className="intro-heading">
+            Communication isn’t a talent you either have or don’t.{" "}
+            <span className="intro-heading-accent">
+              It’s a skill you can build.
+            </span>
+          </h1>
+          <p className="intro-note">Welcome to Loquiex.</p>
 
-        <Link to="/register" className="registration-next intro-cta">
-          Get Started
-        </Link>
+          <Link to="/register" className="registration-next intro-cta">
+            Get Started
+          </Link>
+        </div>
       </div>
     </main>
   );

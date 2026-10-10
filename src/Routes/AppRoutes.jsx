@@ -11,6 +11,7 @@ import Profile from "../Pages/Profile";
 import AdminTestimonials from "../Pages/AdminTestimonials";
 import AdminOverview from "../Pages/AdminOverview";
 import AdminSubscribers from "../Pages/AdminSubscribers";
+import AdminWaitlist from "../Pages/AdminWaitlist";
 import AdminLayout from "../Components/layout/AdminLayout";
 import Registration from "../Pages/Registration";
 import Login from "../Pages/Login";
@@ -19,6 +20,7 @@ import ProtectedRoute from "./ProtectedRoute";
 import PracticeSession from "../Pages/PracticeSession";
 import WelcomeIntro from "../Pages/WelcomeIntro"; // NEW
 import ReadyIntro from "../Pages/ReadyIntro"; // NEW
+import Waitlist from "../Pages/Waitlist";
 
 export default function AppRoutes() {
   return (
@@ -28,11 +30,13 @@ export default function AppRoutes() {
       <Route path="/welcome" element={<WelcomeIntro />} /> {/* NEW */}
       <Route path="/register" element={<Registration />} />
       <Route path="/ready" element={<ReadyIntro />} /> {/* NEW */}
+      <Route path="/waitlist" element={<Waitlist />} />
       <Route path="/login" element={<Login />} />
       <Route path="/admin" element={<AdminLayout />}>
         <Route index element={<AdminOverview />} />
         <Route path="testimonials" element={<AdminTestimonials />} />
         <Route path="subscribers" element={<AdminSubscribers />} />
+        <Route path="waitlist" element={<AdminWaitlist />} />
       </Route>
       <Route element={<ProtectedRoute />}>
         <Route path="/app" element={<AppLayout />}>

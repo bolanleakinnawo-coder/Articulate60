@@ -3304,10 +3304,16 @@ a {
   height: 100dvh;
   min-height: 0;
   overflow: hidden;
-  padding: clamp(18px, 4vh, 40px) 24px;
+  padding: max(12px, env(safe-area-inset-top)) 40px
+    max(18px, env(safe-area-inset-bottom));
 }
 
 .intro-container {
+  display: flex;
+  width: 100%;
+  max-width: none;
+  height: 100%;
+  flex-direction: column;
   text-align: left;
 }
 
@@ -3326,6 +3332,7 @@ a {
 .welcome-intro-page .intro-logo {
   width: 204px;
   height: 100px;
+  flex: 0 0 auto;
   margin-bottom: 0;
   overflow: hidden;
 }
@@ -3335,7 +3342,17 @@ a {
   width: 90%;
   height: 90%;
   object-fit: cover;
-  transform: translate(-25px, -20px) scale(2.4);
+  transform: translate(-25px, -1px) scale(2.4);
+}
+ 
+.intro-main {
+  display: flex;
+  width: min(100%, 720px);
+  flex: 1;
+  flex-direction: column;
+  justify-content: center;
+  align-self: center;
+  text-align: left;
 }
 
 .intro-heading {
@@ -3376,11 +3393,13 @@ a {
 
 @media (max-width: 768px) {
   .welcome-intro-page {
-    padding: max(16px, env(safe-area-inset-top)) 18px
+    padding: max(12px, env(safe-area-inset-top)) 18px
       max(16px, env(safe-area-inset-bottom));
   }
 
   .welcome-intro-page .intro-logo {
+    width: 204px;
+    height: 100px;
     margin-bottom: 0;
   }
 
@@ -3405,7 +3424,7 @@ a {
   }
 
   .welcome-intro-page .intro-logo {
-    margin-bottom: 14px;
+    margin-bottom: 0;
   }
 
   .welcome-intro-page .intro-heading {

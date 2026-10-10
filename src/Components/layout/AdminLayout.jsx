@@ -1,5 +1,10 @@
 import { NavLink, Outlet } from "react-router-dom";
-import { LayoutDashboard, Mail, MessageSquareQuote } from "lucide-react";
+import {
+  LayoutDashboard,
+  Mail,
+  MessageSquareQuote,
+  Users,
+} from "lucide-react";
 import "./AdminLayout.css";
 
 const ADMIN_SECTIONS = [
@@ -10,6 +15,7 @@ const ADMIN_SECTIONS = [
     icon: MessageSquareQuote,
   },
   { to: "/admin/subscribers", label: "Email subscribers", icon: Mail },
+  { to: "/admin/waitlist", label: "Waitlist signups", icon: Users },
 ];
 
 export default function AdminLayout() {
