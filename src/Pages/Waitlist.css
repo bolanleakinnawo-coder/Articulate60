@@ -200,8 +200,7 @@
   cursor: not-allowed;
 }
 
-.lq-cta:focus-visible,
-.lq-field input:focus-visible {
+.lq-cta:focus-visible {
   outline: 2px solid var(--challenge-sage);
   outline-offset: 3px;
 }
@@ -632,89 +631,6 @@
 .lq-join {
   align-items: center;
   border-bottom: none;
-}
-
-.lq-form {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  width: 100%;
-  padding: clamp(20px, 4vw, 32px);
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-}
-
-.lq-field {
-  display: flex;
-  flex-direction: column;
-  gap: 7px;
-}
-
-.lq-field label {
-  font-size: 13px;
-  color: var(--text-secondary);
-}
-
-.lq-field input {
-  width: 100%;
-  min-height: 50px;
-  padding: 0 15px;
-  background: var(--bg-secondary);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  color: var(--text-primary);
-  font-size: 16px; /* stops iOS zooming on focus */
-}
-
-.lq-field input::placeholder {
-  color: var(--text-muted);
-}
-
-.lq-field input:focus {
-  border-color: var(--challenge-sage);
-  outline: none;
-}
-
-.lq-error {
-  margin: 0;
-  font-size: 13px;
-  color: #e28a7a;
-}
-
-.lq-success {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 8px;
-  width: 100%;
-  padding: 28px;
-  background: var(--bg-card);
-  border: 1px solid var(--challenge-sage);
-  border-radius: var(--radius-lg);
-}
-
-.lq-success h3 {
-  margin: 0;
-  font-size: 22px;
-}
-
-.lq-success p {
-  margin: 0;
-  font-size: 15px;
-  line-height: 1.55;
-  color: var(--text-secondary);
-  overflow-wrap: anywhere;
-}
-
-.lq-success-icon {
-  display: grid;
-  place-items: center;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: var(--olive-primary);
-  font-weight: 700;
 }
 
 .lq-disclaimer {

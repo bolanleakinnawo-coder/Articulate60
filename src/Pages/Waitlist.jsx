@@ -1,5 +1,3 @@
-import { useRef, useState } from "react";
-import api from "../api/axios";
 import brandLogo from "../assets/brandlogo.PNG";
 import learnOneImage from "../assets/learn1.jpeg";
 import learnTwoImage from "../assets/learn2.jpeg";
@@ -59,10 +57,6 @@ const TIMELINE = [
   { date: "November 15", text: "The 7-Day Speaking Reset begins." },
 ];
 
-async function joinWaitlist({ name, email }) {
-  await api.post("/api/waitlist", { name, email });
-}
-
 function ImageSlot({ src, alt, label, className = "" }) {
   if (src) return <img className={`lq-img ${className}`} src={src} alt={alt} />;
   return (
@@ -73,46 +67,6 @@ function ImageSlot({ src, alt, label, className = "" }) {
 }
 
 export default function Waitlist() {
-  const formRef = useRef(null);
-  const [form, setForm] = useState({ name: "", email: "" });
-  const [error, setError] = useState("");
-  const [status, setStatus] = useState("idle"); // idle | sending | done
-
-  const scrollToForm = () => {
-    formRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
-    setTimeout(
-      () =>
-        formRef.current?.querySelector("input")?.focus({ preventScroll: true }),
-      450,
-    );
-  };
-
-  const handleChange = (e) => {
-    setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
-    setError("");
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    const name = form.name.trim();
-    const email = form.email.trim();
-    if (name.length < 2 || name.length > 80)
-      return setError("Your name must be between 2 and 80 characters.");
-    if (!/^\S+@\S+\.\S+$/.test(email))
-      return setError("Enter a valid email address.");
-    setStatus("sending");
-    try {
-      await joinWaitlist({ name, email });
-      setStatus("done");
-    } catch (requestError) {
-      setStatus("idle");
-      setError(
-        requestError.response?.data?.message ||
-          "Something went wrong. Please try again.",
-      );
-    }
-  };
-
   return (
     <div className="lq-page">
       <div className="lq-container">
@@ -137,9 +91,14 @@ export default function Waitlist() {
               <p className="lq-tagline">
                 Learn communication. Practise it. Use it.
               </p>
-              <button type="button" className="lq-cta" onClick={scrollToForm}>
+              <a
+                className="lq-cta lq-whatsapp-cta"
+                href={WHATSAPP_WAITLIST_URL}
+                target="_blank"
+                rel="noreferrer"
+              >
                 Join the Loquiex waitlist
-              </button>
+              </a>
               <p className="lq-fine">
                 Registration for our first programme opens October 30.
               </p>
@@ -338,7 +297,7 @@ export default function Waitlist() {
           </section>
 
           {/* JOIN */}
-          <section className="lq-section lq-join lq-split" ref={formRef}>
+          <section className="lq-section lq-join lq-split">
             <div className="lq-stack">
               <h2 className="lq-h2">
                 You don't have to stay the communicator you are today.
@@ -356,68 +315,14 @@ export default function Waitlist() {
             </div>
 
             <div className="lq-stack">
-              {status === "done" ? (
-                <div className="lq-success" role="status">
-                  <span className="lq-success-icon" aria-hidden="true">
-                    ✓
-                  </span>
-                  <h3>You're on the waitlist.</h3>
-                  <p>
-                    We'll email you at {form.email.trim()} when registration
-                    opens on October 30.
-                  </p>
-                  <a
-                    className="lq-cta lq-whatsapp-cta"
-                    href={WHATSAPP_WAITLIST_URL}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    Join the WhatsApp waitlist
-                  </a>
-                </div>
-              ) : (
-                <form className="lq-form" onSubmit={handleSubmit} noValidate>
-                  <div className="lq-field">
-                    <label htmlFor="lq-name">Full name</label>
-                    <input
-                      id="lq-name"
-                      name="name"
-                      type="text"
-                      autoComplete="name"
-                      placeholder="Your name"
-                      minLength={2}
-                      maxLength={80}
-                      value={form.name}
-                      onChange={handleChange}
-                    />
-                  </div>
-                  <div className="lq-field">
-                    <label htmlFor="lq-email">Email address</label>
-                    <input
-                      id="lq-email"
-                      name="email"
-                      type="email"
-                      autoComplete="email"
-                      placeholder="you@example.com"
-                      maxLength={254}
-                      value={form.email}
-                      onChange={handleChange}
-                    />
-                  </div>
-                  {error && (
-                    <p className="lq-error" role="alert">
-                      {error}
-                    </p>
-                  )}
-                  <button
-                    type="submit"
-                    className="lq-cta"
-                    disabled={status === "sending"}
-                  >
-                    {status === "sending" ? "Joining..." : "Join the waitlist"}
-                  </button>
-                </form>
-              )}
+              <a
+                className="lq-cta lq-whatsapp-cta"
+                href={WHATSAPP_WAITLIST_URL}
+                target="_blank"
+                rel="noreferrer"
+              >
+                Join the waitlist
+              </a>
             </div>
           </section>
         </main>
