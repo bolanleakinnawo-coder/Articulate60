@@ -1,7 +1,7 @@
 import brandLogo from "../assets/brandlogo.PNG";
 import learnOneImage from "../assets/learn1.jpeg";
-import learnTwoImage from "../assets/learn2.jpeg";
 import practiceImage from "../assets/pratice.jpeg";
+import profileImage from "../assets/profile.jpeg";
 import waitlistHeroImage from "../assets/wishlist1.jpeg";
 import "./Waitlist.css";
 
@@ -170,25 +170,25 @@ export default function Waitlist() {
             </ol>
 
             <div
-              className="lq-learning-gallery"
+              className="lq-product-gallery"
               role="group"
-              aria-label="Explore Loquiex Learn"
+              aria-label="Explore Loquiex Practice and Profile"
             >
-              <figure className="lq-learning-shot lq-learning-shot-one">
+              <figure className="lq-product-shot lq-product-shot-practice">
                 <img
                   className="lq-img"
-                  src={learnOneImage}
-                  alt="Loquiex Learn page with the 7-Day Communication Reset"
+                  src={practiceImage}
+                  alt="Loquiex Practice page with speaking prompts and practice modes"
                 />
-                <figcaption>Build your communication skills</figcaption>
+                <figcaption>Practise your communication skills</figcaption>
               </figure>
-              <figure className="lq-learning-shot lq-learning-shot-two">
+              <figure className="lq-product-shot lq-product-shot-profile">
                 <img
                   className="lq-img"
-                  src={learnTwoImage}
-                  alt="More learning experiences available in Loquiex"
+                  src={profileImage}
+                  alt="A member profile in Loquiex"
                 />
-                <figcaption>Discover what you can learn next</figcaption>
+                <figcaption>Track your progress in your profile</figcaption>
               </figure>
             </div>
           </section>
@@ -227,10 +227,10 @@ export default function Waitlist() {
               </div>
             </div>
             <ImageSlot
-              src={practiceImage}
-              alt="Loquiex Practice page with speaking prompts and practice modes"
-              label="Loquiex Practice page"
-              className="lq-wide lq-practice-shot"
+              src={learnOneImage}
+              alt="Loquiex Learn page featuring the 7-Day Communication Reset"
+              label="Loquiex Learn page"
+              className="lq-wide lq-learn-reset-shot"
             />
           </section>
 
