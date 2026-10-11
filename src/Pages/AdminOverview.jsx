@@ -1,5 +1,13 @@
 import { useEffect, useState } from "react";
-import { ArrowRight, BellRing, Mail, MessageSquareQuote } from "lucide-react";
+
+import {
+  ArrowRight,
+  BarChart3,
+  BellRing,
+  ExternalLink,
+  Mail,
+  MessageSquareQuote,
+} from "lucide-react";
 import { Link } from "react-router-dom";
 import api from "../api/axios";
 import "./Admin.css";
@@ -8,6 +16,7 @@ export default function AdminOverview() {
   const [pendingCount, setPendingCount] = useState(null);
   const [error, setError] = useState("");
 
+  const ANALYTICS_URL = "https://analytics.google.com/analytics/web/#/a389461911p545905472/realtime/pages?params=_u..nav%3Dmaui%26_u..realtimeTimePeriod%3D5";
   useEffect(() => {
     api
       .get("/api/testimonials/admin", { params: { status: "pending" } })
@@ -26,7 +35,19 @@ export default function AdminOverview() {
         <p className="admin-overview-eyebrow">Admin dashboard</p>
         <h1>Overview</h1>
         <p>Manage the content and community experience for Loquiex.</p>
+          <a
+    className="admin-analytics-btn"
+    href={ANALYTICS_URL}
+    target="_blank"
+    rel="noopener noreferrer"
+  >
+    <BarChart3 size={18} />
+    View Google Analytics
+    <ExternalLink size={15} />
+  </a>
       </header>
+
+
 
       {error && (
         <p className="admin-overview-error" role="alert">

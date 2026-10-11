@@ -1,17 +1,21 @@
-import React from "react";
-
 function StepOne({ onNext }) {
   return (
-    <div className="registration-step-content">
-      <div className="registration-header">
-        <h1>Create your account</h1>
+    <div className="registration-step-content welcome-step">
+      <div className="intro-main">
+        <h1 className="intro-heading">
+          Communication isn’t a talent you either have or don’t.{" "}
+          <span className="intro-heading-accent">
+            It’s a skill you can build.
+          </span>
+        </h1>
+        <p className="intro-note">Welcome to Loquiex.</p>
 
-        <p>Start your journey today.</p>
-      </div>
-
-      <div className="registration-options">
-        <button type="button" className="email-button" onClick={onNext}>
-          Sign up with email
+        <button
+          type="button"
+          className="registration-next intro-cta"
+          onClick={onNext}
+        >
+          Get Started
         </button>
       </div>
     </div>

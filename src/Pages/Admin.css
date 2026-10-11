@@ -300,3 +300,34 @@
     padding: 24px 20px;
   }
 }
+
+.admin-analytics-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  margin-top: 18px;
+  min-height: 44px;
+  padding: 0 18px;
+  border: 1px solid var(--olive-primary);
+  border-radius: var(--radius-md);
+  background: var(--olive-primary);
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.admin-analytics-btn:hover {
+  background: var(--olive-bright);
+  border-color: var(--olive-bright);
+}
+
+@media (max-width: 480px) {
+  .admin-analytics-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}

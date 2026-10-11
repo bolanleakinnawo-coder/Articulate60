@@ -3473,7 +3473,7 @@ a {
   object-fit: cover;
   transform: translate(-25px, -1px) scale(2.4);
 }
- 
+
 .intro-main {
   display: flex;
   width: min(100%, 720px);
@@ -4621,4 +4621,10 @@ a {
 .help-modal-question {
   margin: 6px 0;
   font-style: italic;
+}
+
+@media (max-width: 768px) {
+  .welcome-step .intro-main {
+    margin-top: 180px;
+  }
 }
