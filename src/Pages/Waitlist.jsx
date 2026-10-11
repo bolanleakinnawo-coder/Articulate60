@@ -1,5 +1,6 @@
 import brandLogo from "../assets/brandlogo.PNG";
 import learnOneImage from "../assets/learn1.jpeg";
+import learnTwoImage from "../assets/learn2.jpeg";
 import practiceImage from "../assets/pratice.jpeg";
 import profileImage from "../assets/profile.jpeg";
 import waitlistHeroImage from "../assets/wishlist1.jpeg";
@@ -226,12 +227,24 @@ export default function Waitlist() {
                 </ul>
               </div>
             </div>
-            <ImageSlot
-              src={learnOneImage}
-              alt="Loquiex Learn page featuring the 7-Day Communication Reset"
-              label="Loquiex Learn page"
-              className="lq-wide lq-learn-reset-shot"
-            />
+            <div
+              className="lq-reset-gallery"
+              role="group"
+              aria-label="Loquiex Learn screens"
+            >
+              <ImageSlot
+                src={learnOneImage}
+                alt="Loquiex Learn page featuring the 7-Day Communication Reset"
+                label="Loquiex Learn page"
+                className="lq-wide lq-learn-reset-shot"
+              />
+              <ImageSlot
+                src={learnTwoImage}
+                alt="More learning experiences available in Loquiex"
+                label="More Loquiex learning experiences"
+                className="lq-wide lq-learn-next-shot"
+              />
+            </div>
           </section>
 
           {/* TESTIMONIALS */}

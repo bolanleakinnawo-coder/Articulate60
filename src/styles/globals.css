@@ -2993,50 +2993,128 @@ a {
 }
 
 .leaderboard-list {
-  display: flex;
-  flex-direction: column;
-  padding: 8px 20px 16px;
+  padding: 0 20px 16px;
+}
+
+.leaderboard-table-wrap {
+  width: 100%;
+}
+
+.leaderboard-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
 }
 
 .leaderboard-item {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
 }
 
-.leaderboard-item + .leaderboard-item {
-  border-top: 1px solid var(--border);
+.leaderboard-table th {
+  padding: 15px 12px;
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.leaderboard-table td {
+  padding: 14px 12px;
+  vertical-align: middle;
+}
+
+.leaderboard-table th:first-child,
+.leaderboard-table td:first-child {
+  padding-left: 4px;
+  width: 64px;
+}
+
+.leaderboard-table th:nth-child(2) {
+  width: 42%;
+}
+
+.leaderboard-table th:nth-child(3),
+.leaderboard-table th:nth-child(4) {
+  white-space: nowrap;
 }
 
 .leaderboard-rank {
-  width: 18px;
-  flex-shrink: 0;
-  font-size: 15px;
+  display: inline-flex;
+  gap: 2px;
+  width: 30px;
+  height: 30px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--bg-card-hover, rgba(156, 177, 133, 0.1));
+  font-size: 13px;
   font-weight: 600;
   color: var(--text-muted);
-  text-align: center;
+}
+
+.leaderboard-rank-1 {
+  width: 40px;
+  border-radius: 999px;
+  background: rgba(226, 185, 92, 0.18);
+  color: #e2b95c;
+}
+
+.leaderboard-rank-2 {
+  background: rgba(184, 194, 202, 0.16);
+  color: #b8c2ca;
+}
+
+.leaderboard-rank-3 {
+  background: rgba(190, 131, 91, 0.18);
+  color: #be835b;
 }
 
 .leaderboard-avatar {
-  width: 34px;
-  height: 34px;
+  display: flex;
+  width: 40px;
+  height: 40px;
   flex-shrink: 0;
   border-radius: 50%;
   background: rgba(156, 177, 133, 0.18);
   color: var(--sage);
-  display: flex;
   align-items: center;
   justify-content: center;
   font-size: 14px;
   font-weight: 600;
+  overflow: hidden;
+}
+
+.leaderboard-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.leaderboard-profile {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.leaderboard-identity {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: 3px;
 }
 
 .leaderboard-name {
-  flex: 1;
   font-size: 15px;
   font-weight: 500;
   color: var(--text-primary);
+  overflow-wrap: anywhere;
+}
+
+.leaderboard-last-active {
+  color: var(--text-muted);
+  font-size: 12px;
 }
 
 .leaderboard-value {
@@ -3049,6 +3127,90 @@ a {
 @media (max-width: 760px) {
   .community-win-card {
     padding: 22px;
+  }
+}
+
+@media (max-width: 600px) {
+  .leaderboard-tabs {
+    gap: 16px;
+    padding-inline: 16px;
+  }
+
+  .leaderboard-list {
+    padding: 12px;
+  }
+
+  .leaderboard-table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .leaderboard-table,
+  .leaderboard-table tbody {
+    display: block;
+  }
+
+  .leaderboard-item {
+    display: grid;
+    grid-template-columns: 34px minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-areas:
+      "rank name name"
+      "streak streak time";
+    gap: 10px 8px;
+    padding: 12px;
+    margin-bottom: 10px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--bg-card);
+  }
+
+  .leaderboard-table td,
+  .leaderboard-table th:first-child,
+  .leaderboard-table td:first-child {
+    width: auto;
+    padding: 0;
+  }
+
+  .leaderboard-rank-cell {
+    grid-area: rank;
+    align-self: start;
+  }
+
+  .leaderboard-name-cell {
+    grid-area: name;
+    min-width: 0;
+  }
+
+  .leaderboard-streak-cell {
+    grid-area: streak;
+  }
+
+  .leaderboard-speaking-time-cell {
+    grid-area: time;
+    text-align: right;
+  }
+
+  .leaderboard-streak-cell::before,
+  .leaderboard-speaking-time-cell::before {
+    display: block;
+    margin-bottom: 4px;
+    color: var(--text-muted);
+    content: attr(data-label);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .leaderboard-value {
+    font-size: 13px;
   }
 }
 

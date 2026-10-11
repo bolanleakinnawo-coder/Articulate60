@@ -280,6 +280,27 @@
   box-shadow: 0 24px 64px rgba(0, 0, 0, 0.3);
 }
 
+.lq-reset-gallery {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: center;
+  gap: clamp(24px, 5vw, 64px);
+  padding: 18px clamp(8px, 2vw, 24px);
+}
+
+.lq-img.lq-learn-reset-shot {
+  animation-delay: 100ms;
+}
+
+.lq-img.lq-learn-next-shot {
+  transform: rotate(1.4deg);
+  animation-delay: 260ms;
+}
+
+.lq-img.lq-learn-next-shot:hover {
+  transform: translateY(-6px) rotate(0deg);
+}
+
 @keyframes lq-practice-image-enter {
   from {
     opacity: 0;
@@ -660,6 +681,12 @@
     padding-inline: 4px;
   }
 
+  .lq-reset-gallery {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 22px;
+    padding-inline: 10px;
+  }
+
   .lq-cta {
     width: 100%;
   }
@@ -678,6 +705,11 @@
 
   .lq-product-shot-profile {
     --lq-shot-tilt: 1deg;
+  }
+
+  .lq-reset-gallery {
+    gap: 18px;
+    padding-inline: 4px;
   }
 
   .lq-pricing {
@@ -759,6 +791,8 @@
   .lq-img.lq-hero-media:hover,
   .lq-img.lq-wide,
   .lq-img.lq-wide:hover,
+  .lq-img.lq-learn-next-shot,
+  .lq-img.lq-learn-next-shot:hover,
   .lq-product-shot,
   .lq-product-shot:hover {
     transform: none;

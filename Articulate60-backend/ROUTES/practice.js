@@ -125,6 +125,7 @@ router.get("/leaderboard", authMiddleware, async (_req, res) => {
           },
           sessions: { $sum: 1 },
           speakingTimeSeconds: { $sum: "$durationSeconds" },
+          lastActive: { $max: "$createdAt" },
         },
       },
       {
@@ -133,6 +134,7 @@ router.get("/leaderboard", authMiddleware, async (_req, res) => {
           sessions: { $sum: "$sessions" },
           speakingTimeSeconds: { $sum: "$speakingTimeSeconds" },
           practiceDays: { $push: "$_id.day" },
+          lastActive: { $max: "$lastActive" },
         },
       },
     ]);
@@ -140,25 +142,31 @@ router.get("/leaderboard", authMiddleware, async (_req, res) => {
     const users = await User.find({
       _id: { $in: statsByUser.map((stats) => stats._id) },
     })
-      .select("username")
+      .select("username profileImageUrl")
       .lean();
-    const usernames = new Map(
-      users.map((user) => [user._id.toString(), user.username]),
+    const usersById = new Map(
+      users.map((user) => [
+        user._id.toString(),
+        { username: user.username, profileImageUrl: user.profileImageUrl },
+      ]),
     );
 
     const entries = statsByUser
-      .filter((stats) => usernames.has(stats._id.toString()))
+      .filter((stats) => usersById.has(stats._id.toString()))
       .map((stats) => {
         const streak = calculateStreak(
           stats.practiceDays.map((day) => ({ createdAt: new Date(day) })),
         ).current;
+        const user = usersById.get(stats._id.toString());
 
         return {
           userId: stats._id.toString(),
-          username: usernames.get(stats._id.toString()),
+          username: user.username,
+          profileImageUrl: user.profileImageUrl,
           currentStreak: streak,
           sessions: stats.sessions,
           speakingTimeSeconds: stats.speakingTimeSeconds,
+          lastActive: stats.lastActive,
         };
       });
 
@@ -173,6 +181,10 @@ router.get("/leaderboard", authMiddleware, async (_req, res) => {
         .map((entry) => ({
           userId: entry.userId,
           username: entry.username,
+          profileImageUrl: entry.profileImageUrl,
+          currentStreak: entry.currentStreak,
+          speakingTimeDisplay: formatSpeakingTime(entry.speakingTimeSeconds),
+          lastActive: entry.lastActive,
           displayValue:
             metric === "currentStreak"
               ? `${entry.currentStreak} day${entry.currentStreak === 1 ? "" : "s"}`

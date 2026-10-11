@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Flame, Play, Pause, Volume2, ArrowRight, X } from "lucide-react";
+import { Flame, Play, Pause, Volume2, ArrowRight, X, Crown } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import api from "../api/axios";
 
@@ -7,7 +7,6 @@ const API_URL = import.meta.env.VITE_API_URL;
 
 const LEADERBOARD_TABS = [
   { key: "streak", label: "Current Streak" },
-  { key: "sessions", label: "Most Sessions" },
   { key: "speakingTime", label: "Most Speaking Time" },
 ];
 
@@ -303,14 +302,27 @@ export default function Home() {
             ) : leaderboardError ? (
               <p role="alert">{leaderboardError}</p>
             ) : activeLeaderboardEntries.length > 0 ? (
-              activeLeaderboardEntries.map((entry, index) => (
-                <LeaderboardRow
-                  key={entry.userId}
-                  rank={index + 1}
-                  name={entry.username}
-                  value={entry.displayValue}
-                />
-              ))
+              <div className="leaderboard-table-wrap">
+                <table className="leaderboard-table">
+                  <thead>
+                    <tr>
+                      <th scope="col">Rank</th>
+                      <th scope="col">Name</th>
+                      <th scope="col">Current Streak</th>
+                      <th scope="col">Most Speaking Time</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {activeLeaderboardEntries.map((entry, index) => (
+                      <LeaderboardRow
+                        key={entry.userId}
+                        rank={index + 1}
+                        entry={entry}
+                      />
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             ) : (
               <p>No practice stats to show yet. Be the first to practise!</p>
             )}
@@ -467,18 +479,51 @@ function formatPracticeDate(date) {
   });
 }
 
-function LeaderboardRow({ rank, name, value }) {
-  const initial = name ? name.charAt(0).toUpperCase() : "?";
+function LeaderboardRow({ rank, entry }) {
+  const [avatarFailed, setAvatarFailed] = useState(false);
+  const initial = entry.username ? entry.username.charAt(0).toUpperCase() : "?";
 
   return (
-    <div className="leaderboard-item">
-      <span className="leaderboard-rank">{rank}</span>
-
-      <div className="leaderboard-avatar">{initial}</div>
-
-      <span className="leaderboard-name">{name}</span>
-
-      <span className="leaderboard-value">{value}</span>
-    </div>
+    <tr className="leaderboard-item">
+      <td className="leaderboard-rank-cell" data-label="Rank">
+        <span
+          className={`leaderboard-rank${rank <= 3 ? ` leaderboard-rank-${rank}` : ""}`}
+          aria-label={`Rank ${rank}`}
+        >
+          {rank === 1 && <Crown size={13} aria-hidden="true" />}
+          {rank}
+        </span>
+      </td>
+      <td className="leaderboard-name-cell" data-label="Name">
+        <div className="leaderboard-profile">
+          <div className="leaderboard-avatar">
+            {entry.profileImageUrl && !avatarFailed ? (
+              <img
+                src={entry.profileImageUrl}
+                alt=""
+                onError={() => setAvatarFailed(true)}
+              />
+            ) : (
+              initial
+            )}
+          </div>
+          <div className="leaderboard-identity">
+            <span className="leaderboard-name">{entry.username}</span>
+         
+          </div>
+        </div>
+      </td>
+      <td className="leaderboard-streak-cell" data-label="Current Streak">
+        <span className="leaderboard-value">
+          {entry.currentStreak} day{entry.currentStreak === 1 ? "" : "s"}
+        </span>
+      </td>
+      <td
+        className="leaderboard-speaking-time-cell"
+        data-label="Most Speaking Time"
+      >
+        <span className="leaderboard-value">{entry.speakingTimeDisplay}</span>
+      </td>
+    </tr>
   );
 }
