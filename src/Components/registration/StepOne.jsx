@@ -1,6 +1,8 @@
 function StepOne({ onNext }) {
   return (
     <div className="registration-step-content welcome-step">
+      <p className="registration-step welcome-step-label">STEP 1 OF 6</p>
+
       <div className="intro-main">
         <h1 className="intro-heading">
           Communication isn’t a talent you either have or don’t.{" "}
