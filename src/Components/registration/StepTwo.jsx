@@ -1,7 +1,15 @@
 import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 
-function StepTwo({ onNext, onBack, formData, updateFormData }) {
+function StepTwo({
+  onNext,
+  onBack,
+  formData,
+  updateFormData,
+  serverErrors = {},
+  serverError = "",
+  onClearServerError = () => {},
+}) {
   const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -60,6 +68,7 @@ function StepTwo({ onNext, onBack, formData, updateFormData }) {
 
   const handleChange = (field) => (e) => {
     updateFormData({ [field]: e.target.value });
+    onClearServerError(field);
     if (errors[field]) {
       setErrors((prev) => ({ ...prev, [field]: "" }));
     }
@@ -74,6 +83,12 @@ function StepTwo({ onNext, onBack, formData, updateFormData }) {
       </div>
 
       <form className="registration-form" onSubmit={(e) => e.preventDefault()}>
+        {serverError && (
+          <p className="form-error" role="alert">
+            {serverError}
+          </p>
+        )}
+
         {/* Full Name */}
         <div className="form-field">
           <label htmlFor="fullName">Full name</label>
@@ -96,10 +111,14 @@ function StepTwo({ onNext, onBack, formData, updateFormData }) {
             type="text"
             placeholder="Choose a username"
             value={formData.username}
-            aria-invalid={Boolean(errors.username)}
+            aria-invalid={Boolean(errors.username || serverErrors.username)}
             onChange={handleChange("username")}
           />
-          {errors.username && <p className="form-error">{errors.username}</p>}
+          {(errors.username || serverErrors.username) && (
+            <p className="form-error" role="alert">
+              {errors.username || serverErrors.username}
+            </p>
+          )}
         </div>
 
         {/* Email */}
@@ -110,10 +129,14 @@ function StepTwo({ onNext, onBack, formData, updateFormData }) {
             type="email"
             placeholder="Enter your email address"
             value={formData.email}
-            aria-invalid={Boolean(errors.email)}
+            aria-invalid={Boolean(errors.email || serverErrors.email)}
             onChange={handleChange("email")}
           />
-          {errors.email && <p className="form-error">{errors.email}</p>}
+          {(errors.email || serverErrors.email) && (
+            <p className="form-error" role="alert">
+              {errors.email || serverErrors.email}
+            </p>
+          )}
           <div className="registration-email-opt-in">
             <input
               id="marketingOptIn"

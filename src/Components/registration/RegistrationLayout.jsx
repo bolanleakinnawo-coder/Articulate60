@@ -15,6 +15,7 @@ function RegistrationLayout() {
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
+  const [accountError, setAccountError] = useState(null);
   const submitInProgress = useRef(false);
   const navigate = useNavigate();
 
@@ -43,6 +44,17 @@ function RegistrationLayout() {
       ...prev,
       ...updates,
     }));
+  };
+
+  const clearAccountError = (field) => {
+    setAccountError((previous) => {
+      if (!previous) return previous;
+      if (previous.message) return null;
+
+      const fields = { ...previous.fields };
+      delete fields[field];
+      return Object.keys(fields).length ? { fields } : null;
+    });
   };
 
   const nextStep = () => {
@@ -78,6 +90,27 @@ function RegistrationLayout() {
       navigate("/app/home", { replace: true });
     } catch (error) {
       console.error(error);
+      const message = error.response?.data?.message || "";
+      const responseErrors = error.response?.data?.errors || {};
+      const fieldErrors = {};
+
+      if (/email.*already exists/i.test(message)) {
+        fieldErrors.email = message;
+      }
+      if (/username.*already (taken|in use)/i.test(message)) {
+        fieldErrors.username = message;
+      }
+      if (responseErrors.email) fieldErrors.email = responseErrors.email;
+      if (responseErrors.username)
+        fieldErrors.username = responseErrors.username;
+
+      if (Object.keys(fieldErrors).length > 0) {
+        setAccountError({ fields: fieldErrors });
+        setSubmitError("");
+        setCurrentStep(2);
+        return;
+      }
+
       const validationMessage = error.response?.data?.errors
         ? Object.values(error.response.data.errors)[0]
         : null;
@@ -88,6 +121,15 @@ function RegistrationLayout() {
             ? "We couldn't reach the server. Check your connection and try again."
             : "Something went wrong. Please try again."),
       );
+      if (error.response?.status === 409) {
+        setAccountError({
+          message:
+            message ||
+            "Some of these details are already in use. Review your name, username, and email.",
+        });
+        setSubmitError("");
+        setCurrentStep(2);
+      }
     } finally {
       submitInProgress.current = false;
       setIsSubmitting(false);
@@ -107,6 +149,9 @@ function RegistrationLayout() {
             onBack={previousStep}
             formData={formData}
             updateFormData={updateFormData}
+            serverErrors={accountError?.fields || {}}
+            serverError={accountError?.message || ""}
+            onClearServerError={clearAccountError}
           />
         )}
 
@@ -142,6 +187,7 @@ function RegistrationLayout() {
             onSubmit={handleSubmit}
             isSubmitting={isSubmitting}
             submitError={submitError}
+            onBack={previousStep}
             formData={formData}
             updateFormData={updateFormData}
           />

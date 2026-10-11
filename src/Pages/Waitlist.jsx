@@ -247,6 +247,16 @@ export default function Waitlist() {
             </div>
           </section>
 
+          <div className="lq-testimonial-cta">
+            <a
+              className="lq-cta lq-whatsapp-cta"
+              href={WHATSAPP_WAITLIST_URL}
+              target="_blank"
+              rel="noreferrer"
+            >
+              Join the waitlist
+            </a>
+          </div>
           {/* TESTIMONIALS */}
           <section className="lq-section">
             <div className="lq-stack">
@@ -338,6 +348,7 @@ export default function Waitlist() {
               </a>
             </div>
           </section>
+
         </main>
       </div>
     </div>

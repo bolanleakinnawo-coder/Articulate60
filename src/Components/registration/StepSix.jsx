@@ -6,6 +6,7 @@ function StepSix({
   onSubmit,
   isSubmitting,
   submitError,
+  onBack,
   formData,
   updateFormData,
 }) {
@@ -50,13 +51,23 @@ function StepSix({
             {submitError}
           </p>
         )}
-        <button
-          type="submit"
-          className="registration-next"
-          disabled={isSubmitting}
-        >
-          {isSubmitting ? "Creating your account..." : "Submit and get started"}
-        </button>
+        <div className="form-actions">
+          <button
+            type="button"
+            className="back-button"
+            onClick={onBack}
+            disabled={isSubmitting}
+          >
+            Back
+          </button>
+          <button
+            type="submit"
+            className="registration-next"
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? "Creating your account..." : "Submit and get started"}
+          </button>
+        </div>
       </form>
       {cropFile && (
         <ProfileImageCropper
