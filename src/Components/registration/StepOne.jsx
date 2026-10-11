@@ -10,18 +10,6 @@ function StepOne({ onNext }) {
       </div>
 
       <div className="registration-options">
-        <button type="button" className="social-button">
-          Continue with Google
-        </button>
-
-        <button type="button" className="social-button">
-          Continue with Apple
-        </button>
-
-        <div className="divider">
-          <span>or</span>
-        </div>
-
         <button type="button" className="email-button" onClick={onNext}>
           Sign up with email
         </button>
