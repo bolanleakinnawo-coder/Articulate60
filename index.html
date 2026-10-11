@@ -7,7 +7,10 @@
     <meta name="theme-color" content="#131513" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
     <meta name="apple-mobile-web-app-title" content="Loquiex" />
     <link rel="apple-touch-icon" href="/icons/app-icon-192.png" />
     <!-- in index.html <head> -->
@@ -17,6 +20,20 @@
       rel="stylesheet"
     />
     <title>Loquiex</title>
+
+    <script
+      async
+      src="https://www.googletagmanager.com/gtag/js?id=G-M5JM5GR11X"
+    ></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag() {
+        dataLayer.push(arguments);
+      }
+      gtag("js", new Date());
+
+      gtag("config", "G-M5JM5GR11X");
+    </script>
   </head>
   <body>
     <div id="root"></div>
