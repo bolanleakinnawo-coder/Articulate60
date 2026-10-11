@@ -162,9 +162,7 @@ export default function Home() {
         <div className="streak">
           <Flame size={20} />
           <div>
-            <strong>
-              {currentStreak}
-            </strong>
+            <strong>{currentStreak}</strong>
             <span>Day streak</span>
           </div>
         </div>
@@ -296,7 +294,7 @@ export default function Home() {
                     <tr>
                       <th scope="col">Rank</th>
                       <th scope="col">Username</th>
-                      <th scope="col">Current Streak</th>
+                      <th scope="col">Streak</th>
                       <th scope="col">Speaking Time</th>
                     </tr>
                   </thead>
@@ -505,10 +503,7 @@ function LeaderboardRow({ rank, entry }) {
           {entry.currentStreak} day{entry.currentStreak === 1 ? "" : "s"}
         </span>
       </td>
-      <td
-        className="leaderboard-speaking-time-cell"
-        data-label="Speaking Time"
-      >
+      <td className="leaderboard-speaking-time-cell" data-label="Speaking Time">
         <span className="leaderboard-metric">
           <Mic size={15} aria-hidden="true" />
           {entry.speakingTimeDisplay}
