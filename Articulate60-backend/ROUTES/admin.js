@@ -1,6 +1,7 @@
 const express = require("express");
 const User = require("../MODELS/User");
 const WaitlistSignup = require("../MODELS/WaitlistSignup");
+const LearnNotification = require("../MODELS/LearnNotification");
 
 const router = express.Router();
 
@@ -29,6 +30,22 @@ router.get("/waitlist", async (_req, res) => {
   } catch (error) {
     console.error("Failed to fetch waitlist signups:", error);
     res.status(500).json({ message: "Could not load waitlist signups." });
+  }
+});
+
+router.get("/learn-notifications", async (_req, res) => {
+  try {
+    const notifications = await LearnNotification.find()
+      .select("name email productId productName createdAt")
+      .sort({ createdAt: -1 })
+      .lean();
+
+    res.json(notifications);
+  } catch (error) {
+    console.error("Failed to fetch learning product notifications:", error);
+    res
+      .status(500)
+      .json({ message: "Could not load learning product notifications." });
   }
 });
 

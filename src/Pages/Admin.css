@@ -129,6 +129,44 @@
   gap: 20px;
 }
 
+.admin-product-notifications {
+  display: grid;
+  gap: 14px;
+  padding-top: 8px;
+}
+
+.admin-product-notifications-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.admin-product-notifications-header h2 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.admin-product-notifications-header p {
+  margin: 5px 0 0;
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.admin-product-notifications-count {
+  display: grid;
+  min-width: 32px;
+  height: 32px;
+  padding: 0 8px;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--olive-primary);
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 700;
+}
+
 .admin-subscriber-count {
   color: var(--text-secondary);
   font-size: 13px;

@@ -11,7 +11,7 @@ import Profile from "../Pages/Profile";
 import AdminTestimonials from "../Pages/AdminTestimonials";
 import AdminOverview from "../Pages/AdminOverview";
 import AdminSubscribers from "../Pages/AdminSubscribers";
-import AdminWaitlist from "../Pages/AdminWaitlist";
+import AdminProductNotifications from "../Pages/AdminProductNotifications";
 import AdminLayout from "../Components/layout/AdminLayout";
 import Registration from "../Pages/Registration";
 import Login from "../Pages/Login";
@@ -36,7 +36,14 @@ export default function AppRoutes() {
         <Route index element={<AdminOverview />} />
         <Route path="testimonials" element={<AdminTestimonials />} />
         <Route path="subscribers" element={<AdminSubscribers />} />
-        <Route path="waitlist" element={<AdminWaitlist />} />
+        <Route
+          path="product-notifications"
+          element={<AdminProductNotifications />}
+        />
+        <Route
+          path="waitlist"
+          element={<Navigate to="/admin/product-notifications" replace />}
+        />
       </Route>
       <Route element={<ProtectedRoute />}>
         <Route path="/app" element={<AppLayout />}>

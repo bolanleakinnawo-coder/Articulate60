@@ -1,14 +1,18 @@
 import { useEffect, useRef, useState } from "react";
-import { Flame, Play, Pause, Volume2, ArrowRight, X, Crown } from "lucide-react";
+import {
+  Flame,
+  Play,
+  Pause,
+  Volume2,
+  ArrowRight,
+  X,
+  Crown,
+  Mic,
+} from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import api from "../api/axios";
 
 const API_URL = import.meta.env.VITE_API_URL;
-
-const LEADERBOARD_TABS = [
-  { key: "streak", label: "Current Streak" },
-  { key: "speakingTime", label: "Most Speaking Time" },
-];
 
 function speakWord(word, availableVoices = []) {
   if (!("speechSynthesis" in window)) return;
@@ -63,7 +67,6 @@ export default function Home() {
 
   // Recent activity — only the single most recent item is shown on Home.
   // "See all" routes to the Profile tab, where the full history lives.
-  const [leaderboardTab, setLeaderboardTab] = useState("streak");
 
   function getGreeting() {
     const hour = new Date().getHours();
@@ -143,7 +146,7 @@ export default function Home() {
       });
   }, []);
 
-  const activeLeaderboardEntries = leaderboard[leaderboardTab] || [];
+  const activeLeaderboardEntries = leaderboard.streak || [];
 
   return (
     <div className="page">
@@ -281,21 +284,6 @@ export default function Home() {
         </div>
 
         <div className="card leaderboard-card">
-          <div className="leaderboard-tabs">
-            {LEADERBOARD_TABS.map((tab) => (
-              <button
-                key={tab.key}
-                className={
-                  "leaderboard-tab" +
-                  (leaderboardTab === tab.key ? " leaderboard-tab-active" : "")
-                }
-                onClick={() => setLeaderboardTab(tab.key)}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
-
           <div className="leaderboard-list">
             {loadingLeaderboard ? (
               <p role="status">Loading leaderboard...</p>
@@ -307,9 +295,9 @@ export default function Home() {
                   <thead>
                     <tr>
                       <th scope="col">Rank</th>
-                      <th scope="col">Name</th>
+                      <th scope="col">Username</th>
                       <th scope="col">Current Streak</th>
-                      <th scope="col">Most Speaking Time</th>
+                      <th scope="col">Speaking Time</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -480,8 +468,15 @@ function formatPracticeDate(date) {
 }
 
 function LeaderboardRow({ rank, entry }) {
-  const [avatarFailed, setAvatarFailed] = useState(false);
-  const initial = entry.username ? entry.username.charAt(0).toUpperCase() : "?";
+  const username = entry.username || "?";
+  const displayName = username.charAt(0).toUpperCase() + username.slice(1);
+  const initials =
+    username
+      .split(/[._\s-]+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part.charAt(0).toUpperCase())
+      .join("") || "?";
 
   return (
     <tr className="leaderboard-item">
@@ -494,35 +489,30 @@ function LeaderboardRow({ rank, entry }) {
           {rank}
         </span>
       </td>
-      <td className="leaderboard-name-cell" data-label="Name">
+      <td className="leaderboard-name-cell" data-label="Username">
         <div className="leaderboard-profile">
-          <div className="leaderboard-avatar">
-            {entry.profileImageUrl && !avatarFailed ? (
-              <img
-                src={entry.profileImageUrl}
-                alt=""
-                onError={() => setAvatarFailed(true)}
-              />
-            ) : (
-              initial
-            )}
+          <div className="leaderboard-avatar" aria-hidden="true">
+            {initials}
           </div>
           <div className="leaderboard-identity">
-            <span className="leaderboard-name">{entry.username}</span>
-         
+            <span className="leaderboard-name">{displayName}</span>
           </div>
         </div>
       </td>
       <td className="leaderboard-streak-cell" data-label="Current Streak">
-        <span className="leaderboard-value">
+        <span className="leaderboard-metric">
+          <Flame size={15} aria-hidden="true" />
           {entry.currentStreak} day{entry.currentStreak === 1 ? "" : "s"}
         </span>
       </td>
       <td
         className="leaderboard-speaking-time-cell"
-        data-label="Most Speaking Time"
+        data-label="Speaking Time"
       >
-        <span className="leaderboard-value">{entry.speakingTimeDisplay}</span>
+        <span className="leaderboard-metric">
+          <Mic size={15} aria-hidden="true" />
+          {entry.speakingTimeDisplay}
+        </span>
       </td>
     </tr>
   );

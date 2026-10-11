@@ -1,13 +1,15 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ArrowRight,
   BookOpen,
   Check,
+  X,
   Layers,
   Mic,
   Presentation,
   Radio,
 } from "lucide-react";
+import api from "../api/axios";
 import heroImage from "../assets/learn-hero.jpeg";
 import auditImage from "../assets/audit.jpeg";
 import speakWithEaseImage from "../assets/speakwithease.jpeg";
@@ -77,12 +79,27 @@ const UPCOMING = [
 
 /* ---------- Component ---------- */
 
-export default function Learn({
-  onNavigate = () => {},
-  onNotify = () => {},
-}) {
+export default function Learn({ onNavigate = () => {} }) {
   const [category, setCategory] = useState("all");
   const [notified, setNotified] = useState([]);
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [submissionError, setSubmissionError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (!selectedProduct) return undefined;
+
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape" && !isSubmitting) {
+        setSelectedProduct(null);
+        setSubmissionError("");
+      }
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [selectedProduct, isSubmitting]);
 
   const showHero = category === "all" || category === "instructor";
   const subtitle = CATEGORY_SUBTITLES[category];
@@ -91,10 +108,41 @@ export default function Learn({
     (item) => category === "all" || item.category === category,
   );
 
-  const handleNotify = (id) => {
-    if (notified.includes(id)) return;
-    setNotified((prev) => [...prev, id]);
-    onNotify(id);
+  const openNotifyForm = (product) => {
+    setSelectedProduct(product);
+    setSubmissionError("");
+  };
+
+  const closeNotifyForm = () => {
+    if (isSubmitting) return;
+    setSelectedProduct(null);
+    setSubmissionError("");
+  };
+
+  const handleNotifySubmit = async (event) => {
+    event.preventDefault();
+    if (!selectedProduct || isSubmitting) return;
+
+    setSubmissionError("");
+    setIsSubmitting(true);
+    try {
+      await api.post("/api/learn-notifications", {
+        name,
+        email,
+        productId: selectedProduct.id,
+      });
+      setNotified((previous) => [...previous, selectedProduct.id]);
+      setSelectedProduct(null);
+      setName("");
+      setEmail("");
+    } catch (error) {
+      setSubmissionError(
+        error.response?.data?.message ||
+          "We couldn't save your request. Please try again.",
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -173,7 +221,8 @@ export default function Learn({
 
           <div className="learn-grid">
             {visibleItems.map(
-              ({ id, icon: Icon, title, description, image }, index) => {
+              (product, index) => {
+                const { id, icon: Icon, title, description, image } = product;
                 const isNotified = notified.includes(id);
                 return (
                   <article key={id} className="learn-card">
@@ -195,7 +244,7 @@ export default function Learn({
 
                     <button
                       className={`learn-notify ${isNotified ? "done" : ""}`}
-                      onClick={() => handleNotify(id)}
+                      onClick={() => openNotifyForm(product)}
                       disabled={isNotified}
                     >
                       {isNotified ? (
@@ -212,6 +261,78 @@ export default function Learn({
             )}
           </div>
         </section>
+      )}
+
+      {selectedProduct && (
+        <div
+          className="learn-notify-backdrop"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) closeNotifyForm();
+          }}
+        >
+          <section
+            className="learn-notify-dialog"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="learn-notify-title"
+          >
+            <button
+              className="learn-notify-close"
+              type="button"
+              aria-label="Close notification form"
+              onClick={closeNotifyForm}
+              disabled={isSubmitting}
+            >
+              <X size={20} />
+            </button>
+            <p className="learn-notify-eyebrow">Coming soon</p>
+            <h2 id="learn-notify-title">Get notified when it&apos;s ready</h2>
+            <p className="learn-notify-product">{selectedProduct.title}</p>
+            <p className="learn-notify-description">
+              Leave your details and we&apos;ll let you know when this learning
+              experience is available.
+            </p>
+            <form className="learn-notify-form" onSubmit={handleNotifySubmit}>
+              <label htmlFor="learn-notify-name">Name</label>
+              <input
+                id="learn-notify-name"
+                name="name"
+                autoComplete="name"
+                autoFocus
+                value={name}
+                onChange={(event) => setName(event.target.value)}
+                minLength={2}
+                maxLength={80}
+                required
+                disabled={isSubmitting}
+              />
+              <label htmlFor="learn-notify-email">Email</label>
+              <input
+                id="learn-notify-email"
+                name="email"
+                type="email"
+                autoComplete="email"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                maxLength={254}
+                required
+                disabled={isSubmitting}
+              />
+              {submissionError && (
+                <p className="learn-notify-error" role="alert">
+                  {submissionError}
+                </p>
+              )}
+              <button
+                className="learn-notify-submit"
+                type="submit"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? "Submitting..." : "Submit"}
+              </button>
+            </form>
+          </section>
+        </div>
       )}
     </div>
   );
