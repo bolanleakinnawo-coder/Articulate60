@@ -11,6 +11,9 @@ const router = express.Router();
 
 const EMAIL_REGEX = /^\S+@\S+\.\S+$/;
 const USERNAME_REGEX = /^[a-zA-Z0-9_]{3,20}$/;
+const normalizeUsername = (username) => username.trim().toLowerCase();
+const usernameLookup = (username) =>
+  new RegExp(`^${username.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, "i");
 const PHONE_REGEX = /^\+?[0-9]{10,15}$/;
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -135,7 +138,10 @@ router.post("/signup", handleProfilePhotoUpload, async (req, res) => {
         .json({ message: "An account with this email already exists." });
     }
 
-    const existingUsername = await User.findOne({ username: username.trim() });
+    const normalizedUsername = normalizeUsername(username);
+    const existingUsername = await User.findOne({
+      username: usernameLookup(username),
+    });
     if (existingUsername) {
       return res
         .status(409)
@@ -165,7 +171,7 @@ router.post("/signup", handleProfilePhotoUpload, async (req, res) => {
 
     const newUser = await User.create({
       fullName: fullName.trim(),
-      username: username.trim(),
+      username: normalizedUsername,
       email: email.trim().toLowerCase(),
       phoneNumber: phoneNumber.trim(),
       password: hashedPassword,
@@ -234,7 +240,7 @@ router.post("/login", async (req, res) => {
     const user = await User.findOne({
       $or: [
         { email: identifier.trim().toLowerCase() },
-        { username: identifier.trim() },
+        { username: usernameLookup(identifier) },
       ],
     });
 
@@ -320,8 +326,12 @@ router.put(
       }
 
       const normalizedEmail = email.trim().toLowerCase();
+      const normalizedUsername = normalizeUsername(username);
       const existingUser = await User.findOne({
-        $or: [{ email: normalizedEmail }, { username: username.trim() }],
+        $or: [
+          { email: normalizedEmail },
+          { username: usernameLookup(username) },
+        ],
         _id: { $ne: req.user._id },
       });
       if (existingUser) {
@@ -331,7 +341,7 @@ router.put(
       }
 
       req.user.fullName = fullName.trim();
-      req.user.username = username.trim();
+      req.user.username = normalizedUsername;
       req.user.email = normalizedEmail;
       if (req.file) {
         const extension = PROFILE_IMAGE_EXTENSIONS[req.file.mimetype];
@@ -366,6 +376,9 @@ router.put(
       });
     } catch (err) {
       console.error(err);
+      if (err.code === 11000 && err.keyPattern?.username) {
+        return res.status(409).json({ message: "This username is already taken." });
+      }
       res
         .status(500)
         .json({ message: "Something went wrong updating your profile." });
