@@ -25,7 +25,7 @@ import Waitlist from "../Pages/Waitlist";
 export default function AppRoutes() {
   return (
     <Routes>
-      <Route path="/" element={<Landing />} />
+      <Route path="/" element={<Navigate to="/app/home" replace />} />
       <Route path="/landingpage" element={<Landing />} />
       <Route path="/welcome" element={<WelcomeIntro />} /> {/* NEW */}
       <Route path="/register" element={<Registration />} />
