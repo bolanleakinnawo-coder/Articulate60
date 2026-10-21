@@ -14,7 +14,18 @@ import {
 } from "lucide-react";
 import { LEVEL_META } from "../data/prompts";
 import api from "../api/axios";
+import FeedbackReport from "../Components/practice/FeedbackReport";
 import "./PracticeSession.css";
+
+// ---- AI FEEDBACK SWITCHES ----
+// TESTING: true = everyone gets the AI feedback screen after saving.
+// AT LAUNCH: set to false. Then only users whose plan is "pro" get feedback,
+// and free users go straight to the "Amazing!" page as before.
+// (The server also checks the plan, so this is only for the screen flow.)
+const ANALYZER_FOR_ALL = true;
+// true  = after the feedback screen, continue to the "Amazing!" page.
+// false = the feedback screen's button goes straight back home.
+const SHOW_COMPLETE_AFTER_FEEDBACK = false;
 
 const formatTime = (totalSeconds) => {
   const m = Math.floor(totalSeconds / 60)
@@ -40,8 +51,12 @@ export default function PracticeSession() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const { level, category, prompt, isWordOfTheDay = false } =
-    location.state || {};
+  const {
+    level,
+    category,
+    prompt,
+    isWordOfTheDay = false,
+  } = location.state || {};
   const currentUser = location.state?.user || getStoredUser();
   const username = capitalizeFirstLetter(
     currentUser?.username || location.state?.username || "there",
@@ -87,6 +102,11 @@ export default function PracticeSession() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
   const [streak, setStreak] = useState(null);
+
+  // ---- AI feedback state ----
+  const [savedRecordingId, setSavedRecordingId] = useState(null);
+  const [report, setReport] = useState(null);
+  const [analysisError, setAnalysisError] = useState("");
 
   // ---------- MIC / RECORDING ----------
   const stopAudioAnalysis = useCallback(() => {
@@ -373,6 +393,32 @@ export default function PracticeSession() {
     }
   };
 
+  const runAnalysis = async (recordingId) => {
+    setAnalysisError("");
+    setPhase("analyzing");
+    try {
+      const res = await api.post(
+        `/api/practice/recordings/${recordingId}/analyze`,
+        null,
+        { timeout: 90000 },
+      );
+      setReport(res.data);
+      setPhase("feedback");
+    } catch (err) {
+      // Free plan: no feedback, show the normal "Amazing!" page.
+      if (err.response?.data?.code === "UPGRADE_REQUIRED") {
+        setPhase("complete");
+        return;
+      }
+      console.error("Analysis failed:", err);
+      setAnalysisError(
+        err.response?.data?.message ||
+          "We couldn't analyse this recording right now.",
+      );
+      setPhase("analysis-error");
+    }
+  };
+
   const handleCompletePractice = async () => {
     setSubmitError("");
     setIsSubmitting(true);
@@ -397,7 +443,16 @@ export default function PracticeSession() {
       });
 
       setStreak(res.data.streak);
-      setPhase("complete");
+
+      const recordingId = res.data.recording?._id;
+      setSavedRecordingId(recordingId || null);
+      const showAnalyzer = ANALYZER_FOR_ALL || currentUser?.plan === "pro";
+
+      if (recordingId && showAnalyzer) {
+        runAnalysis(recordingId);
+      } else {
+        setPhase("complete");
+      }
     } catch (err) {
       console.error("Failed to save practice session:", err);
       setSubmitError(
@@ -692,6 +747,54 @@ export default function PracticeSession() {
           {isSubmitting ? "Saving..." : "Complete practice"}
         </button>
       </div>
+    );
+  }
+
+  // ---------- ANALYSING PHASE ----------
+  if (phase === "analyzing") {
+    return (
+      <div className="page session-page fb-wait">
+        <div className="fb-spinner" aria-hidden="true" />
+        <h1 className="fb-wait-title">Analysing your speech…</h1>
+        <p className="fb-wait-text">
+          Your recording is saved. This usually takes a few seconds.
+        </p>
+      </div>
+    );
+  }
+
+  // ---------- ANALYSIS ERROR PHASE ----------
+  if (phase === "analysis-error") {
+    return (
+      <div className="page session-page fb-wait">
+        <h1 className="fb-wait-title">Feedback isn't ready</h1>
+        <p className="fb-wait-text">{analysisError}</p>
+        <button
+          className="spin-jar-btn"
+          onClick={() => runAnalysis(savedRecordingId)}
+        >
+          Try again
+        </button>
+        <button className="fb-link-btn" onClick={() => setPhase("complete")}>
+          Skip for now
+        </button>
+      </div>
+    );
+  }
+
+  // ---------- FEEDBACK PHASE ----------
+  if (phase === "feedback" && report) {
+    return (
+      <FeedbackReport
+        report={report}
+        topic={prompt}
+        onDone={
+          SHOW_COMPLETE_AFTER_FEEDBACK
+            ? () => setPhase("complete")
+            : handleBackToHome
+        }
+        doneLabel={SHOW_COMPLETE_AFTER_FEEDBACK ? "Continue" : "Back to home"}
+      />
     );
   }
 

@@ -1,6 +1,8 @@
 const express = require("express");
 const multer = require("multer");
-const { PutObjectCommand } = require("@aws-sdk/client-s3");
+const { PutObjectCommand, GetObjectCommand } = require("@aws-sdk/client-s3");
+const mongoose = require("mongoose");
+const rateLimit = require("express-rate-limit");
 const { randomUUID } = require("crypto");
 const router = express.Router();
 
@@ -9,6 +11,9 @@ const r2 = require("../config/r2");
 const Recording = require("../MODELS/Recording");
 const User = require("../MODELS/User");
 const { calculateStreak } = require("../utils/streak");
+const { transcribeAudio } = require("../services/deepgram");
+const { computeMetrics } = require("../utils/speechMetrics");
+const { analyzeSpeech } = require("../services/analyzer");
 
 // Keep the audio in memory just long enough to push it to R2 — never
 // touches disk. 15MB cap guards against abuse; a 60-second recording
@@ -253,6 +258,140 @@ router.get("/streak", authMiddleware, async (req, res) => {
     res.status(500).json({ message: "Failed to fetch streak." });
   }
 });
+
+// POST /api/practice/recordings/:id/analyze
+// Runs Deepgram (transcript + timings) then Gemini (feedback) on a saved
+// recording. Paid ("pro") users only, unless ANALYZER_FOR_ALL=true (testing).
+// Safe to call twice: finished results are returned without re-running.
+const analyzeLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  limit: 20, // analyses per user per hour
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: (req) => String(req.userId),
+  message: { message: "Too many analyses. Please try again later." },
+});
+
+const MIN_WORDS_TO_ANALYZE = 10;
+
+function r2KeyFromUrl(audioUrl) {
+  const base = `${process.env.R2_PUBLIC_URL}/`;
+  if (audioUrl.startsWith(base))
+    return decodeURIComponent(audioUrl.slice(base.length));
+  return decodeURIComponent(new URL(audioUrl).pathname.replace(/^\//, ""));
+}
+
+router.post(
+  "/recordings/:id/analyze",
+  authMiddleware,
+  analyzeLimiter,
+  async (req, res) => {
+    const { id } = req.params;
+    if (!mongoose.isValidObjectId(id)) {
+      return res.status(400).json({ message: "Invalid recording id." });
+    }
+
+    let recording;
+    try {
+      // Only the owner can analyze their own recording.
+      recording = await Recording.findOne({ _id: id, user: req.userId });
+      if (!recording) {
+        return res.status(404).json({ message: "Recording not found." });
+      }
+
+      const user = await User.findById(req.userId).select("plan");
+      const allowed =
+        process.env.ANALYZER_FOR_ALL === "true" || user?.plan === "pro";
+      if (!allowed) {
+        return res.status(403).json({
+          code: "UPGRADE_REQUIRED",
+          message: "AI feedback is available on the paid plan.",
+        });
+      }
+
+      if (recording.analysisStatus === "done" && recording.analysis) {
+        return res.json({
+          transcript: recording.transcript,
+          metrics: recording.metrics,
+          analysis: recording.analysis,
+        });
+      }
+
+      const STALE_MS = 3 * 60 * 1000;
+      if (
+        recording.analysisStatus === "processing" &&
+        Date.now() - new Date(recording.updatedAt).getTime() < STALE_MS
+      ) {
+        return res
+          .status(409)
+          .json({ message: "Analysis already in progress." });
+      }
+
+      recording.analysisStatus = "processing";
+      recording.analysisError = "";
+      await recording.save();
+
+      // 1) Get the audio back from R2
+      const object = await r2.send(
+        new GetObjectCommand({
+          Bucket: process.env.R2_BUCKET_NAME,
+          Key: r2KeyFromUrl(recording.audioUrl),
+        }),
+      );
+      const audio = Buffer.from(await object.Body.transformToByteArray());
+
+      // 2) Transcribe + measure
+      const { transcript, words } = await transcribeAudio(
+        audio,
+        object.ContentType || "audio/webm",
+      );
+      const metrics = computeMetrics(words);
+
+      if (metrics.wordCount < MIN_WORDS_TO_ANALYZE) {
+        recording.analysisStatus = "failed";
+        recording.analysisError = "too_short";
+        recording.transcript = transcript;
+        recording.metrics = metrics;
+        await recording.save();
+        return res.status(422).json({
+          code: "TOO_SHORT",
+          message:
+            "We couldn't hear enough speech to give feedback. Try again a little closer to your mic.",
+        });
+      }
+
+      // 3) AI feedback (text only)
+      const analysis = await analyzeSpeech({
+        transcript,
+        topic: recording.topic,
+        category: recording.category,
+        level: recording.level,
+        metrics,
+      });
+
+      recording.transcript = transcript;
+      recording.metrics = metrics;
+      recording.analysis = analysis;
+      recording.analysisStatus = "done";
+      recording.analyzedAt = new Date();
+      await recording.save();
+
+      res.json({ transcript, metrics, analysis });
+    } catch (err) {
+      // Log the reason, but never the transcript or audio.
+      console.error("Analysis failed:", err.message);
+      if (recording) {
+        recording.analysisStatus = "failed";
+        recording.analysisError = String(err.message).slice(0, 200);
+        await recording.save().catch(() => {});
+      }
+      res.status(502).json({
+        message:
+          "We couldn't analyse this recording right now. Please try again.",
+      });
+    }
+  },
+);
 
 function formatSpeakingTime(totalSeconds) {
   const hours = Math.floor(totalSeconds / 3600);

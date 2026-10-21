@@ -83,6 +83,7 @@ const userSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
+    plan: { type: String, enum: ["free", "pro"], default: "free" },
   },
   { timestamps: true },
 );
