@@ -71,6 +71,32 @@ function withTimeout(promise, ms) {
   return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
 }
 
+async function generateWithRetry(ai, request, maxRetries = 3) {
+  for (let attempt = 0; ; attempt++) {
+    try {
+      return await ai.models.generateContent(request);
+    } catch (error) {
+      const status = Number(error.status ?? error.statusCode ?? error.code);
+
+      const isTemporary = status === 503 || status === 429;
+
+      if (!isTemporary || attempt >= maxRetries) {
+        throw error;
+      }
+
+      const delay =
+        1000 * Math.pow(2, attempt) + Math.floor(Math.random() * 500);
+
+      console.warn(
+        `Gemini temporary error (${status}). ` +
+          `Retry ${attempt + 1}/${maxRetries} in ${delay}ms.`,
+      );
+
+      await new Promise((resolve) => setTimeout(resolve, delay));
+    }
+  }
+}
+
 function buildPrompt({ transcript, topic, category, level, metrics }) {
   const m = metrics || {};
   return `Topic: ${topic || "(not given)"}
