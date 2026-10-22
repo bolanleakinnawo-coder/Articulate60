@@ -138,13 +138,13 @@ async function analyzeSpeech({ transcript, topic, category, level, metrics }) {
 
   const response = await withTimeout(
     ai.models.generateContent({
-      model: process.env.GEMINI_MODEL || "gemini-2.5-flash",
+      model: process.env.GEMINI_MODEL || "gemini-3.8-flash",
       contents: buildPrompt({ transcript, topic, category, level, metrics }),
       config: {
         systemInstruction: SYSTEM_INSTRUCTION,
         responseMimeType: "application/json",
         responseSchema: RESPONSE_SCHEMA,
-        temperature: 0.4,
+        // No temperature set on purpose: Gemini 3 models work best at the default.
       },
     }),
     60_000,
