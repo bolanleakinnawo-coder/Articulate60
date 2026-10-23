@@ -50,7 +50,7 @@ function getStoredUser() {
 export default function PracticeSession() {
   const location = useLocation();
   const navigate = useNavigate();
-
+  const analysisInProgress = useRef(false);
   const {
     level,
     category,
@@ -394,28 +394,41 @@ export default function PracticeSession() {
   };
 
   const runAnalysis = async (recordingId) => {
+    if (!recordingId || analysisInProgress.current) return;
+
+    analysisInProgress.current = true;
     setAnalysisError("");
     setPhase("analyzing");
+
     try {
       const res = await api.post(
         `/api/practice/recordings/${recordingId}/analyze`,
         null,
         { timeout: 90000 },
       );
+
       setReport(res.data);
       setPhase("feedback");
     } catch (err) {
-      // Free plan: no feedback, show the normal "Amazing!" page.
       if (err.response?.data?.code === "UPGRADE_REQUIRED") {
         setPhase("complete");
         return;
       }
-      console.error("Analysis failed:", err);
+
+      console.error(
+        "Analysis failed:",
+        err.response?.status,
+        err.response?.data || err.message,
+      );
+
       setAnalysisError(
         err.response?.data?.message ||
           "We couldn't analyse this recording right now.",
       );
+
       setPhase("analysis-error");
+    } finally {
+      analysisInProgress.current = false;
     }
   };
 
