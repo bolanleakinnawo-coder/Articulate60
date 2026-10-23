@@ -13,7 +13,7 @@ const User = require("../MODELS/User");
 const { calculateStreak } = require("../utils/streak");
 const { transcribeAudio } = require("../services/deepgram");
 const { computeMetrics } = require("../utils/speechMetrics");
-const { analyzeSpeech, isOverloaded } = require("../services/analyzer");
+const { analyzeSpeech, isBusy } = require("../services/analyzer");
 
 // Keep the audio in memory just long enough to push it to R2 — never
 // touches disk. 15MB cap guards against abuse; a 60-second recording
@@ -385,7 +385,7 @@ router.post(
         recording.analysisError = String(err.message).slice(0, 200);
         await recording.save().catch(() => {});
       }
-      if (isOverloaded(err)) {
+      if (isBusy(err)) {
         return res.status(503).json({
           code: "AI_BUSY",
           message:

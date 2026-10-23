@@ -137,6 +137,19 @@ function isOverloaded(err) {
   );
 }
 
+function isTimeout(err) {
+  return (
+    err?.name === "TimeoutError" ||
+    err?.name === "AbortError" ||
+    /timed out|timeout/i.test(String(err?.message || ""))
+  );
+}
+
+// "Gemini is too busy or too slow right now" (as opposed to a bad key, quota...)
+function isBusy(err) {
+  return isOverloaded(err) || isTimeout(err);
+}
+
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 // Gemini 3 models "think" before answering. The default depth (medium) is slow
@@ -148,15 +161,16 @@ function thinkingConfigFor(model) {
   return { thinkingLevel: ThinkingLevel?.[wanted] ?? wanted };
 }
 
-// Google's servers sometimes return 503 ("high demand") when they run out of
-// capacity. It is not about your quota, and it affects every user for a while.
-// What we do about it:
-//   1. Retry the main model a few times with a growing pause (plus a little
-//      random jitter so many users don't all retry at the same instant).
-//   2. If it is still busy, switch to a backup model (a different capacity pool).
-//      Default backup: gemini-3.1-flash-lite. Change it with GEMINI_FALLBACK_MODEL,
-//      or set GEMINI_FALLBACK_MODEL=none to turn the backup off.
-// Other errors (bad key, quota) fail straight away, because retrying won't help.
+// What goes wrong with Gemini, and what we do about it:
+//  - 503 "high demand": retry the same model a few times with a growing pause
+//    (plus a little random jitter), then move on to the backup model.
+//  - No answer within GEMINI_TIMEOUT_MS (default 25s): the model is too slow right
+//    now, so give up on it at once and try the backup model instead of waiting again.
+//  - Backup model: GEMINI_FALLBACK_MODEL (default gemini-3.1-flash-lite);
+//    set it to "none" to turn the backup off.
+//  - Whole thing stops after about 75 seconds so the app never waits forever
+//    (the app itself gives up at 90 seconds).
+//  - Other errors (bad key, quota) fail straight away, because retrying won't help.
 async function generateWithRetry(ai, request) {
   const models = [process.env.GEMINI_MODEL || "gemini-3.8-flash"];
   const fallback = process.env.GEMINI_FALLBACK_MODEL ?? "gemini-3.1-flash-lite";
@@ -164,24 +178,35 @@ async function generateWithRetry(ai, request) {
     models.push(fallback);
   }
   const baseDelay = Number(process.env.GEMINI_RETRY_BASE_MS) || 2000;
+  const perCallMs = Number(process.env.GEMINI_TIMEOUT_MS) || 25_000;
+  const budgetMs = Number(process.env.GEMINI_TOTAL_BUDGET_MS) || 75_000;
+  const deadline = Date.now() + budgetMs;
   const attempts = 4;
 
   let busyError = null;
+  let slowError = null;
   let otherError = null;
 
   for (let m = 0; m < models.length; m++) {
     const model = models[m];
     const thinkingConfig = thinkingConfigFor(model);
-    const config = thinkingConfig
-      ? { ...request.config, thinkingConfig }
-      : request.config;
 
     for (let attempt = 0; attempt < attempts; attempt++) {
+      const remaining = deadline - Date.now();
+      if (remaining < 3000) break; // out of time for this model
+
+      const callMs = Math.min(perCallMs, remaining);
+      const config = {
+        ...request.config,
+        ...(thinkingConfig ? { thinkingConfig } : {}),
+        abortSignal: AbortSignal.timeout(callMs), // really cancels the request
+      };
+
       try {
         const started = Date.now();
         const response = await withTimeout(
           ai.models.generateContent({ ...request, model, config }),
-          60_000,
+          callMs + 1000,
         );
         // Timing and token counts only, never the speech or feedback text.
         const usage = response.usageMetadata || {};
@@ -192,6 +217,13 @@ async function generateWithRetry(ai, request) {
         );
         return response;
       } catch (err) {
+        if (isTimeout(err)) {
+          slowError = err;
+          console.warn(
+            `Gemini slow (${model}): no answer in ${Math.round(callMs / 1000)}s, moving on`,
+          );
+          break; // don't wait on the same slow model again
+        }
         if (!isOverloaded(err)) {
           if (m === 0) throw err; // problem with the main model setup: stop now
           console.warn(
@@ -211,7 +243,12 @@ async function generateWithRetry(ai, request) {
       }
     }
   }
-  throw busyError || otherError;
+  throw (
+    busyError ||
+    slowError ||
+    otherError ||
+    new Error("Gemini request timed out")
+  );
 }
 
 async function analyzeSpeech({ transcript, topic, category, level, metrics }) {
@@ -240,4 +277,4 @@ async function analyzeSpeech({ transcript, topic, category, level, metrics }) {
   return sanitise(parsed, transcript);
 }
 
-module.exports = { analyzeSpeech, sanitise, generateWithRetry, isOverloaded };
+module.exports = { analyzeSpeech, sanitise, generateWithRetry, isBusy };
