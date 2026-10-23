@@ -3,7 +3,13 @@
 
 const { GoogleGenAI, Type, ThinkingLevel } = require("@google/genai");
 
-const SCORE_KEYS = ["grammar", "vocabulary", "structure", "clarity", "repetition"];
+const SCORE_KEYS = [
+  "grammar",
+  "vocabulary",
+  "structure",
+  "clarity",
+  "repetition",
+];
 
 const SYSTEM_INSTRUCTION = `You are a warm, honest speaking coach inside Loquiex, an app where people practise speaking for about a minute on a random topic.
 
@@ -28,12 +34,16 @@ const RESPONSE_SCHEMA = {
     summary: { type: Type.STRING },
     scores: {
       type: Type.OBJECT,
-      properties: Object.fromEntries(SCORE_KEYS.map((k) => [k, { type: Type.INTEGER }])),
+      properties: Object.fromEntries(
+        SCORE_KEYS.map((k) => [k, { type: Type.INTEGER }]),
+      ),
       required: SCORE_KEYS,
     },
     notes: {
       type: Type.OBJECT,
-      properties: Object.fromEntries(SCORE_KEYS.map((k) => [k, { type: Type.STRING }])),
+      properties: Object.fromEntries(
+        SCORE_KEYS.map((k) => [k, { type: Type.STRING }]),
+      ),
       required: SCORE_KEYS,
     },
     corrections: {
@@ -73,7 +83,9 @@ Measurements from code (do not recalculate; use them as context):
 - Long pauses (1s or more): ${(m.pauses?.long ?? 0) + (m.pauses?.veryLong ?? 0)}
 - Immediate word repeats: ${m.repetition?.immediateRepeats ?? 0}
 - Frequently repeated words: ${
-    (m.repetition?.frequentWords || []).map((w) => `${w.word} x${w.count}`).join(", ") || "none"
+    (m.repetition?.frequentWords || [])
+      .map((w) => `${w.word} x${w.count}`)
+      .join(", ") || "none"
   }
 
 <transcript>
@@ -96,8 +108,17 @@ function sanitise(raw, transcript) {
 
   // Drop any correction whose "original" isn't really in the transcript.
   const corrections = (Array.isArray(raw?.corrections) ? raw.corrections : [])
-    .map((c) => ({ original: str(c?.original), better: str(c?.better), why: str(c?.why) }))
-    .filter((c) => c.original && c.better && lowerTranscript.includes(c.original.toLowerCase()))
+    .map((c) => ({
+      original: str(c?.original),
+      better: str(c?.better),
+      why: str(c?.why),
+    }))
+    .filter(
+      (c) =>
+        c.original &&
+        c.better &&
+        lowerTranscript.includes(c.original.toLowerCase()),
+    )
     .slice(0, 4);
 
   return {
@@ -173,12 +194,16 @@ async function generateWithRetry(ai, request) {
       } catch (err) {
         if (!isOverloaded(err)) {
           if (m === 0) throw err; // problem with the main model setup: stop now
-          console.warn(`Backup model ${model} failed: ${String(err.message).slice(0, 120)}`);
+          console.warn(
+            `Backup model ${model} failed: ${String(err.message).slice(0, 120)}`,
+          );
           otherError = err;
           break; // backup unusable, don't retry it
         }
         busyError = err;
-        console.warn(`Gemini busy (${model}), attempt ${attempt + 1}/${attempts}`);
+        console.warn(
+          `Gemini busy (${model}), attempt ${attempt + 1}/${attempts}`,
+        );
         if (attempt < attempts - 1) {
           const jitter = Math.random() * 500;
           await sleep(baseDelay * 2 ** attempt + jitter);
