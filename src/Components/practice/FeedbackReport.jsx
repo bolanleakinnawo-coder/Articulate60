@@ -5,20 +5,73 @@ import {
   CheckCircle2,
   Target,
   Sparkles,
+  SpellCheck,
+  BookOpen,
+  ListOrdered,
+  Eye,
+  Repeat,
+  Gauge,
+  Pause,
+  MessageSquareWarning,
 } from "lucide-react";
 import "./FeedbackReport.css";
 
 // The eight Loquiex criteria, in the required order.
 // Five are scored by the AI; pace, pauses and fillers come from measurements.
 const CRITERIA = [
-  { key: "grammar", label: "Grammar", scored: true },
-  { key: "vocabulary", label: "Vocabulary", scored: true },
-  { key: "structure", label: "Structure", scored: true },
-  { key: "clarity", label: "Clarity", scored: true },
-  { key: "repetition", label: "Repetition", scored: true },
-  { key: "pace", label: "Pace" },
-  { key: "pauses", label: "Pauses" },
-  { key: "fillers", label: "Filler words" },
+  {
+    key: "grammar",
+    label: "Grammar",
+    scored: true,
+    icon: SpellCheck,
+    definition: "Whether your sentences are built correctly.",
+  },
+  {
+    key: "vocabulary",
+    label: "Vocabulary",
+    scored: true,
+    icon: BookOpen,
+    definition: "How well your word choices fit what you wanted to say.",
+  },
+  {
+    key: "structure",
+    label: "Structure",
+    scored: true,
+    icon: ListOrdered,
+    definition: "How well your ideas are organised, from opening to close.",
+  },
+  {
+    key: "clarity",
+    label: "Clarity",
+    scored: true,
+    icon: Eye,
+    definition: "How easily a listener can follow your point.",
+  },
+  {
+    key: "repetition",
+    label: "Repetition",
+    scored: true,
+    icon: Repeat,
+    definition: "Words or ideas you used again and again.",
+  },
+  {
+    key: "pace",
+    label: "Pace",
+    icon: Gauge,
+    definition: "How fast you spoke, in words per minute.",
+  },
+  {
+    key: "pauses",
+    label: "Pauses",
+    icon: Pause,
+    definition: "Silent breaks of a second or more while you spoke.",
+  },
+  {
+    key: "fillers",
+    label: "Filler words",
+    icon: MessageSquareWarning,
+    definition: 'Sounds like "um" and "uh" that fill gaps while you think.',
+  },
 ];
 
 const TYPE_META = {
@@ -103,7 +156,18 @@ function buildSegments(transcript, corrections) {
   return segments;
 }
 
-function Row({ id, label, count, chip, tone, open, onToggle, children }) {
+function Row({
+  id,
+  label,
+  definition,
+  icon: Icon,
+  count,
+  chip,
+  tone,
+  open,
+  onToggle,
+  children,
+}) {
   const isOpen = open === id;
   return (
     <div
@@ -116,13 +180,21 @@ function Row({ id, label, count, chip, tone, open, onToggle, children }) {
         onClick={() => onToggle(id)}
         aria-expanded={isOpen}
       >
-        <span className="fb-row-label">
-          {label}
-          {count > 0 && (
-            <span className="fb-row-count">
-              {count} {count === 1 ? "finding" : "findings"}
-            </span>
-          )}
+        {Icon && (
+          <span className="fb-row-icon" aria-hidden="true">
+            <Icon size={20} strokeWidth={1.8} />
+          </span>
+        )}
+        <span className="fb-row-text">
+          <span className="fb-row-label">
+            {label}
+            {count > 0 && (
+              <span className="fb-row-count">
+                {count} {count === 1 ? "finding" : "findings"}
+              </span>
+            )}
+          </span>
+          {definition && <span className="fb-row-def">{definition}</span>}
         </span>
         <span className={`fb-chip fb-chip-${tone}`}>{chip}</span>
         <ChevronDown size={18} className="fb-chevron" aria-hidden="true" />
@@ -495,7 +567,7 @@ export default function FeedbackReport({
       <section className="fb-section">
         <h2 className="fb-heading">Explore your feedback</h2>
         <div className="fb-card fb-rows">
-          {CRITERIA.map(({ key, label }) => {
+          {CRITERIA.map(({ key, label, icon, definition }) => {
             const { chip, tone } = chipFor(key);
             const items = byCriterion[key] || [];
             return (
@@ -503,10 +575,12 @@ export default function FeedbackReport({
                 key={key}
                 id={key}
                 label={label}
+                definition={definition}
+                icon={icon}
                 count={items.length}
                 chip={chip}
                 tone={tone}
-                open={open}
+                open={open}S
                 onToggle={toggle}
               >
                 <p className="fb-note">{noteFor(key)}</p>
