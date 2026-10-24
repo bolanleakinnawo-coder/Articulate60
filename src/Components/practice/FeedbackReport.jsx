@@ -29,22 +29,33 @@ const TYPE_META = {
 
 const FOCUS_LABEL = { form: "Form", shape: "Shape", deliver: "Deliver" };
 
+// A missing or invalid score shows as neutral, never as a low score.
 function scoreTone(score) {
+  if (typeof score !== "number") return "muted";
   if (score >= 8) return "good";
   if (score >= 5) return "ok";
   return "low";
-}
-
-function paceTone(label) {
-  if (label === "good") return "good";
-  if (label === "slow" || label === "fast") return "ok";
-  return "muted";
 }
 
 function formatSeconds(total) {
   const s = Math.max(0, Math.round(Number(total) || 0));
   const m = Math.floor(s / 60);
   return m > 0 ? `${m}m ${s % 60}s` : `${s}s`;
+}
+
+function clock(total) {
+  const s = Math.max(0, Math.round(Number(total) || 0));
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+}
+
+// "after "so", before "I"" for a measured pause or filler.
+function around(item) {
+  return [
+    item.before ? `after "${item.before}"` : "",
+    item.after ? `before "${item.after}"` : "",
+  ]
+    .filter(Boolean)
+    .join(", ");
 }
 
 // Split the transcript into plain and highlighted pieces. Nothing is removed:
@@ -196,7 +207,9 @@ function PaceGauge({ wpm, label }) {
 }
 
 function PauseTimeline({ pauses, speakingSeconds }) {
-  const items = pauses.longest || [];
+  // "all" holds every listed pause in time order; older saved reports only have "longest".
+  const items =
+    (pauses.all && pauses.all.length ? pauses.all : pauses.longest) || [];
   const end = Math.max(
     Number(speakingSeconds) || 0,
     ...items.map((p) => p.atSecond + p.seconds),
@@ -211,7 +224,7 @@ function PauseTimeline({ pauses, speakingSeconds }) {
       <div
         className="fb-timeline"
         role="img"
-        aria-label="Timeline of your longest pauses"
+        aria-label="Timeline of your pauses"
       >
         {items.map((p, i) => (
           <span
@@ -221,21 +234,27 @@ function PauseTimeline({ pauses, speakingSeconds }) {
               left: `${Math.min(98, (p.atSecond / end) * 100)}%`,
               width: `${Math.max(1.5, (p.seconds / end) * 100)}%`,
             }}
-            title={`${p.seconds}s at ${p.atSecond}s`}
+            title={`${p.seconds}s at ${clock(p.atSecond)}`}
           />
         ))}
       </div>
       <div className="fb-gauge-scale" aria-hidden="true">
-        <span>0s</span>
-        <span>{formatSeconds(end)}</span>
+        <span>0:00</span>
+        <span>{clock(end)}</span>
+      </div>
+      <div className="fb-stats">
+        {items.map((p, i) => (
+          <Stat
+            key={i}
+            label={`${clock(p.atSecond)} · ${p.seconds}s`}
+            value={around(p) || "in your recording"}
+          />
+        ))}
       </div>
       <p className="fb-viz-caption">
-        Showing your{" "}
-        {items.length === 1
-          ? "longest pause"
-          : `${items.length} longest pauses`}{" "}
-        of a second or more. Pauses aren't mistakes; look at whether they gave
-        you thinking time or interrupted an idea.
+        Pauses of a second or more, measured from your recording. Pauses aren't
+        mistakes; look at whether they gave you thinking time or interrupted an
+        idea.
       </p>
     </div>
   );
@@ -249,6 +268,8 @@ export default function FeedbackReport({
   doneLabel = "Back to home",
 }) {
   const { transcript = "", metrics = {}, analysis = {} } = report || {};
+  // The server also sends the recording address with the report.
+  const playbackUrl = audioUrl || report?.audioUrl;
   const scores = analysis.scores || {};
   const notes = analysis.notes || {};
   const corrections = useMemo(
@@ -267,7 +288,7 @@ export default function FeedbackReport({
   const correctionRefs = useRef({});
   const toggle = (id) => setOpen((current) => (current === id ? null : id));
 
-  const fillers = metrics.fillers || { total: 0, breakdown: {} };
+  const fillers = metrics.fillers || { total: 0, breakdown: {}, positions: [] };
   const pauses = metrics.pauses || {
     long: 0,
     veryLong: 0,
@@ -317,19 +338,28 @@ export default function FeedbackReport({
     if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
   }, [activeId, open]);
 
+  // Pace, pauses and fillers are shown as plain measurements with a neutral
+  // look. Whether they help or hurt this answer is the coach's note to explain.
   const chipFor = (key) => {
     if (CRITERIA.find((k) => k.key === key)?.scored) {
-      return { chip: `${scores[key] ?? "–"}/10`, tone: scoreTone(scores[key]) };
+      const score = scores[key];
+      return {
+        chip: typeof score === "number" ? `${score}/10` : "–",
+        tone: scoreTone(score),
+      };
     }
     if (key === "pace") {
       return {
         chip: metrics.wordsPerMinute ? `${metrics.wordsPerMinute} wpm` : "–",
-        tone: paceTone(metrics.paceLabel),
+        tone: "muted",
       };
     }
     if (key === "pauses") {
       return {
-        chip: totalPauses > 0 ? `${totalPauses} long` : "none",
+        chip:
+          totalPauses > 0
+            ? `${totalPauses} ${totalPauses === 1 ? "pause" : "pauses"}`
+            : "none",
         tone: "muted",
       };
     }
@@ -368,12 +398,12 @@ export default function FeedbackReport({
       <section className="fb-section">
         <h2 className="fb-heading">Your recording</h2>
         <div className="fb-card fb-recording">
-          {audioUrl && (
+          {playbackUrl && (
             <audio
               className="fb-audio"
               controls
               preload="metadata"
-              src={audioUrl}
+              src={playbackUrl}
             >
               Your browser can't play this recording.
             </audio>
@@ -531,20 +561,38 @@ export default function FeedbackReport({
                 )}
 
                 {key === "fillers" && (
-                  <div className="fb-stats">
-                    <Stat
-                      label="Filler sounds"
-                      value={`${fillers.total} (${fillerText})`}
-                    />
-                    {(metrics.crutchPhrases || []).length > 0 && (
+                  <>
+                    <div className="fb-stats">
                       <Stat
-                        label="Phrases you leaned on"
-                        value={metrics.crutchPhrases
-                          .map((c) => `${c.phrase} ×${c.count}`)
-                          .join(", ")}
+                        label="Filler sounds"
+                        value={`${fillers.total} (${fillerText})`}
                       />
+                      {(metrics.crutchPhrases || []).length > 0 && (
+                        <Stat
+                          label="Phrases used more than once"
+                          value={metrics.crutchPhrases
+                            .map((c) => `${c.phrase} ×${c.count}`)
+                            .join(", ")}
+                        />
+                      )}
+                    </div>
+                    {(fillers.positions || []).length > 0 && (
+                      <div className="fb-stats">
+                        {fillers.positions.slice(0, 8).map((f, i) => (
+                          <Stat
+                            key={i}
+                            label={`${clock(f.atSecond)} · ${f.word}`}
+                            value={around(f) || "in your recording"}
+                          />
+                        ))}
+                      </div>
                     )}
-                  </div>
+                    {(fillers.positions || []).length > 8 && (
+                      <p className="fb-hint">
+                        Showing the first 8 of {fillers.positions.length}.
+                      </p>
+                    )}
+                  </>
                 )}
 
                 {items.length > 0 && (

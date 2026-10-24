@@ -404,7 +404,7 @@ export default function PracticeSession() {
       const res = await api.post(
         `/api/practice/recordings/${recordingId}/analyze`,
         null,
-        { timeout: 90000 },
+        { timeout: 120000 },
       );
 
       setReport(res.data);
