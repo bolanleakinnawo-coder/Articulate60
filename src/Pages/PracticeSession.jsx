@@ -47,7 +47,14 @@ function getStoredUser() {
   }
 }
 
+// "Try again" navigates to this same page with the same prompt. Keying on the
+// navigation gives the new attempt a fresh session (timers, recorder, report).
 export default function PracticeSession() {
+  const location = useLocation();
+  return <PracticeSessionAttempt key={location.key} />;
+}
+
+function PracticeSessionAttempt() {
   const location = useLocation();
   const navigate = useNavigate();
   const analysisInProgress = useRef(false);
@@ -300,6 +307,15 @@ export default function PracticeSession() {
 
   const handleBackToHome = () => {
     navigate("/app/home");
+  };
+
+  // Practise the same prompt again from the start.
+  const handleTryAgain = () => {
+    navigate(location.pathname, { state: location.state, replace: true });
+  };
+
+  const handleBackToPractice = () => {
+    navigate("/app/practice");
   };
 
   // Preparation time is independent of microphone permission requests.
@@ -801,12 +817,17 @@ export default function PracticeSession() {
       <FeedbackReport
         report={report}
         topic={prompt}
+        audioUrl={audioUrl}
+        durationSeconds={actualDurationSeconds}
+        onTryAgain={handleTryAgain}
         onDone={
           SHOW_COMPLETE_AFTER_FEEDBACK
             ? () => setPhase("complete")
-            : handleBackToHome
+            : handleBackToPractice
         }
-        doneLabel={SHOW_COMPLETE_AFTER_FEEDBACK ? "Continue" : "Back to home"}
+        doneLabel={
+          SHOW_COMPLETE_AFTER_FEEDBACK ? "Continue" : "Back to practice"
+        }
       />
     );
   }

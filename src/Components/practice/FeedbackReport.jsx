@@ -1,119 +1,158 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
-  ChevronDown,
-  Lightbulb,
+  ArrowRight,
   CheckCircle2,
-  Target,
-  Sparkles,
-  SpellCheck,
-  BookOpen,
-  ListOrdered,
-  Eye,
-  Repeat,
+  ChevronDown,
+  ChevronRight,
+  FileText,
   Gauge,
+  CirclePause,
   Pause,
-  MessageSquareWarning,
+  Play,
+  Share2,
+  Target,
 } from "lucide-react";
 import "./FeedbackReport.css";
 
-// The eight Loquiex criteria, in the required order.
-// Five are scored by the AI; pace, pauses and fillers come from measurements.
-const CRITERIA = [
+// The five criteria the AI scores (1-10). Shown out of 100 on this page.
+const SCORED = [
   {
     key: "grammar",
     label: "Grammar",
-    scored: true,
-    icon: SpellCheck,
-    definition: "Whether your sentences are built correctly.",
+    tab: "grammar",
+    bands: [
+      "Your sentences were well built",
+      "A few sentences slipped",
+      "Sentence building needs work",
+    ],
   },
   {
     key: "vocabulary",
-    label: "Vocabulary",
-    scored: true,
-    icon: BookOpen,
-    definition: "How well your word choices fit what you wanted to say.",
+    label: "Word choice",
+    tab: "grammar",
+    bands: [
+      "Your meaning was clear",
+      "Some words could be sharper",
+      "Word choice blurred your meaning",
+    ],
   },
   {
     key: "structure",
     label: "Structure",
-    scored: true,
-    icon: ListOrdered,
-    definition: "How well your ideas are organised, from opening to close.",
+    tab: "clarity",
+    bands: [
+      "Your ideas were well organised",
+      "Your ideas need more development",
+      "Your answer needs a clearer shape",
+    ],
   },
   {
     key: "clarity",
     label: "Clarity",
-    scored: true,
-    icon: Eye,
-    definition: "How easily a listener can follow your point.",
+    tab: "clarity",
+    bands: [
+      "You were easy to follow",
+      "Sometimes hard to follow",
+      "Often hard to follow",
+    ],
   },
   {
     key: "repetition",
     label: "Repetition",
-    scored: true,
-    icon: Repeat,
-    definition: "Words or ideas you used again and again.",
-  },
-  {
-    key: "pace",
-    label: "Pace",
-    icon: Gauge,
-    definition: "How fast you spoke, in words per minute.",
-  },
-  {
-    key: "pauses",
-    label: "Pauses",
-    icon: Pause,
-    definition: "Silent breaks of a second or more while you spoke.",
-  },
-  {
-    key: "fillers",
-    label: "Filler words",
-    icon: MessageSquareWarning,
-    definition: 'Sounds like "um" and "uh" that fill gaps while you think.',
+    tab: "fillers",
+    bands: [
+      "You kept moving forward",
+      "Some ideas were repeated",
+      "Repetition weakened your answer",
+    ],
   },
 ];
 
-const TYPE_META = {
-  genuine_error: { label: "Genuine error", tone: "error" },
-  optional_suggestion: { label: "Optional suggestion", tone: "option" },
-  observation: { label: "Observation", tone: "observe" },
+const TABS = [
+  { id: "overview", label: "Overview" },
+  { id: "clarity", label: "Clarity" },
+  { id: "delivery", label: "Delivery" },
+  { id: "fillers", label: "Fillers" },
+  { id: "grammar", label: "Grammar" },
+];
+
+// Which tab holds the evidence for the biggest opportunity.
+const FOCUS_TAB = { form: "grammar", shape: "clarity", deliver: "delivery" };
+
+const TAB_CRITERIA = {
+  clarity: ["clarity", "structure"],
+  delivery: ["pace", "pauses"],
+  fillers: ["fillers", "repetition"],
+  grammar: ["grammar", "vocabulary"],
 };
 
-const FOCUS_LABEL = { form: "Form", shape: "Shape", deliver: "Deliver" };
+const TYPE_LABEL = {
+  genuine_error: "Grammar to fix",
+  optional_suggestion: "Wording to improve",
+  observation: "Observation",
+};
 
-// A missing or invalid score shows as neutral, never as a low score.
-function scoreTone(score) {
-  if (typeof score !== "number") return "muted";
-  if (score >= 8) return "good";
-  if (score >= 5) return "ok";
-  return "low";
+function isScore(value) {
+  return typeof value === "number" && Number.isFinite(value);
 }
 
-function formatSeconds(total) {
+// 1-10 score to 0-100.
+function toHundred(value) {
+  return isScore(value) ? Math.round(value * 10) : null;
+}
+
+function average(values) {
+  const valid = values.filter(isScore);
+  if (!valid.length) return null;
+  return valid.reduce((sum, v) => sum + v, 0) / valid.length;
+}
+
+function band(score) {
+  if (score >= 8) return 0;
+  if (score >= 5) return 1;
+  return 2;
+}
+
+function verdictFor(overall) {
+  if (overall === null) return "Your feedback";
+  if (overall >= 85) return "Strong answer";
+  if (overall >= 70) return "Good start";
+  if (overall >= 50) return "Getting there";
+  return "Room to grow";
+}
+
+// Green when the message comes across, amber when it needs work.
+function toneFor(score100) {
+  if (score100 === null) return "muted";
+  return score100 >= 70 ? "good" : "warn";
+}
+
+function firstSentence(text = "") {
+  const match = text.match(/^[^.!?]+[.!?]/);
+  return (match ? match[0] : text).trim();
+}
+
+function longDuration(total) {
   const s = Math.max(0, Math.round(Number(total) || 0));
   const m = Math.floor(s / 60);
-  return m > 0 ? `${m}m ${s % 60}s` : `${s}s`;
+  const rest = s % 60;
+  if (m === 0) return `${rest} sec`;
+  return rest ? `${m} min ${rest} sec` : `${m} min`;
 }
 
 function clock(total) {
-  const s = Math.max(0, Math.round(Number(total) || 0));
+  const s = Math.max(0, Math.floor(Number(total) || 0));
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
 }
 
-// "after "so", before "I"" for a measured pause or filler.
-function around(item) {
-  return [
-    item.before ? `after "${item.before}"` : "",
-    item.after ? `before "${item.after}"` : "",
-  ]
-    .filter(Boolean)
-    .join(", ");
+function escapeRegExp(text) {
+  return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
 // Split the transcript into plain and highlighted pieces. Nothing is removed:
 // joining every piece gives back the original transcript exactly.
-function buildSegments(transcript, corrections) {
+// "linked" items point at a finding; "phrases" (fillers) are marked everywhere.
+function buildSegments(transcript, linked, phrases) {
   if (!transcript) return [];
   const lower = transcript.toLowerCase();
   // Only highlight when lowercasing didn't shift character positions.
@@ -121,34 +160,35 @@ function buildSegments(transcript, corrections) {
 
   const ranges = [];
   if (canHighlight) {
-    corrections.forEach((c, i) => {
-      if (!c.original) return;
-      const start = lower.indexOf(c.original.toLowerCase());
+    linked.forEach(({ text, id }) => {
+      if (!text) return;
+      const start = lower.indexOf(text.toLowerCase());
       if (start < 0) return;
-      ranges.push({ start, end: start + c.original.length, ids: [i] });
+      ranges.push({ start, end: start + text.length, id });
+    });
+    phrases.forEach((phrase) => {
+      if (!phrase) return;
+      const re = new RegExp(`\\b${escapeRegExp(phrase.toLowerCase())}\\b`, "g");
+      let m;
+      while ((m = re.exec(lower))) {
+        ranges.push({ start: m.index, end: m.index + phrase.length, id: null });
+      }
     });
   }
   ranges.sort((a, b) => a.start - b.start || b.end - a.end);
 
-  const merged = [];
-  for (const r of ranges) {
-    const last = merged[merged.length - 1];
-    if (last && r.start < last.end) {
-      // Same wording flagged twice: share one highlight. Partial overlaps
-      // keep the first highlight; the other correction still shows below.
-      if (r.start === last.start && r.end === last.end) last.ids.push(...r.ids);
-      continue;
-    }
-    merged.push({ ...r });
-  }
-
   const segments = [];
   let cursor = 0;
-  for (const r of merged) {
-    if (r.start > cursor) {
+  for (const r of ranges) {
+    // Overlapping highlights keep the first one.
+    if (r.start < cursor) continue;
+    if (r.start > cursor)
       segments.push({ text: transcript.slice(cursor, r.start) });
-    }
-    segments.push({ text: transcript.slice(r.start, r.end), ids: r.ids });
+    segments.push({
+      text: transcript.slice(r.start, r.end),
+      mark: true,
+      id: r.id,
+    });
     cursor = r.end;
   }
   if (cursor < transcript.length)
@@ -156,178 +196,207 @@ function buildSegments(transcript, corrections) {
   return segments;
 }
 
-function Row({
-  id,
-  label,
-  definition,
-  icon: Icon,
-  count,
-  chip,
-  tone,
-  open,
-  onToggle,
-  children,
-}) {
-  const isOpen = open === id;
+function ScoreRing({ value }) {
+  const r = 52;
+  const c = 2 * Math.PI * r;
+  const pct = value === null ? 0 : Math.min(100, Math.max(0, value));
   return (
     <div
-      className={`fb-row ${isOpen ? "fb-row-open" : ""}`}
-      id={`fb-row-${id}`}
+      className="fb-ring"
+      role="img"
+      aria-label={`${value ?? "No"} out of 100`}
     >
+      <svg viewBox="0 0 120 120" aria-hidden="true">
+        <circle className="fb-ring-track" cx="60" cy="60" r={r} />
+        <circle
+          className="fb-ring-fill"
+          cx="60"
+          cy="60"
+          r={r}
+          strokeDasharray={c}
+          strokeDashoffset={c * (1 - pct / 100)}
+        />
+      </svg>
+      <div className="fb-ring-text">
+        <span className="fb-ring-value">{value ?? "–"}</span>
+        <span className="fb-ring-max">/100</span>
+      </div>
+    </div>
+  );
+}
+
+function RecordingPlayer({ src, fallbackSeconds }) {
+  const audioRef = useRef(null);
+  const [playing, setPlaying] = useState(false);
+  const [current, setCurrent] = useState(0);
+  const [duration, setDuration] = useState(0);
+
+  useEffect(() => {
+    const el = audioRef.current;
+    if (!el) return;
+    // Recorded webm files often report an Infinite duration, so fall back
+    // to the time measured while recording.
+    const readDuration = () =>
+      setDuration(
+        Number.isFinite(el.duration) && el.duration > 0 ? el.duration : 0,
+      );
+    const onTime = () => {
+      setCurrent(el.currentTime);
+      if (Number.isFinite(el.duration) && el.duration > 0)
+        setDuration(el.duration);
+    };
+    const onPlay = () => setPlaying(true);
+    const onPause = () => setPlaying(false);
+    const onEnded = () => {
+      setPlaying(false);
+      setCurrent(0);
+    };
+    el.addEventListener("loadedmetadata", readDuration);
+    el.addEventListener("durationchange", readDuration);
+    el.addEventListener("timeupdate", onTime);
+    el.addEventListener("play", onPlay);
+    el.addEventListener("pause", onPause);
+    el.addEventListener("ended", onEnded);
+    return () => {
+      el.removeEventListener("loadedmetadata", readDuration);
+      el.removeEventListener("durationchange", readDuration);
+      el.removeEventListener("timeupdate", onTime);
+      el.removeEventListener("play", onPlay);
+      el.removeEventListener("pause", onPause);
+      el.removeEventListener("ended", onEnded);
+    };
+  }, [src]);
+
+  const total = duration || Number(fallbackSeconds) || 0;
+  const pct = total > 0 ? Math.min(100, (current / total) * 100) : 0;
+
+  const toggle = () => {
+    const el = audioRef.current;
+    if (!el) return;
+    if (el.paused) el.play().catch(() => {});
+    else el.pause();
+  };
+
+  const seek = (e) => {
+    const el = audioRef.current;
+    if (!el || !total) return;
+    el.currentTime = (Number(e.target.value) / 100) * total;
+    setCurrent(el.currentTime);
+  };
+
+  if (!src) {
+    return (
+      <div className="fb-card fb-player fb-player-empty">
+        <p className="fb-muted">
+          Your recording isn't available to play right now.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="fb-card fb-player">
+      <audio ref={audioRef} src={src} preload="metadata" />
       <button
         type="button"
-        className="fb-row-head"
-        onClick={() => onToggle(id)}
-        aria-expanded={isOpen}
+        className="fb-play-btn"
+        onClick={toggle}
+        aria-label={playing ? "Pause recording" : "Play recording"}
       >
-        {Icon && (
-          <span className="fb-row-icon" aria-hidden="true">
-            <Icon size={20} strokeWidth={1.8} />
-          </span>
+        {playing ? (
+          <Pause size={22} fill="currentColor" strokeWidth={0} />
+        ) : (
+          <Play size={22} fill="currentColor" strokeWidth={0} />
         )}
-        <span className="fb-row-text">
-          <span className="fb-row-label">
-            {label}
-            {count > 0 && (
-              <span className="fb-row-count">
-                {count} {count === 1 ? "finding" : "findings"}
-              </span>
-            )}
-          </span>
-          {definition && <span className="fb-row-def">{definition}</span>}
-        </span>
-        <span className={`fb-chip fb-chip-${tone}`}>{chip}</span>
-        <ChevronDown size={18} className="fb-chevron" aria-hidden="true" />
       </button>
-      {isOpen && <div className="fb-row-body">{children}</div>}
+      <div className="fb-player-main">
+        <input
+          type="range"
+          className="fb-seek"
+          min="0"
+          max="100"
+          step="0.1"
+          value={pct}
+          onChange={seek}
+          aria-label="Seek recording"
+          style={{ "--fb-seek": `${pct}%` }}
+        />
+        <div className="fb-player-times">
+          <span>{clock(current)}</span>
+          <span>{clock(total)}</span>
+        </div>
+      </div>
     </div>
   );
 }
 
-function Stat({ label, value }) {
+function Transcript({ segments, activeId, onPick, evidenceNote, label }) {
+  if (!segments.length) return null;
   return (
-    <div className="fb-stat">
-      <span className="fb-stat-label">{label}</span>
-      <span className="fb-stat-value">{value}</span>
+    <div className="fb-transcript">
+      {label && <p className="fb-eyebrow">{label}</p>}
+      <p className="fb-transcript-text">
+        {segments.map((seg, i) =>
+          seg.mark && seg.id !== null && seg.id !== undefined ? (
+            <span
+              key={i}
+              role="button"
+              tabIndex={0}
+              className={`fb-mark ${seg.id === activeId ? "fb-mark-active" : ""}`}
+              onClick={() => onPick(seg.id)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  onPick(seg.id);
+                }
+              }}
+            >
+              {seg.text}
+            </span>
+          ) : seg.mark ? (
+            <mark key={i} className="fb-mark fb-mark-static">
+              {seg.text}
+            </mark>
+          ) : (
+            <span key={i}>{seg.text}</span>
+          ),
+        )}
+      </p>
+      {segments.some((s) => s.mark && s.id !== null && s.id !== undefined) && (
+        <p className="fb-footnote">
+          Tap a highlighted phrase to see its feedback.
+        </p>
+      )}
+      {evidenceNote && <p className="fb-footnote">{evidenceNote}</p>}
     </div>
   );
 }
 
-function Correction({ c, index, active, setRef }) {
-  const meta = TYPE_META[c.type] || TYPE_META.observation;
+function Finding({ c, id, active }) {
   return (
     <div
-      className={`fb-card fb-correction ${active ? "fb-correction-active" : ""}`}
-      id={`fb-c-${index}`}
-      ref={setRef}
+      className={`fb-finding ${active ? "fb-finding-active" : ""}`}
+      id={`fb-c-${id}`}
     >
-      <span className={`fb-type fb-type-${meta.tone}`}>{meta.label}</span>
-      {c.original && (
-        <p className="fb-said">
-          <span className="fb-tag">You said</span>
-          {c.original}
-        </p>
+      {c.original ? (
+        <div className="fb-box">
+          <p className="fb-eyebrow">From your response</p>
+          <p className="fb-quote">“{c.original}”</p>
+          <p className="fb-box-text">{c.why}</p>
+        </div>
+      ) : (
+        <div className="fb-box">
+          <p className="fb-eyebrow">What we noticed</p>
+          <p className="fb-box-text">{c.why}</p>
+        </div>
       )}
-      {c.better && (
-        <p className="fb-better">
-          <span className="fb-tag fb-tag-good">Try this</span>
-          {c.better}
-        </p>
+      {(c.better || c.tryItYourself) && (
+        <div className="fb-box fb-box-good">
+          <p className="fb-box-label">How to improve</p>
+          {c.better && <p className="fb-box-text">“{c.better}”</p>}
+          {c.tryItYourself && <p className="fb-box-text">{c.tryItYourself}</p>}
+        </div>
       )}
-      <p className="fb-why">
-        <span className="fb-tag fb-tag-muted">Why this helps</span>
-        {c.why}
-      </p>
-      {c.tryItYourself && (
-        <p className="fb-try">
-          <span className="fb-tag fb-tag-muted">Try it yourself</span>
-          {c.tryItYourself}
-        </p>
-      )}
-    </div>
-  );
-}
-
-function PaceGauge({ wpm, label }) {
-  // Neutral scale: a marker on a track, not a pass/fail band.
-  const MIN = 60;
-  const MAX = 220;
-  const pct = Math.min(100, Math.max(0, ((wpm - MIN) / (MAX - MIN)) * 100));
-  return (
-    <div className="fb-viz">
-      <div className="fb-viz-head">
-        <span className="fb-viz-title">Your pace</span>
-        <span className="fb-viz-value">{wpm} words per minute</span>
-      </div>
-      <div
-        className="fb-gauge"
-        role="img"
-        aria-label={`${wpm} words per minute, ${label || "measured"}`}
-      >
-        <span className="fb-gauge-marker" style={{ left: `${pct}%` }} />
-      </div>
-      <div className="fb-gauge-scale" aria-hidden="true">
-        <span>Slower</span>
-        <span>Faster</span>
-      </div>
-      <p className="fb-viz-caption">
-        Measured from your recording. It's a guide, not a pass mark: what
-        matters is whether it helps your listener follow you.
-      </p>
-    </div>
-  );
-}
-
-function PauseTimeline({ pauses, speakingSeconds }) {
-  // "all" holds every listed pause in time order; older saved reports only have "longest".
-  const items =
-    (pauses.all && pauses.all.length ? pauses.all : pauses.longest) || [];
-  const end = Math.max(
-    Number(speakingSeconds) || 0,
-    ...items.map((p) => p.atSecond + p.seconds),
-    1,
-  );
-  return (
-    <div className="fb-viz">
-      <div className="fb-viz-head">
-        <span className="fb-viz-title">Where you paused</span>
-        <span className="fb-viz-value">longest {pauses.longestSeconds}s</span>
-      </div>
-      <div
-        className="fb-timeline"
-        role="img"
-        aria-label="Timeline of your pauses"
-      >
-        {items.map((p, i) => (
-          <span
-            key={i}
-            className="fb-timeline-mark"
-            style={{
-              left: `${Math.min(98, (p.atSecond / end) * 100)}%`,
-              width: `${Math.max(1.5, (p.seconds / end) * 100)}%`,
-            }}
-            title={`${p.seconds}s at ${clock(p.atSecond)}`}
-          />
-        ))}
-      </div>
-      <div className="fb-gauge-scale" aria-hidden="true">
-        <span>0:00</span>
-        <span>{clock(end)}</span>
-      </div>
-      <div className="fb-stats">
-        {items.map((p, i) => (
-          <Stat
-            key={i}
-            label={`${clock(p.atSecond)} · ${p.seconds}s`}
-            value={around(p) || "in your recording"}
-          />
-        ))}
-      </div>
-      <p className="fb-viz-caption">
-        Pauses of a second or more, measured from your recording. Pauses aren't
-        mistakes; look at whether they gave you thinking time or interrupted an
-        idea.
-      </p>
     </div>
   );
 }
@@ -336,430 +405,628 @@ export default function FeedbackReport({
   report,
   topic,
   audioUrl,
+  durationSeconds,
+  onTryAgain,
   onDone,
-  doneLabel = "Back to home",
+  doneLabel = "Back to practice",
 }) {
   const { transcript = "", metrics = {}, analysis = {} } = report || {};
   // The server also sends the recording address with the report.
   const playbackUrl = audioUrl || report?.audioUrl;
   const scores = analysis.scores || {};
   const notes = analysis.notes || {};
-  const corrections = useMemo(
-    () => (Array.isArray(analysis.corrections) ? analysis.corrections : []),
-    [analysis.corrections],
-  );
-  const opportunity = analysis.biggestOpportunity;
-  const hasOpportunity = Boolean(opportunity && opportunity.title);
-  const nextSkill = analysis.nextSkill;
-  const hasNextSkill = Boolean(
-    nextSkill && (nextSkill.name || nextSkill.action),
-  );
+  const corrections = Array.isArray(analysis.corrections)
+    ? analysis.corrections
+    : [];
+  const opportunity = analysis.biggestOpportunity || {};
+  const nextSkill = analysis.nextSkill || {};
 
-  const [open, setOpen] = useState(null);
+  const [tab, setTab] = useState("overview");
   const [activeId, setActiveId] = useState(null);
-  const correctionRefs = useRef({});
-  const toggle = (id) => setOpen((current) => (current === id ? null : id));
+  const [showTranscript, setShowTranscript] = useState(false);
+  const [shareState, setShareState] = useState("");
 
   const fillers = metrics.fillers || { total: 0, breakdown: {}, positions: [] };
-  const pauses = metrics.pauses || {
-    long: 0,
-    veryLong: 0,
-    longestSeconds: 0,
-    longest: [],
-  };
-  const repetition = metrics.repetition || {
-    immediateRepeats: 0,
-    examples: [],
-    frequentWords: [],
-  };
-  const fillerText =
-    Object.entries(fillers.breakdown || {})
-      .map(([word, count]) => `${word} ×${count}`)
-      .join(", ") || "none";
-  const totalPauses = (pauses.long || 0) + (pauses.veryLong || 0);
+  const pauses = metrics.pauses || { long: 0, veryLong: 0, longestSeconds: 0 };
+  const repetition = metrics.repetition || { frequentWords: [] };
+  const crutchPhrases = metrics.crutchPhrases || [];
+  const wpm =
+    Number.isFinite(metrics.wordsPerMinute) && metrics.wordsPerMinute > 0
+      ? metrics.wordsPerMinute
+      : null;
+  const recordingSeconds = durationSeconds || metrics.speakingSeconds || 0;
 
-  const segments = useMemo(
-    () => buildSegments(transcript, corrections),
-    [transcript, corrections],
-  );
+  const overallAvg = average(SCORED.map((k) => scores[k.key]));
+  const overall = overallAvg === null ? null : Math.round(overallAvg * 10);
 
-  // Corrections grouped by criterion. Reports saved before the update have no
-  // "criterion", so those fall into one general list further down.
-  const byCriterion = {};
-  const legacy = [];
+  // Findings grouped by the tab they belong to. Reports saved before the
+  // criteria update have no "criterion"; they show in the Clarity tab.
+  const byTab = { clarity: [], delivery: [], fillers: [], grammar: [] };
   corrections.forEach((c, i) => {
-    if (c.criterion && CRITERIA.some((k) => k.key === c.criterion)) {
-      (byCriterion[c.criterion] ||= []).push({ c, i });
-    } else {
-      legacy.push({ c, i });
-    }
+    const owner =
+      Object.keys(TAB_CRITERIA).find((t) =>
+        TAB_CRITERIA[t].includes(c.criterion),
+      ) || "clarity";
+    byTab[owner].push({ c, i });
   });
 
-  // Tapping a highlight opens its criterion row and scrolls to the correction.
-  const jumpToCorrection = (id) => {
-    const c = corrections[id];
-    if (c?.criterion) setOpen(c.criterion);
-    setActiveId(id);
-  };
+  const strongest =
+    SCORED.filter((k) => isScore(scores[k.key])).sort(
+      (a, b) => scores[b.key] - scores[a.key],
+    )[0] || null;
+
+  const fillerPhrases = [
+    ...Object.keys(fillers.breakdown || {}),
+    ...crutchPhrases.map((p) => p.phrase),
+  ];
+
+  const segments = showTranscript
+    ? buildSegments(
+        transcript,
+        (byTab[tab] || []).map(({ c, i }) => ({ text: c.original, id: i })),
+        tab === "fillers" ? fillerPhrases : [],
+      )
+    : [];
 
   useEffect(() => {
     if (activeId === null) return;
-    const el =
-      correctionRefs.current[activeId] ||
-      document.getElementById(`fb-c-${activeId}`);
+    const el = document.getElementById(`fb-c-${activeId}`);
     if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
-  }, [activeId, open]);
+  }, [activeId]);
 
-  // Pace, pauses and fillers are shown as plain measurements with a neutral
-  // look. Whether they help or hurt this answer is the coach's note to explain.
-  const chipFor = (key) => {
-    if (CRITERIA.find((k) => k.key === key)?.scored) {
-      const score = scores[key];
-      return {
-        chip: typeof score === "number" ? `${score}/10` : "–",
-        tone: scoreTone(score),
-      };
+  const openTab = (id, scroll = true) => {
+    setTab(id);
+    setActiveId(null);
+    setShowTranscript(false);
+    if (scroll) {
+      document
+        .getElementById("fb-explore")
+        ?.scrollIntoView({ behavior: "smooth", block: "start" });
     }
-    if (key === "pace") {
-      return {
-        chip: metrics.wordsPerMinute ? `${metrics.wordsPerMinute} wpm` : "–",
-        tone: "muted",
-      };
-    }
-    if (key === "pauses") {
-      return {
-        chip:
-          totalPauses > 0
-            ? `${totalPauses} ${totalPauses === 1 ? "pause" : "pauses"}`
-            : "none",
-        tone: "muted",
-      };
-    }
-    return {
-      chip: fillers.total > 0 ? `${fillers.total} heard` : "none",
-      tone: "muted",
-    };
   };
 
-  const noteFor = (key) => {
-    if (notes[key]) return notes[key];
-    if (key === "pace" && metrics.paceNote) return metrics.paceNote;
-    return "No notes for this one.";
+  const share = async () => {
+    const text =
+      overall !== null
+        ? `I scored ${overall}/100 on my speaking practice${topic ? `: "${topic}"` : ""}.`
+        : `I just finished a speaking practice${topic ? `: "${topic}"` : ""}.`;
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: "My speaking practice", text });
+        return;
+      }
+      await navigator.clipboard.writeText(text);
+      setShareState("Copied");
+      setTimeout(() => setShareState(""), 2000);
+    } catch {
+      // The person closed the share sheet; nothing to do.
+    }
   };
 
-  const showPaceViz =
-    Number.isFinite(metrics.wordsPerMinute) && metrics.wordsPerMinute > 0;
-  const showPauseViz =
-    (pauses.longest || []).length > 0 && metrics.speakingSeconds > 0;
+  const renderFindings = (items) =>
+    items.map(({ c, i }) => (
+      <Finding key={i} c={c} id={i} active={activeId === i} />
+    ));
 
-  return (
-    <div className="page session-page fb-page">
-      {/* 1. Introduction */}
-      <div className="fb-hero">
-        <CheckCircle2 size={44} strokeWidth={2} aria-hidden="true" />
-        <h1 className="fb-title">Your feedback is ready</h1>
-        <p className="fb-intro">
-          Let's look at what you can improve and find one thing to work on in
-          your next practice.
-        </p>
-        {topic && <p className="fb-topic">{topic}</p>}
-        {analysis.summary && <p className="fb-summary">{analysis.summary}</p>}
-      </div>
-
-      {/* 2. Recording and recording information */}
-      <section className="fb-section">
-        <h2 className="fb-heading">Your recording</h2>
-        <div className="fb-card fb-recording">
-          {playbackUrl && (
-            <audio
-              className="fb-audio"
-              controls
-              preload="metadata"
-              src={playbackUrl}
-            >
-              Your browser can't play this recording.
-            </audio>
+  const transcriptToggle = (label, primary = false) =>
+    transcript ? (
+      <>
+        <button
+          type="button"
+          className={primary ? "fb-btn-dark" : "fb-disclosure"}
+          onClick={() => setShowTranscript((v) => !v)}
+          aria-expanded={showTranscript}
+        >
+          {!primary && (
+            <FileText size={16} strokeWidth={1.8} aria-hidden="true" />
           )}
-          <div className="fb-stats">
-            {metrics.speakingSeconds > 0 && (
-              <Stat
-                label="Speaking time"
-                value={formatSeconds(metrics.speakingSeconds)}
-              />
-            )}
-            {metrics.wordCount > 0 && (
-              <Stat label="Words spoken" value={metrics.wordCount} />
-            )}
-            {metrics.wordsPerMinute ? (
-              <Stat label="Pace" value={`${metrics.wordsPerMinute} wpm`} />
-            ) : null}
-          </div>
-        </div>
-      </section>
-
-      {/* 3. Biggest opportunity */}
-      {hasOpportunity && (
-        <section className="fb-section">
-          <h2 className="fb-heading">Your biggest opportunity</h2>
-          <div className="fb-card fb-opportunity">
-            <div className="fb-opp-top">
-              <Target size={20} strokeWidth={1.8} aria-hidden="true" />
-              <p className="fb-opp-title">{opportunity.title}</p>
-              {FOCUS_LABEL[opportunity.focus] && (
-                <span className="fb-focus">
-                  {FOCUS_LABEL[opportunity.focus]}
-                </span>
-              )}
-            </div>
-            {opportunity.evidence && (
-              <p className="fb-opp-block">
-                <span className="fb-tag fb-tag-muted">What we noticed</span>
-                {opportunity.evidence}
-              </p>
-            )}
-            {opportunity.whyItMatters && (
-              <p className="fb-opp-block">
-                <span className="fb-tag fb-tag-muted">Why it matters</span>
-                {opportunity.whyItMatters}
-              </p>
-            )}
-            {opportunity.technique && (
-              <p className="fb-opp-block fb-opp-technique">
-                <span className="fb-tag fb-tag-good">Try this</span>
-                {opportunity.technique}
-              </p>
-            )}
-          </div>
-        </section>
-      )}
-
-      {/* 4. Complete transcript with linked highlights */}
-      <section className="fb-section">
-        <h2 className="fb-heading">Your transcript</h2>
-        <div className="fb-card fb-transcript">
-          {segments.map((seg, i) =>
-            seg.ids ? (
-              <button
-                key={i}
-                type="button"
-                className={`fb-mark ${seg.ids.includes(activeId) ? "fb-mark-active" : ""}`}
-                onClick={() => jumpToCorrection(seg.ids[0])}
-                aria-label={`See feedback on: ${seg.text}`}
-              >
-                {seg.text}
-              </button>
-            ) : (
-              <span key={i}>{seg.text}</span>
-            ),
+          <span>{showTranscript ? "Hide transcript" : label}</span>
+          {!primary && (
+            <ChevronDown
+              size={18}
+              className={`fb-disclosure-chev ${showTranscript ? "fb-open" : ""}`}
+              aria-hidden="true"
+            />
           )}
-        </div>
-        {segments.some((s) => s.ids) && (
-          <p className="fb-hint">
-            Tap a highlighted phrase to see its feedback.
-          </p>
+        </button>
+        {showTranscript && (
+          <Transcript
+            segments={segments}
+            activeId={activeId}
+            onPick={setActiveId}
+            evidenceNote={analysis.evidenceNote}
+          />
         )}
-        {analysis.evidenceNote && (
-          <p className="fb-hint">{analysis.evidenceNote}</p>
-        )}
-      </section>
+      </>
+    ) : null;
 
-      {/* 5. All eight criteria, in order */}
-      <section className="fb-section">
-        <h2 className="fb-heading">Explore your feedback</h2>
-        <div className="fb-card fb-rows">
-          {CRITERIA.map(({ key, label, icon, definition }) => {
-            const { chip, tone } = chipFor(key);
-            const items = byCriterion[key] || [];
+  // ---------- TAB CONTENTS ----------
+  const renderOverview = () => (
+    <>
+      <div className="fb-card fb-panel">
+        <h3 className="fb-panel-title">Performance breakdown</h3>
+        <div className="fb-breakdown">
+          {SCORED.map(({ key, label, tab: target, bands }) => {
+            const value = toHundred(scores[key]);
+            const tone = toneFor(value);
             return (
-              <Row
+              <button
                 key={key}
-                id={key}
-                label={label}
-                definition={definition}
-                icon={icon}
-                count={items.length}
-                chip={chip}
-                tone={tone}
-                open={open}S
-                onToggle={toggle}
+                type="button"
+                className="fb-metric"
+                onClick={() => openTab(target)}
               >
-                <p className="fb-note">{noteFor(key)}</p>
-
-                {key === "repetition" &&
-                  (repetition.frequentWords.length > 0 ||
-                    repetition.immediateRepeats > 0) && (
-                    <div className="fb-stats">
-                      {repetition.frequentWords.length > 0 && (
-                        <Stat
-                          label="Words you repeated"
-                          value={repetition.frequentWords
-                            .map((w) => `${w.word} ×${w.count}`)
-                            .join(", ")}
-                        />
-                      )}
-                      {repetition.immediateRepeats > 0 && (
-                        <Stat
-                          label="Back-to-back repeats"
-                          value={repetition.examples.join(", ")}
-                        />
-                      )}
-                    </div>
-                  )}
-
-                {key === "pace" && showPaceViz && (
-                  <PaceGauge
-                    wpm={metrics.wordsPerMinute}
-                    label={metrics.paceLabel}
+                <span className="fb-metric-top">
+                  <span className="fb-metric-text">
+                    <span className="fb-metric-label">{label}</span>
+                    <span className="fb-metric-sub">
+                      {isScore(scores[key])
+                        ? bands[band(scores[key])]
+                        : "Not scored this time"}
+                    </span>
+                  </span>
+                  <span className="fb-metric-value">{value ?? "–"}</span>
+                  <ChevronRight
+                    size={18}
+                    className="fb-metric-chev"
+                    aria-hidden="true"
                   />
-                )}
-
-                {key === "pauses" && (
-                  <>
-                    <div className="fb-stats">
-                      <Stat
-                        label="Pauses of 1s or more"
-                        value={
-                          totalPauses > 0
-                            ? `${totalPauses} (longest ${pauses.longestSeconds}s)`
-                            : "none"
-                        }
-                      />
-                    </div>
-                    {showPauseViz && (
-                      <PauseTimeline
-                        pauses={pauses}
-                        speakingSeconds={metrics.speakingSeconds}
-                      />
-                    )}
-                  </>
-                )}
-
-                {key === "fillers" && (
-                  <>
-                    <div className="fb-stats">
-                      <Stat
-                        label="Filler sounds"
-                        value={`${fillers.total} (${fillerText})`}
-                      />
-                      {(metrics.crutchPhrases || []).length > 0 && (
-                        <Stat
-                          label="Phrases used more than once"
-                          value={metrics.crutchPhrases
-                            .map((c) => `${c.phrase} ×${c.count}`)
-                            .join(", ")}
-                        />
-                      )}
-                    </div>
-                    {(fillers.positions || []).length > 0 && (
-                      <div className="fb-stats">
-                        {fillers.positions.slice(0, 8).map((f, i) => (
-                          <Stat
-                            key={i}
-                            label={`${clock(f.atSecond)} · ${f.word}`}
-                            value={around(f) || "in your recording"}
-                          />
-                        ))}
-                      </div>
-                    )}
-                    {(fillers.positions || []).length > 8 && (
-                      <p className="fb-hint">
-                        Showing the first 8 of {fillers.positions.length}.
-                      </p>
-                    )}
-                  </>
-                )}
-
-                {items.length > 0 && (
-                  <div className="fb-corrections">
-                    {items.map(({ c, i }) => (
-                      <Correction
-                        key={i}
-                        c={c}
-                        index={i}
-                        active={activeId === i}
-                        setRef={(el) => {
-                          correctionRefs.current[i] = el;
-                        }}
-                      />
-                    ))}
-                  </div>
-                )}
-              </Row>
+                </span>
+                <span className="fb-bar">
+                  <span
+                    className={`fb-bar-fill fb-bar-${tone}`}
+                    style={{ width: `${value ?? 0}%` }}
+                  />
+                </span>
+              </button>
             );
           })}
         </div>
-      </section>
+      </div>
 
-      {/* Reports saved before the criteria update still show their corrections */}
-      {legacy.length > 0 && (
-        <section className="fb-section">
-          <h2 className="fb-heading">Corrections</h2>
-          <div className="fb-corrections">
-            {legacy.map(({ c, i }) => (
-              <Correction
-                key={i}
-                c={c}
-                index={i}
-                active={activeId === i}
-                setRef={(el) => {
-                  correctionRefs.current[i] = el;
-                }}
-              />
-            ))}
-          </div>
-        </section>
+      {(strongest && notes[strongest.key]) || analysis.summary ? (
+        <div className="fb-card fb-callout fb-callout-good">
+          <h3 className="fb-callout-title">
+            <CheckCircle2 size={22} strokeWidth={1.8} aria-hidden="true" />
+            What you did well
+          </h3>
+          <p className="fb-callout-text">
+            {strongest && notes[strongest.key]
+              ? notes[strongest.key]
+              : analysis.summary}
+          </p>
+        </div>
+      ) : null}
+
+      {opportunity.title && (
+        <div className="fb-card fb-callout fb-callout-warn">
+          <h3 className="fb-callout-title">
+            <Target size={22} strokeWidth={1.8} aria-hidden="true" />
+            Focus on this next
+          </h3>
+          <p className="fb-callout-headline">{opportunity.title}</p>
+          {opportunity.evidence && (
+            <p className="fb-callout-text">{opportunity.evidence}</p>
+          )}
+          <button
+            type="button"
+            className="fb-text-link"
+            onClick={() => openTab(FOCUS_TAB[opportunity.focus] || "clarity")}
+          >
+            See the evidence <ArrowRight size={16} aria-hidden="true" />
+          </button>
+        </div>
       )}
 
-      {/* 7. Optional clearer version */}
-      {analysis.clearerVersion && (
-        <section className="fb-section">
-          <h2 className="fb-heading">A clearer version</h2>
-          <div className="fb-card fb-clearer">
-            <Sparkles
+      {(wpm || notes.pauses) && (
+        <div className="fb-card fb-panel">
+          <h3 className="fb-panel-title">Your delivery at a glance</h3>
+          <div className="fb-glance">
+            {wpm && (
+              <div className="fb-glance-row">
+                <span className="fb-glance-icon fb-glance-good">
+                  <Gauge size={22} strokeWidth={1.8} aria-hidden="true" />
+                </span>
+                <span>
+                  <span className="fb-glance-label">Speaking pace</span>
+                  <span className="fb-glance-text">
+                    About {wpm} words per minute
+                  </span>
+                </span>
+              </div>
+            )}
+            {notes.pauses && (
+              <div className="fb-glance-row">
+                <span className="fb-glance-icon fb-glance-warn">
+                  <CirclePause size={22} strokeWidth={1.8} aria-hidden="true" />
+                </span>
+                <span>
+                  <span className="fb-glance-label">Pauses and flow</span>
+                  <span className="fb-glance-text">
+                    {firstSentence(notes.pauses)}
+                  </span>
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </>
+  );
+
+  const renderClarity = () => {
+    const value = toHundred(average([scores.clarity, scores.structure]));
+    const isFocus = opportunity.focus === "shape" && opportunity.title;
+    const items = byTab.clarity;
+    return (
+      <div className="fb-card fb-panel">
+        <div className="fb-panel-head">
+          <h3 className="fb-panel-title">Clarity and structure</h3>
+          {value !== null && (
+            <span className={`fb-status fb-status-${toneFor(value)}`}>
+              {value}/100
+            </span>
+          )}
+        </div>
+        <p className="fb-panel-sub">
+          {isFocus
+            ? "Your main improvement area"
+            : "How easy your answer was to follow"}
+        </p>
+        {isFocus && <p className="fb-panel-headline">{opportunity.title}</p>}
+        {[notes.structure, notes.clarity].filter(Boolean).map((n, i) => (
+          <p key={i} className="fb-panel-text">
+            {n}
+          </p>
+        ))}
+        {renderFindings(items)}
+        {isFocus &&
+          !items.some(({ c }) => c.better || c.tryItYourself) &&
+          opportunity.technique && (
+            <div className="fb-box fb-box-good">
+              <p className="fb-box-label">How to improve</p>
+              <p className="fb-box-text">{opportunity.technique}</p>
+            </div>
+          )}
+        {analysis.clearerVersion && (
+          <div className="fb-box">
+            <p className="fb-eyebrow">One clearer way to say it</p>
+            <p className="fb-box-text">{analysis.clearerVersion}</p>
+            <p className="fb-footnote">
+              One possible version in your own voice, not the only correct
+              answer.
+            </p>
+          </div>
+        )}
+        {transcriptToggle("View full transcript")}
+      </div>
+    );
+  };
+
+  const renderDelivery = () => {
+    const deliveryTip =
+      byTab.delivery
+        .map(({ c }) => c.tryItYourself || c.better)
+        .find(Boolean) ||
+      (opportunity.focus === "deliver" ? opportunity.technique : "");
+    return (
+      <div className="fb-card fb-panel">
+        <div className="fb-panel-head">
+          <h3 className="fb-panel-title">Delivery</h3>
+          {wpm && <span className="fb-status fb-status-good">{wpm} wpm</span>}
+        </div>
+        <p className="fb-panel-text">
+          {wpm
+            ? `Your pace was measured at approximately ${wpm} words per minute${
+                recordingSeconds
+                  ? ` across ${longDuration(recordingSeconds)}`
+                  : ""
+              }.`
+            : metrics.paceNote || "We couldn't measure your pace this time."}
+        </p>
+        <div className="fb-box">
+          <p className="fb-box-head">
+            <Gauge
               size={18}
               strokeWidth={1.8}
               aria-hidden="true"
-              className="fb-clearer-icon"
+              className="fb-icon-good"
             />
-            <div>
-              <p className="fb-clearer-text">{analysis.clearerVersion}</p>
-              <p className="fb-hint">
-                This is one possible way to say it in your own voice, not the
-                only correct answer.
-              </p>
-            </div>
+            Pace{wpm ? ` · ${wpm} words/min` : ""}
+          </p>
+          <p className="fb-box-text">
+            {notes.pace || metrics.paceNote || "No notes for pace."}
+          </p>
+        </div>
+        <div className="fb-box">
+          <p className="fb-box-head">
+            <CirclePause
+              size={18}
+              strokeWidth={1.8}
+              aria-hidden="true"
+              className="fb-icon-warn"
+            />
+            Pauses
+            {(pauses.long || 0) + (pauses.veryLong || 0) > 0 && (
+              <span className="fb-box-count">
+                longest {pauses.longestSeconds}s
+              </span>
+            )}
+          </p>
+          <p className="fb-box-text">
+            {notes.pauses || "No notes for pauses."}
+          </p>
+        </div>
+        {renderFindings(byTab.delivery.filter(({ c }) => c.original))}
+        {deliveryTip && (
+          <div className="fb-box fb-box-good">
+            <p className="fb-box-label">Try this</p>
+            <p className="fb-box-text">{deliveryTip}</p>
           </div>
-        </section>
-      )}
+        )}
+      </div>
+    );
+  };
 
-      {/* 8. One skill to practise next */}
-      {(hasNextSkill || analysis.topTip) && (
-        <section className="fb-section">
-          <div className="fb-card fb-tip">
-            <Lightbulb size={20} strokeWidth={1.8} aria-hidden="true" />
-            <div>
-              <p className="fb-tip-title">Practise next</p>
-              {hasNextSkill ? (
-                <>
-                  {nextSkill.name && (
-                    <p className="fb-skill-name">{nextSkill.name}</p>
-                  )}
-                  {nextSkill.reason && (
-                    <p className="fb-tip-reason">{nextSkill.reason}</p>
-                  )}
-                  {nextSkill.action && (
-                    <p className="fb-tip-text">{nextSkill.action}</p>
-                  )}
-                </>
-              ) : (
-                <p className="fb-tip-text">{analysis.topTip}</p>
-              )}
-            </div>
+  const renderFillers = () => {
+    const repScore = scores.repetition;
+    const clean = fillers.total === 0 && crutchPhrases.length === 0;
+    const repOk = !isScore(repScore) || repScore >= 8;
+    const status =
+      clean && repOk
+        ? { label: "Clean", tone: "good" }
+        : fillers.total <= 2 && (!isScore(repScore) || repScore >= 7)
+          ? { label: "Mostly clear", tone: "good" }
+          : { label: "Needs work", tone: "warn" };
+    const repeated = byTab.fillers.filter(
+      ({ c }) => c.criterion === "repetition",
+    );
+    const fillerFindings = byTab.fillers.filter(
+      ({ c }) => c.criterion !== "repetition",
+    );
+    return (
+      <div className="fb-card fb-panel">
+        <div className="fb-panel-head">
+          <h3 className="fb-panel-title">Fillers and repetition</h3>
+          <span className={`fb-status fb-status-${status.tone}`}>
+            {status.label}
+          </span>
+        </div>
+        {notes.fillers && <p className="fb-panel-text">{notes.fillers}</p>}
+
+        {Object.entries(fillers.breakdown || {}).map(([word, count]) => (
+          <div key={`f-${word}`} className="fb-box">
+            <p className="fb-eyebrow">Filler word</p>
+            <p className="fb-quote-row">
+              <span className="fb-quote">“{word}”</span>
+              <span className="fb-count">
+                {count} {count === 1 ? "occurrence" : "occurrences"}
+              </span>
+            </p>
           </div>
-        </section>
-      )}
+        ))}
 
-      <button className="spin-jar-btn fb-done" onClick={onDone}>
+        {crutchPhrases.map((p) => (
+          <div key={`p-${p.phrase}`} className="fb-box">
+            <p className="fb-eyebrow">Filler phrase</p>
+            <p className="fb-quote-row">
+              <span className="fb-quote">“{p.phrase}”</span>
+              <span className="fb-count">
+                {p.count} {p.count === 1 ? "occurrence" : "occurrences"}
+              </span>
+            </p>
+          </div>
+        ))}
+
+        {fillerFindings.map(({ c, i }) => (
+          <div
+            key={i}
+            id={`fb-c-${i}`}
+            className={`fb-box ${activeId === i ? "fb-finding-active" : ""}`}
+          >
+            <p className="fb-eyebrow">Filler pattern</p>
+            {c.original && <p className="fb-quote">“{c.original}”</p>}
+            <p className="fb-box-text">{c.why}</p>
+          </div>
+        ))}
+
+        {repeated.map(({ c, i }) => (
+          <div
+            key={i}
+            id={`fb-c-${i}`}
+            className={`fb-box ${activeId === i ? "fb-finding-active" : ""}`}
+          >
+            <p className="fb-eyebrow">Repeated idea</p>
+            {c.original && <p className="fb-quote">“{c.original}”</p>}
+            <p className="fb-box-text">{c.why}</p>
+            {c.better && (
+              <p className="fb-box-text fb-good-text">Try: “{c.better}”</p>
+            )}
+          </div>
+        ))}
+
+        {(repetition.frequentWords || []).length > 0 && (
+          <div className="fb-box">
+            <p className="fb-eyebrow">Words you used most</p>
+            <p className="fb-box-text">
+              {repetition.frequentWords
+                .map((w) => `${w.word} ×${w.count}`)
+                .join(", ")}
+            </p>
+          </div>
+        )}
+
+        {notes.repetition && !repeated.length && (
+          <p className="fb-panel-text">{notes.repetition}</p>
+        )}
+
+        {transcriptToggle("View highlighted transcript", true)}
+      </div>
+    );
+  };
+
+  const renderGrammar = () => {
+    const g = scores.grammar;
+    const status = !isScore(g)
+      ? null
+      : g >= 8
+        ? { label: "Mostly clear", tone: "good" }
+        : g >= 5
+          ? { label: "Some slips", tone: "warn" }
+          : { label: "Needs work", tone: "warn" };
+    const items = byTab.grammar;
+    const genuine = items.filter(({ c }) => c.type === "genuine_error");
+    return (
+      <div className="fb-card fb-panel">
+        <div className="fb-panel-head">
+          <h3 className="fb-panel-title">Grammar and wording</h3>
+          {status && (
+            <span className={`fb-status fb-status-${status.tone}`}>
+              {status.label}
+            </span>
+          )}
+        </div>
+        <div className={`fb-box ${genuine.length ? "" : "fb-box-good"}`}>
+          <p className="fb-box-title">
+            {genuine.length
+              ? `${genuine.length} ${genuine.length === 1 ? "error" : "errors"} to fix`
+              : "Your meaning came through"}
+          </p>
+          {notes.grammar && <p className="fb-box-text">{notes.grammar}</p>}
+          {notes.vocabulary && (
+            <p className="fb-box-text">{notes.vocabulary}</p>
+          )}
+        </div>
+        {items.map(({ c, i }) => (
+          <div
+            key={i}
+            id={`fb-c-${i}`}
+            className={`fb-box ${activeId === i ? "fb-finding-active" : ""}`}
+          >
+            <p className="fb-eyebrow">{TYPE_LABEL[c.type] || "Observation"}</p>
+            {c.original && <p className="fb-quote">“{c.original}”</p>}
+            {c.better && (
+              <>
+                <hr className="fb-divider" />
+                <p className="fb-box-label">A clearer version</p>
+                <p className="fb-quote fb-quote-soft">“{c.better}”</p>
+              </>
+            )}
+            <p className="fb-box-text">{c.why}</p>
+            {c.tryItYourself && (
+              <p className="fb-box-text fb-good-text">{c.tryItYourself}</p>
+            )}
+          </div>
+        ))}
+        {items.length > 0 && !genuine.length && (
+          <p className="fb-footnote">
+            These are wording suggestions, not grammar corrections.
+          </p>
+        )}
+        {transcriptToggle("View full transcript")}
+      </div>
+    );
+  };
+
+  const practiceText =
+    nextSkill.action ||
+    analysis.topTip ||
+    opportunity.technique ||
+    "Answer the same question again and use what you learned here.";
+
+  return (
+    <div className="page session-page fb-page">
+      {/* Header */}
+      <header className="fb-header">
+        <p className="fb-kicker">Practice review · Completed</p>
+        <h1 className="fb-title">Here's how you did.</h1>
+        {topic && <p className="fb-topic">{topic}</p>}
+      </header>
+
+      {/* Overall score */}
+      <section className="fb-score-card">
+        <div className="fb-score-top">
+          <ScoreRing value={overall} />
+          <div className="fb-score-copy">
+            <p className="fb-score-kicker">Overall speaking score</p>
+            <p className="fb-score-verdict">{verdictFor(overall)}</p>
+            {analysis.summary && (
+              <p className="fb-score-summary">{analysis.summary}</p>
+            )}
+          </div>
+        </div>
+        <div className="fb-score-stats">
+          <div className="fb-score-stat">
+            <span className="fb-score-stat-label">Recording</span>
+            <span className="fb-score-stat-value">
+              {recordingSeconds ? longDuration(recordingSeconds) : "–"}
+            </span>
+          </div>
+          <div className="fb-score-stat">
+            <span className="fb-score-stat-label">Words spoken</span>
+            <span className="fb-score-stat-value">
+              {metrics.wordCount > 0 ? `${metrics.wordCount} words` : "–"}
+            </span>
+          </div>
+          <button type="button" className="fb-share-btn" onClick={share}>
+            <Share2 size={16} strokeWidth={2} aria-hidden="true" />
+            {shareState || "Share"}
+          </button>
+        </div>
+      </section>
+
+      {/* Recording playback */}
+      <section className="fb-section">
+        <h2 className="fb-heading">Listen to your recording</h2>
+        <p className="fb-subheading">
+          Hear how you sounded before you explore the feedback.
+        </p>
+        <RecordingPlayer src={playbackUrl} fallbackSeconds={recordingSeconds} />
+      </section>
+
+      {/* Tabs */}
+      <section className="fb-section" id="fb-explore">
+        <h2 className="fb-heading">Explore your feedback</h2>
+        <p className="fb-subheading">
+          Choose an area to see specific observations from your response.
+        </p>
+        <div className="fb-tabs" role="tablist" aria-label="Feedback areas">
+          {TABS.map((t) => (
+            <button
+              key={t.id}
+              type="button"
+              role="tab"
+              aria-selected={tab === t.id}
+              className={`fb-tab ${tab === t.id ? "fb-tab-active" : ""}`}
+              onClick={() => openTab(t.id, false)}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+        <div className="fb-tab-panel" role="tabpanel" key={tab}>
+          {tab === "overview" && renderOverview()}
+          {tab === "clarity" && renderClarity()}
+          {tab === "delivery" && renderDelivery()}
+          {tab === "fillers" && renderFillers()}
+          {tab === "grammar" && renderGrammar()}
+        </div>
+      </section>
+
+      {/* Next step */}
+      <section className="fb-practice-card">
+        <h2 className="fb-practice-title">Put your feedback into practice</h2>
+        <p className="fb-practice-text">
+          Answer the same question again. {practiceText}
+        </p>
+        {onTryAgain && (
+          <button type="button" className="fb-try-btn" onClick={onTryAgain}>
+            Try again
+          </button>
+        )}
+      </section>
+
+      <button type="button" className="fb-secondary-btn" onClick={onDone}>
         {doneLabel}
       </button>
     </div>
