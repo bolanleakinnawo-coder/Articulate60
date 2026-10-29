@@ -197,7 +197,9 @@
   background: var(--olive-bright);
   border-radius: 2px;
   opacity: 0.4;
-  transition: height 70ms ease-out, opacity 120ms ease;
+  transition:
+    height 70ms ease-out,
+    opacity 120ms ease;
 }
 
 .session-waveform.active .session-wave-bar {
@@ -533,4 +535,32 @@
 
 .complete-home-btn {
   width: 100%;
+}
+
+/* ---------- Preparation: speaking duration + smaller reminder ---------- */
+.session-duration {
+  max-width: none;
+  margin: 8px 0 16px;
+}
+
+.session-tips-card.session-tips-card-compact {
+  padding: 14px 16px;
+  margin-bottom: 14px;
+}
+
+.session-tips-card-compact .session-tips-title {
+  font-size: 15px;
+  margin-bottom: 4px;
+}
+
+.session-tips-card-compact .session-tip-line {
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+@media (min-width: 900px) {
+  .session-page .session-prep-guidance .session-duration {
+    grid-column: 1 / -1;
+    margin: 0;
+  }
 }

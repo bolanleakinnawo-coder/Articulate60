@@ -11,16 +11,28 @@ import {
   Check,
   CheckCircle2,
   Flame,
+  Search,
+  TrendingUp,
+  CircleCheck,
+  ScanSearch,
+  MessagesSquare,
 } from "lucide-react";
-import { LEVEL_META } from "../data/prompts";
+import {
+  LEVEL_META,
+  DEFAULT_SPEAK_SECONDS,
+  describeSpeakTime,
+} from "../data/prompts";
+import { isPaidPlan } from "../data/plans";
 import api from "../api/axios";
 import FeedbackReport from "../Components/practice/FeedbackReport";
+import RecordingPlayer from "../Components/practice/RecordingPlayer";
+import DurationPicker from "../Components/practice/DurationPicker";
 import "./PracticeSession.css";
 
 // ---- AI FEEDBACK SWITCHES ----
 // TESTING: true = everyone gets the AI feedback screen after saving.
-// AT LAUNCH: set to false. Then only users whose plan is "pro" get feedback,
-// and free users go straight to the "Amazing!" page as before.
+// AT LAUNCH: set to false. Then only paid members get feedback, and free
+// users see the "You did it!" page with "Unlock my AI feedback".
 // (The server also checks the plan, so this is only for the screen flow.)
 const ANALYZER_FOR_ALL = true;
 // true  = after the feedback screen, continue to the "Amazing!" page.
@@ -34,6 +46,26 @@ const formatTime = (totalSeconds) => {
   const s = (totalSeconds % 60).toString().padStart(2, "0");
   return `${m}:${s}`;
 };
+
+// Pick a recording format this browser can also play back. iPhones report
+// webm as recordable but can't play it in an <audio> element, which is why
+// recordings wouldn't play; mp4 is tried first when it's playable.
+function pickRecordingType() {
+  if (typeof MediaRecorder === "undefined") return undefined;
+  const probe = document.createElement("audio");
+  const candidates = [
+    "audio/mp4",
+    "audio/webm;codecs=opus",
+    "audio/webm",
+    "audio/ogg",
+  ];
+  const recordable = candidates.filter((type) =>
+    MediaRecorder.isTypeSupported(type),
+  );
+  return (
+    recordable.find((type) => probe.canPlayType(type) !== "") || recordable[0]
+  );
+}
 
 function capitalizeFirstLetter(value = "") {
   return value ? value.charAt(0).toUpperCase() + value.slice(1) : "";
@@ -63,6 +95,7 @@ function PracticeSessionAttempt() {
     category,
     prompt,
     isWordOfTheDay = false,
+    isYap = false,
   } = location.state || {};
   const currentUser = location.state?.user || getStoredUser();
   const username = capitalizeFirstLetter(
@@ -70,8 +103,11 @@ function PracticeSessionAttempt() {
   );
   const levelInfo = LEVEL_META.find((l) => l.id === level) || LEVEL_META[0];
 
-  const prepareTotal = levelInfo.prepareSeconds;
-  const speakTotal = levelInfo.speakSeconds;
+  const prepareTotal = isYap ? 0 : levelInfo.prepareSeconds;
+  // Chosen on the topic page (no prep) or on the preparation screen.
+  const [speakTotal, setSpeakTotal] = useState(
+    location.state?.speakSeconds || DEFAULT_SPEAK_SECONDS,
+  );
 
   const [phase, setPhase] = useState(prepareTotal > 0 ? "prepare" : "speak");
   const [timeLeft, setTimeLeft] = useState(
@@ -180,10 +216,7 @@ function PracticeSessionAttempt() {
       streamRef.current = stream;
       startAudioAnalysis(stream);
 
-      const preferredTypes = ["audio/webm", "audio/mp4", "audio/ogg"];
-      const mimeType = preferredTypes.find((type) =>
-        MediaRecorder.isTypeSupported(type),
-      );
+      const mimeType = pickRecordingType();
 
       const mediaRecorder = mimeType
         ? new MediaRecorder(stream, { mimeType })
@@ -311,7 +344,10 @@ function PracticeSessionAttempt() {
 
   // Practise the same prompt again from the start.
   const handleTryAgain = () => {
-    navigate(location.pathname, { state: location.state, replace: true });
+    navigate(location.pathname, {
+      state: { ...location.state, speakSeconds: speakTotal },
+      replace: true,
+    });
   };
 
   const handleBackToPractice = () => {
@@ -404,8 +440,12 @@ function PracticeSessionAttempt() {
       if (playedSeconds >= (actualDurationSeconds || speakTotal)) {
         el.currentTime = 0;
       }
-      el.play();
-      setIsPlaying(true);
+      el.play()
+        .then(() => setIsPlaying(true))
+        .catch((err) => {
+          console.error("Playback failed:", err);
+          setIsPlaying(false);
+        });
     }
   };
 
@@ -427,7 +467,7 @@ function PracticeSessionAttempt() {
       setPhase("feedback");
     } catch (err) {
       if (err.response?.data?.code === "UPGRADE_REQUIRED") {
-        setPhase("complete");
+        setPhase("unlock");
         return;
       }
 
@@ -475,12 +515,12 @@ function PracticeSessionAttempt() {
 
       const recordingId = res.data.recording?._id;
       setSavedRecordingId(recordingId || null);
-      const showAnalyzer = ANALYZER_FOR_ALL || currentUser?.plan === "pro";
+      const showAnalyzer = ANALYZER_FOR_ALL || isPaidPlan(currentUser);
 
       if (recordingId && showAnalyzer) {
         runAnalysis(recordingId);
       } else {
-        setPhase("complete");
+        setPhase("unlock");
       }
     } catch (err) {
       console.error("Failed to save practice session:", err);
@@ -571,7 +611,13 @@ function PracticeSessionAttempt() {
         </div>
 
         <div className="session-prep-guidance">
-          <div className="session-tips-card">
+          <DurationPicker
+            className="session-duration"
+            value={speakTotal}
+            onChange={setSpeakTotal}
+          />
+
+          <div className="session-tips-card session-tips-card-compact">
             <p className="session-tips-title">Remember, {username}</p>
             <p className="session-tip-line">
               Your recordings are only visible to you. Practise freely, make
@@ -624,7 +670,7 @@ function PracticeSessionAttempt() {
         <p className="session-speak-subtitle">
           {isRequestingMic
             ? "Waiting for microphone permission..."
-            : "Speak for up to one minute, and finish whenever you're ready."}
+            : `Speak for up to ${describeSpeakTime(speakTotal)}, and finish whenever you're ready.`}
         </p>
 
         {micError && <p className="session-mic-error">{micError}</p>}
@@ -782,12 +828,158 @@ function PracticeSessionAttempt() {
   // ---------- ANALYSING PHASE ----------
   if (phase === "analyzing") {
     return (
-      <div className="page session-page fb-wait">
-        <div className="fb-spinner" aria-hidden="true" />
-        <h1 className="fb-wait-title">Analysing your speech…</h1>
-        <p className="fb-wait-text">
-          Your recording is saved. This usually takes a few seconds.
+      <div className="page session-page fb-page an-page">
+        <div className="an-wave" aria-hidden="true">
+          {Array.from({ length: 15 }, (_, i) => (
+            <span key={i} style={{ animationDelay: `${(i % 8) * 0.09}s` }} />
+          ))}
+        </div>
+        <h1 className="an-title">Analysing your response</h1>
+        <p className="an-sub">
+          Let's see how you communicated and how you can improve.
         </p>
+
+        <hr className="an-rule" />
+
+        <h2 className="an-heading">Your feedback will help you...</h2>
+        <ul className="an-list">
+          <li>
+            <span className="an-icon" aria-hidden="true">
+              <Check size={18} />
+            </span>
+            <span>
+              <strong>Recognise what you're doing well</strong>
+              <span>Know which communication habits to keep.</span>
+            </span>
+          </li>
+          <li>
+            <span className="an-icon" aria-hidden="true">
+              <Search size={18} />
+            </span>
+            <span>
+              <strong>Spot what you can improve</strong>
+              <span>
+                Understand where your message could be clearer or better
+                organised.
+              </span>
+            </span>
+          </li>
+          <li>
+            <span className="an-icon" aria-hidden="true">
+              <TrendingUp size={18} />
+            </span>
+            <span>
+              <strong>Learn how to express yourself better</strong>
+              <span>
+                Get practical corrections and a stronger version of your
+                response.
+              </span>
+            </span>
+          </li>
+        </ul>
+
+        <hr className="an-rule" />
+
+        <h2 className="an-heading">While you wait...</h2>
+        <p className="an-sub an-sub-left">
+          You can listen back to your response if you'd like.
+        </p>
+        <RecordingPlayer
+          src={audioUrl}
+          fallbackSeconds={actualDurationSeconds}
+          title="Your recording"
+          subtitle="Listen to your response"
+        />
+      </div>
+    );
+  }
+
+  // ---------- UNLOCK PHASE (free plan) ----------
+  if (phase === "unlock") {
+    return (
+      <div className="page session-page fb-page an-page">
+        <div className="an-done-icon" aria-hidden="true">
+          <Check size={28} />
+        </div>
+        <h1 className="an-title">You did it!</h1>
+        <p className="an-sub">Every time you practise, you get better.</p>
+
+        <h2 className="an-heading">Your recording</h2>
+        <p className="an-sub an-sub-left">Listen back to what you said.</p>
+        <RecordingPlayer
+          src={audioUrl}
+          fallbackSeconds={actualDurationSeconds}
+          title="Your speaking practice"
+          subtitle="Tap play to listen"
+        />
+
+        <hr className="an-rule" />
+
+        <p className="an-kicker">Your next step</p>
+        <h2 className="an-heading an-heading-lg">
+          Now, let's see how you did.
+        </h2>
+        <p className="an-sub an-sub-left">
+          Unlock AI feedback to understand how you communicated and what you can
+          do to improve.
+        </p>
+        <ul className="an-list an-list-plain">
+          <li>
+            <CircleCheck
+              size={20}
+              className="an-plain-icon"
+              aria-hidden="true"
+            />
+            <span>
+              <strong>What you did well</strong>
+              <span>Recognise your communication strengths.</span>
+            </span>
+          </li>
+          <li>
+            <ScanSearch
+              size={20}
+              className="an-plain-icon"
+              aria-hidden="true"
+            />
+            <span>
+              <strong>What you can improve</strong>
+              <span>Identify where your message could be clearer.</span>
+            </span>
+          </li>
+          <li>
+            <MessagesSquare
+              size={20}
+              className="an-plain-icon"
+              aria-hidden="true"
+            />
+            <span>
+              <strong>How to say it better</strong>
+              <span>
+                Get practical corrections and a stronger version of your
+                response.
+              </span>
+            </span>
+          </li>
+        </ul>
+
+        <button
+          type="button"
+          className="an-unlock-btn"
+          onClick={() =>
+            navigate("/app/membership", {
+              state: { reason: "feedback", recordingId: savedRecordingId },
+            })
+          }
+        >
+          Unlock my AI feedback
+        </button>
+        <button
+          type="button"
+          className="fb-secondary-btn"
+          onClick={handleBackToPractice}
+        >
+          Back to practice
+        </button>
       </div>
     );
   }

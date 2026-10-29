@@ -13,7 +13,10 @@ const EMAIL_REGEX = /^\S+@\S+\.\S+$/;
 const USERNAME_REGEX = /^[a-zA-Z0-9_]{3,20}$/;
 const normalizeUsername = (username) => username.trim().toLowerCase();
 const usernameLookup = (username) =>
-  new RegExp(`^${username.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, "i");
+  new RegExp(
+    `^${username.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`,
+    "i",
+  );
 const PHONE_REGEX = /^\+?[0-9]{10,15}$/;
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -23,14 +26,19 @@ const handleProfilePhotoUpload = (req, res, next) => {
   upload.single("profilePhoto")(req, res, (error) => {
     if (!error) return next();
 
-    if (error instanceof multer.MulterError && error.code === "LIMIT_FILE_SIZE") {
+    if (
+      error instanceof multer.MulterError &&
+      error.code === "LIMIT_FILE_SIZE"
+    ) {
       return res
         .status(413)
         .json({ message: "Profile photos must be smaller than 5 MB." });
     }
 
     console.error("Failed to receive profile photo:", error);
-    return res.status(400).json({ message: "Could not process the profile photo." });
+    return res
+      .status(400)
+      .json({ message: "Could not process the profile photo." });
   });
 };
 const PROFILE_IMAGE_EXTENSIONS = {
@@ -78,7 +86,9 @@ router.post("/signup", handleProfilePhotoUpload, async (req, res) => {
       practiceFrequency,
     } = req.body;
     const selectedImprovements =
-      typeof improvements === "string" ? JSON.parse(improvements) : improvements;
+      typeof improvements === "string"
+        ? JSON.parse(improvements)
+        : improvements;
 
     const errors = {};
 
@@ -115,9 +125,15 @@ router.post("/signup", handleProfilePhotoUpload, async (req, res) => {
       errors.roleOther = "Please tell us more.";
     }
 
-    if (!Array.isArray(selectedImprovements) || selectedImprovements.length === 0) {
+    if (
+      !Array.isArray(selectedImprovements) ||
+      selectedImprovements.length === 0
+    ) {
       errors.improvements = "Please select at least one improvement area.";
-    } else if (selectedImprovements.includes("Other") && !improvementOther?.trim()) {
+    } else if (
+      selectedImprovements.includes("Other") &&
+      !improvementOther?.trim()
+    ) {
       errors.improvementOther = "Please tell us more.";
     }
 
@@ -153,7 +169,9 @@ router.post("/signup", handleProfilePhotoUpload, async (req, res) => {
 
     if (req.file) {
       if (!req.file.mimetype.startsWith("image/")) {
-        return res.status(400).json({ message: "Profile photo must be an image." });
+        return res
+          .status(400)
+          .json({ message: "Profile photo must be an image." });
       }
 
       const extension = req.file.mimetype.split("/")[1] || "jpg";
@@ -184,8 +202,7 @@ router.post("/signup", handleProfilePhotoUpload, async (req, res) => {
       practiceFrequency,
       profileImageUrl,
       marketingOptIn: marketingOptIn === "true",
-      marketingOptInAt:
-        marketingOptIn === "true" ? new Date() : null,
+      marketingOptInAt: marketingOptIn === "true" ? new Date() : null,
     });
 
     const token = generateToken(newUser._id);
@@ -200,6 +217,9 @@ router.post("/signup", handleProfilePhotoUpload, async (req, res) => {
         email: newUser.email,
         profileImageUrl: newUser.profileImageUrl,
         createdAt: newUser.createdAt,
+        plan: newUser.plan,
+        improvements: newUser.improvements,
+        practiceFrequency: newUser.practiceFrequency,
       },
     });
   } catch (err) {
@@ -265,6 +285,9 @@ router.post("/login", async (req, res) => {
         email: user.email,
         profileImageUrl: user.profileImageUrl,
         createdAt: user.createdAt,
+        plan: user.plan,
+        improvements: user.improvements,
+        practiceFrequency: user.practiceFrequency,
       },
     });
   } catch (err) {
@@ -372,12 +395,17 @@ router.put(
           email: req.user.email,
           profileImageUrl: req.user.profileImageUrl,
           createdAt: req.user.createdAt,
+          plan: req.user.plan,
+          improvements: req.user.improvements,
+          practiceFrequency: req.user.practiceFrequency,
         },
       });
     } catch (err) {
       console.error(err);
       if (err.code === 11000 && err.keyPattern?.username) {
-        return res.status(409).json({ message: "This username is already taken." });
+        return res
+          .status(409)
+          .json({ message: "This username is already taken." });
       }
       res
         .status(500)

@@ -22,6 +22,12 @@
   --fb-warn-bg: rgba(232, 169, 61, 0.09);
   --fb-warn-line: rgba(232, 169, 61, 0.26);
   --fb-track: rgba(255, 255, 255, 0.07);
+  /* Loquiex cream: headings, scores and values on this page use it instead
+     of white. Body copy that needs reading uses the brighter cream. */
+  --fb-cream: #ece3cf;
+  --fb-read: #ddd6c4;
+  --text-primary: var(--fb-cream);
+  --challenge-heading: var(--fb-cream);
 }
 
 /* =====================================================
@@ -60,6 +66,14 @@
   color: var(--text-secondary);
   font-size: 15px;
   line-height: 1.45;
+}
+
+.fb-topic-label {
+  font-weight: 600;
+}
+
+.fb-topic em {
+  font-style: italic;
 }
 
 /* =====================================================
@@ -255,6 +269,58 @@
   padding: 16px;
 }
 
+.fb-player-row {
+  display: contents;
+}
+
+.fb-player.fb-player-titled {
+  flex-direction: column;
+  align-items: stretch;
+  border-radius: 22px;
+  background: #1b1d18;
+}
+
+.fb-player-titled .fb-player-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.fb-player-titled .fb-play-btn {
+  width: 58px;
+  height: 58px;
+  background: #4f5a33;
+  color: var(--fb-cream);
+}
+
+.fb-player-copy {
+  flex: 1;
+  min-width: 0;
+}
+
+.fb-player-title {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.fb-player-sub {
+  margin: 3px 0 0;
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.fb-player-clock {
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.fb-player-titled .fb-player-main {
+  width: 100%;
+}
+
 .fb-player-empty {
   justify-content: center;
 }
@@ -413,8 +479,8 @@
 
 .fb-status {
   flex-shrink: 0;
-  font-size: 17px;
-  font-weight: 800;
+  font-size: 14px;
+  font-weight: 700;
 }
 
 .fb-status-good {
@@ -477,7 +543,7 @@
 
 .fb-metric-value {
   color: var(--text-primary);
-  font-size: 17px;
+  font-size: 14px;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
@@ -551,11 +617,12 @@
   color: var(--fb-warn);
 }
 
+/* same size as "Speaking pace" in Your delivery at a glance */
 .fb-callout-headline {
   margin: 0 0 8px;
   color: var(--text-primary);
-  font-size: 16px;
-  font-weight: 700;
+  font-size: 15px;
+  font-weight: 600;
 }
 
 .fb-callout-text {
@@ -819,9 +886,20 @@
 
 .fb-transcript-text {
   margin: 0;
-  color: var(--text-secondary);
-  font-size: 14.5px;
+  color: var(--fb-read);
+  font-size: 15px;
   line-height: 1.75;
+}
+
+/* "One clearer way to say it": brighter so it's easy to read */
+.fb-box-bright {
+  border-color: rgba(236, 227, 207, 0.14);
+  background: #1d1f1a;
+}
+
+.fb-box-bright .fb-box-text {
+  color: var(--fb-read);
+  font-size: 15px;
 }
 
 .fb-mark {
@@ -1045,5 +1123,347 @@
 
   .fb-share-btn {
     padding: 9px 12px;
+  }
+}
+
+/* =====================================================
+   ANALYSING + "YOU DID IT!" (unlock) SCREENS
+   ===================================================== */
+.session-page.an-page {
+  align-items: stretch;
+  text-align: left;
+  max-width: 480px;
+  padding-bottom: 48px;
+}
+
+.an-wave {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 56px;
+  margin: 18px 0 18px;
+}
+
+.an-wave span {
+  width: 4px;
+  height: 40px;
+  border-radius: 4px;
+  background: var(--fb-sage);
+  opacity: 0.85;
+  animation: an-wave 1s ease-in-out infinite;
+}
+
+.an-wave span:nth-child(-n + 3),
+.an-wave span:nth-last-child(-n + 3) {
+  opacity: 0.45;
+}
+
+@keyframes an-wave {
+  0%,
+  100% {
+    transform: scaleY(0.25);
+  }
+  50% {
+    transform: scaleY(1);
+  }
+}
+
+.an-title {
+  margin: 0 0 8px;
+  color: var(--text-primary);
+  font-size: 26px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.an-sub {
+  margin: 0 0 14px;
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.an-sub-left {
+  text-align: left;
+}
+
+.an-rule {
+  width: 100%;
+  margin: 24px 0;
+  border: none;
+  border-top: 1px solid var(--border);
+}
+
+.an-heading {
+  margin: 0 0 14px;
+  color: var(--text-primary);
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.an-heading-lg {
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.an-kicker {
+  margin: 0 0 10px;
+  color: var(--fb-sage);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.an-list {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.an-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.an-list li > span:last-child {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.an-list strong {
+  color: var(--text-primary);
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.an-list li > span:last-child > span {
+  color: var(--text-secondary);
+  font-size: 13.5px;
+  line-height: 1.45;
+}
+
+.an-icon {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: #22241f;
+  color: var(--fb-sage);
+}
+
+.an-list-plain {
+  gap: 16px;
+  margin-bottom: 26px;
+}
+
+.an-plain-icon {
+  flex: 0 0 auto;
+  margin-top: 2px;
+  color: var(--fb-sage);
+}
+
+.an-done-icon {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  margin: 18px auto 16px;
+  border-radius: 50%;
+  background: #2c3322;
+  color: var(--fb-sage);
+}
+
+.an-page .fb-player-titled {
+  margin-bottom: 4px;
+}
+
+.an-unlock-btn {
+  width: 100%;
+  margin-bottom: 12px;
+  padding: 15px;
+  border: none;
+  border-radius: 999px;
+  background: var(--fb-cream);
+  color: #1a1c17;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.an-page .fb-secondary-btn {
+  border-radius: 999px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .an-wave span {
+    animation: none;
+  }
+}
+
+/* =====================================================
+   SHARE SHEET
+   ===================================================== */
+.sh-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(5px);
+}
+
+.sh-sheet {
+  --text-primary: #ece3cf;
+  width: min(100%, 480px);
+  max-height: 94vh;
+  max-height: 94dvh;
+  overflow-y: auto;
+  padding: 20px 18px 26px;
+  border: 1px solid var(--border);
+  border-bottom: 0;
+  border-radius: 26px 26px 0 0;
+  background: var(--bg-card);
+  animation: modal-slide-up 0.25s ease;
+}
+
+.sh-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.sh-kicker {
+  margin: 0 0 4px;
+  color: var(--challenge-sage);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.sh-title {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.sh-close {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+}
+
+.sh-preview {
+  display: grid;
+  place-items: center;
+  min-height: 240px;
+  margin-bottom: 14px;
+}
+
+.sh-preview img {
+  display: block;
+  width: min(62%, 260px);
+  height: auto;
+  border-radius: 18px;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.5);
+}
+
+.sh-caption {
+  padding: 14px;
+  margin-bottom: 14px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--bg-secondary);
+}
+
+.sh-caption-label {
+  margin: 0 0 6px;
+  color: var(--text-muted);
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.sh-caption-text {
+  margin: 0 0 10px;
+  color: var(--text-primary);
+  font-size: 14px;
+  line-height: 1.5;
+  user-select: text;
+}
+
+.sh-copy {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--challenge-sage);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.sh-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sh-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.sh-btn:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.fb-secondary-btn.sh-btn {
+  color: var(--text-primary);
+}
+
+.sh-hint {
+  margin: 12px 0 0;
+  color: var(--text-muted);
+  font-size: 12.5px;
+  text-align: center;
+}
+
+@media (min-width: 760px) {
+  .sh-backdrop {
+    align-items: center;
+  }
+
+  .sh-sheet {
+    border-bottom: 1px solid var(--border);
+    border-radius: 26px;
   }
 }

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ArrowRight,
   CheckCircle2,
@@ -7,11 +7,11 @@ import {
   FileText,
   Gauge,
   CirclePause,
-  Pause,
-  Play,
   Share2,
   Target,
 } from "lucide-react";
+import RecordingPlayer from "./RecordingPlayer";
+import ShareSheet from "./ShareSheet";
 import "./FeedbackReport.css";
 
 // The five criteria the AI scores (1-10). Shown out of 100 on this page.
@@ -28,8 +28,8 @@ const SCORED = [
   },
   {
     key: "vocabulary",
-    label: "Word choice",
-    tab: "grammar",
+    label: "Vocabulary",
+    tab: "vocabulary",
     bands: [
       "Your meaning was clear",
       "Some words could be sharper",
@@ -74,6 +74,7 @@ const TABS = [
   { id: "delivery", label: "Delivery" },
   { id: "fillers", label: "Fillers" },
   { id: "grammar", label: "Grammar" },
+  { id: "vocabulary", label: "Vocabulary" },
 ];
 
 // Which tab holds the evidence for the biggest opportunity.
@@ -83,7 +84,8 @@ const TAB_CRITERIA = {
   clarity: ["clarity", "structure"],
   delivery: ["pace", "pauses"],
   fillers: ["fillers", "repetition"],
-  grammar: ["grammar", "vocabulary"],
+  grammar: ["grammar"],
+  vocabulary: ["vocabulary"],
 };
 
 const TYPE_LABEL = {
@@ -138,11 +140,6 @@ function longDuration(total) {
   const rest = s % 60;
   if (m === 0) return `${rest} sec`;
   return rest ? `${m} min ${rest} sec` : `${m} min`;
-}
-
-function clock(total) {
-  const s = Math.max(0, Math.floor(Number(total) || 0));
-  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
 }
 
 function escapeRegExp(text) {
@@ -220,111 +217,6 @@ function ScoreRing({ value }) {
       <div className="fb-ring-text">
         <span className="fb-ring-value">{value ?? "–"}</span>
         <span className="fb-ring-max">/100</span>
-      </div>
-    </div>
-  );
-}
-
-function RecordingPlayer({ src, fallbackSeconds }) {
-  const audioRef = useRef(null);
-  const [playing, setPlaying] = useState(false);
-  const [current, setCurrent] = useState(0);
-  const [duration, setDuration] = useState(0);
-
-  useEffect(() => {
-    const el = audioRef.current;
-    if (!el) return;
-    // Recorded webm files often report an Infinite duration, so fall back
-    // to the time measured while recording.
-    const readDuration = () =>
-      setDuration(
-        Number.isFinite(el.duration) && el.duration > 0 ? el.duration : 0,
-      );
-    const onTime = () => {
-      setCurrent(el.currentTime);
-      if (Number.isFinite(el.duration) && el.duration > 0)
-        setDuration(el.duration);
-    };
-    const onPlay = () => setPlaying(true);
-    const onPause = () => setPlaying(false);
-    const onEnded = () => {
-      setPlaying(false);
-      setCurrent(0);
-    };
-    el.addEventListener("loadedmetadata", readDuration);
-    el.addEventListener("durationchange", readDuration);
-    el.addEventListener("timeupdate", onTime);
-    el.addEventListener("play", onPlay);
-    el.addEventListener("pause", onPause);
-    el.addEventListener("ended", onEnded);
-    return () => {
-      el.removeEventListener("loadedmetadata", readDuration);
-      el.removeEventListener("durationchange", readDuration);
-      el.removeEventListener("timeupdate", onTime);
-      el.removeEventListener("play", onPlay);
-      el.removeEventListener("pause", onPause);
-      el.removeEventListener("ended", onEnded);
-    };
-  }, [src]);
-
-  const total = duration || Number(fallbackSeconds) || 0;
-  const pct = total > 0 ? Math.min(100, (current / total) * 100) : 0;
-
-  const toggle = () => {
-    const el = audioRef.current;
-    if (!el) return;
-    if (el.paused) el.play().catch(() => {});
-    else el.pause();
-  };
-
-  const seek = (e) => {
-    const el = audioRef.current;
-    if (!el || !total) return;
-    el.currentTime = (Number(e.target.value) / 100) * total;
-    setCurrent(el.currentTime);
-  };
-
-  if (!src) {
-    return (
-      <div className="fb-card fb-player fb-player-empty">
-        <p className="fb-muted">
-          Your recording isn't available to play right now.
-        </p>
-      </div>
-    );
-  }
-
-  return (
-    <div className="fb-card fb-player">
-      <audio ref={audioRef} src={src} preload="metadata" />
-      <button
-        type="button"
-        className="fb-play-btn"
-        onClick={toggle}
-        aria-label={playing ? "Pause recording" : "Play recording"}
-      >
-        {playing ? (
-          <Pause size={22} fill="currentColor" strokeWidth={0} />
-        ) : (
-          <Play size={22} fill="currentColor" strokeWidth={0} />
-        )}
-      </button>
-      <div className="fb-player-main">
-        <input
-          type="range"
-          className="fb-seek"
-          min="0"
-          max="100"
-          step="0.1"
-          value={pct}
-          onChange={seek}
-          aria-label="Seek recording"
-          style={{ "--fb-seek": `${pct}%` }}
-        />
-        <div className="fb-player-times">
-          <span>{clock(current)}</span>
-          <span>{clock(total)}</span>
-        </div>
       </div>
     </div>
   );
@@ -409,6 +301,7 @@ export default function FeedbackReport({
   onTryAgain,
   onDone,
   doneLabel = "Back to practice",
+  recordedAt,
 }) {
   const { transcript = "", metrics = {}, analysis = {} } = report || {};
   // The server also sends the recording address with the report.
@@ -424,7 +317,7 @@ export default function FeedbackReport({
   const [tab, setTab] = useState("overview");
   const [activeId, setActiveId] = useState(null);
   const [showTranscript, setShowTranscript] = useState(false);
-  const [shareState, setShareState] = useState("");
+  const [showShare, setShowShare] = useState(false);
 
   const fillers = metrics.fillers || { total: 0, breakdown: {}, positions: [] };
   const pauses = metrics.pauses || { long: 0, veryLong: 0, longestSeconds: 0 };
@@ -441,7 +334,13 @@ export default function FeedbackReport({
 
   // Findings grouped by the tab they belong to. Reports saved before the
   // criteria update have no "criterion"; they show in the Clarity tab.
-  const byTab = { clarity: [], delivery: [], fillers: [], grammar: [] };
+  const byTab = {
+    clarity: [],
+    delivery: [],
+    fillers: [],
+    grammar: [],
+    vocabulary: [],
+  };
   corrections.forEach((c, i) => {
     const owner =
       Object.keys(TAB_CRITERIA).find((t) =>
@@ -482,24 +381,6 @@ export default function FeedbackReport({
       document
         .getElementById("fb-explore")
         ?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
-  };
-
-  const share = async () => {
-    const text =
-      overall !== null
-        ? `I scored ${overall}/100 on my speaking practice${topic ? `: "${topic}"` : ""}.`
-        : `I just finished a speaking practice${topic ? `: "${topic}"` : ""}.`;
-    try {
-      if (navigator.share) {
-        await navigator.share({ title: "My speaking practice", text });
-        return;
-      }
-      await navigator.clipboard.writeText(text);
-      setShareState("Copied");
-      setTimeout(() => setShareState(""), 2000);
-    } catch {
-      // The person closed the share sheet; nothing to do.
     }
   };
 
@@ -689,7 +570,7 @@ export default function FeedbackReport({
             </div>
           )}
         {analysis.clearerVersion && (
-          <div className="fb-box">
+          <div className="fb-box fb-box-bright">
             <p className="fb-eyebrow">One clearer way to say it</p>
             <p className="fb-box-text">{analysis.clearerVersion}</p>
             <p className="fb-footnote">
@@ -893,9 +774,6 @@ export default function FeedbackReport({
               : "Your meaning came through"}
           </p>
           {notes.grammar && <p className="fb-box-text">{notes.grammar}</p>}
-          {notes.vocabulary && (
-            <p className="fb-box-text">{notes.vocabulary}</p>
-          )}
         </div>
         {items.map(({ c, i }) => (
           <div
@@ -928,6 +806,55 @@ export default function FeedbackReport({
     );
   };
 
+  const renderVocabulary = () => {
+    const v = scores.vocabulary;
+    const value = toHundred(v);
+    const items = byTab.vocabulary;
+    return (
+      <div className="fb-card fb-panel">
+        <div className="fb-panel-head">
+          <h3 className="fb-panel-title">Vocabulary</h3>
+          {value !== null && (
+            <span className={`fb-status fb-status-${toneFor(value)}`}>
+              {value}/100
+            </span>
+          )}
+        </div>
+        <p className="fb-panel-sub">How well your words carried your meaning</p>
+        <div className={`fb-box ${items.length ? "" : "fb-box-good"}`}>
+          <p className="fb-box-title">
+            {isScore(v) ? SCORED[1].bands[band(v)] : "Not scored this time"}
+          </p>
+          {notes.vocabulary && (
+            <p className="fb-box-text">{notes.vocabulary}</p>
+          )}
+        </div>
+        {items.map(({ c, i }) => (
+          <div
+            key={i}
+            id={`fb-c-${i}`}
+            className={`fb-box ${activeId === i ? "fb-finding-active" : ""}`}
+          >
+            <p className="fb-eyebrow">Word to sharpen</p>
+            {c.original && <p className="fb-quote">“{c.original}”</p>}
+            {c.better && (
+              <>
+                <hr className="fb-divider" />
+                <p className="fb-box-label">A sharper choice</p>
+                <p className="fb-quote fb-quote-soft">“{c.better}”</p>
+              </>
+            )}
+            <p className="fb-box-text">{c.why}</p>
+            {c.tryItYourself && (
+              <p className="fb-box-text fb-good-text">{c.tryItYourself}</p>
+            )}
+          </div>
+        ))}
+        {transcriptToggle("View full transcript")}
+      </div>
+    );
+  };
+
   const practiceText =
     nextSkill.action ||
     analysis.topTip ||
@@ -938,9 +865,23 @@ export default function FeedbackReport({
     <div className="page session-page fb-page">
       {/* Header */}
       <header className="fb-header">
-        <p className="fb-kicker">Practice review · Completed</p>
+        <p className="fb-kicker">
+          Practice review ·{" "}
+          {recordedAt
+            ? new Date(recordedAt).toLocaleDateString(undefined, {
+                day: "numeric",
+                month: "short",
+                year: "numeric",
+              })
+            : "Completed"}
+        </p>
         <h1 className="fb-title">Here's how you did.</h1>
-        {topic && <p className="fb-topic">{topic}</p>}
+        {topic && (
+          <p className="fb-topic">
+            <span className="fb-topic-label">Your prompt:</span>{" "}
+            <em>{topic}</em>
+          </p>
+        )}
       </header>
 
       {/* Overall score */}
@@ -968,9 +909,13 @@ export default function FeedbackReport({
               {metrics.wordCount > 0 ? `${metrics.wordCount} words` : "–"}
             </span>
           </div>
-          <button type="button" className="fb-share-btn" onClick={share}>
+          <button
+            type="button"
+            className="fb-share-btn"
+            onClick={() => setShowShare(true)}
+          >
             <Share2 size={16} strokeWidth={2} aria-hidden="true" />
-            {shareState || "Share"}
+            Share
           </button>
         </div>
       </section>
@@ -1010,6 +955,7 @@ export default function FeedbackReport({
           {tab === "delivery" && renderDelivery()}
           {tab === "fillers" && renderFillers()}
           {tab === "grammar" && renderGrammar()}
+          {tab === "vocabulary" && renderVocabulary()}
         </div>
       </section>
 
@@ -1026,9 +972,22 @@ export default function FeedbackReport({
         )}
       </section>
 
-      <button type="button" className="fb-secondary-btn" onClick={onDone}>
-        {doneLabel}
-      </button>
+      {onDone && (
+        <button type="button" className="fb-secondary-btn" onClick={onDone}>
+          {doneLabel}
+        </button>
+      )}
+
+      {showShare && (
+        <ShareSheet
+          score={overall}
+          verdict={verdictFor(overall)}
+          topic={topic}
+          seconds={recordingSeconds}
+          words={metrics.wordCount}
+          onClose={() => setShowShare(false)}
+        />
+      )}
     </div>
   );
 }

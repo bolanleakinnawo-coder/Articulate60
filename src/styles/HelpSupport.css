@@ -1,0 +1,190 @@
+.page.hs-page {
+  width: 100%;
+  max-width: 560px;
+  padding-bottom: 40px;
+  text-align: left;
+}
+
+.hs-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.hs-header h1 {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.hs-back {
+  display: grid;
+  place-items: center;
+  padding: 4px;
+  border: none;
+  background: none;
+  color: var(--text-primary);
+}
+
+.hs-hero {
+  margin-bottom: 26px;
+  padding: 20px 18px;
+  border-radius: 22px;
+  background: #23271f;
+}
+
+.hs-hero-icon {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  margin-bottom: 14px;
+  border-radius: 14px;
+  background: #343a2b;
+  color: var(--text-primary);
+}
+
+.hs-hero h2 {
+  margin: 0 0 8px;
+  color: var(--text-primary);
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.hs-hero p {
+  margin: 0 0 16px;
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.hs-search {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 13px 14px;
+  border-radius: 14px;
+  background: #ece3cf;
+  color: #5b5a57;
+}
+
+.hs-search input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: #1f211c;
+  font-size: 15px;
+}
+
+.hs-search input::placeholder {
+  color: #77756d;
+}
+
+.hs-section-title {
+  margin: 0 0 12px;
+  color: var(--text-primary);
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.hs-list {
+  margin-bottom: 26px;
+  padding: 4px 16px;
+  border-radius: 22px;
+  background: #1b1e18;
+}
+
+.hs-faq + .hs-faq,
+.hs-view-all {
+  border-top: 1px solid var(--border);
+}
+
+.hs-faq-q,
+.hs-view-all {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  padding: 18px 0;
+  border: none;
+  background: none;
+  color: var(--text-primary);
+  font-size: 15px;
+  text-align: left;
+}
+
+.hs-chev {
+  flex: 0 0 auto;
+  color: var(--text-muted);
+  transition: transform 0.2s ease;
+}
+
+.hs-faq-open .hs-chev {
+  transform: rotate(180deg);
+}
+
+.hs-faq-a {
+  margin: -6px 0 16px;
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.hs-view-all {
+  color: var(--challenge-sage);
+}
+
+.hs-empty {
+  margin: 0;
+  padding: 18px 0;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.hs-contact {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: var(--bg-card);
+}
+
+.hs-contact-icon {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: #2a2f22;
+  color: var(--text-primary);
+}
+
+.hs-contact-text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.hs-contact-text strong {
+  color: var(--text-primary);
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.hs-contact-text span {
+  color: var(--text-secondary);
+  font-size: 13.5px;
+}
+
+.hs-contact-chev {
+  color: var(--text-muted);
+}

@@ -1,0 +1,227 @@
+/* Practice page additions: duration picker, new help box, category icons,
+   Group Practice card and daily limits. Uses the app's dark palette. */
+
+/* ---------- speaking duration ---------- */
+.duration-picker {
+  width: 100%;
+  max-width: 420px;
+  margin: 4px auto 16px;
+  text-align: left;
+}
+
+.duration-picker-label {
+  margin: 0 0 10px;
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.duration-picker-options {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.duration-chip {
+  padding: 12px 8px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 600;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.duration-chip:hover {
+  border-color: var(--olive-bright);
+}
+
+.duration-chip.selected {
+  border-color: #c9c592;
+  background: var(--olive-primary);
+}
+
+/* ---------- "Need a little help?" box ---------- */
+.help-modal-box {
+  padding: 16px 18px;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--olive-bright);
+  border-radius: var(--radius-md);
+  background: var(--bg-secondary);
+}
+
+.help-modal-bullets {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding-left: 18px;
+  color: var(--text-primary);
+  font-size: 15px;
+  line-height: 1.55;
+}
+
+.help-modal-bullets li::marker {
+  color: var(--olive-bright);
+}
+
+.help-modal-box-note {
+  margin: 14px 0 0;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+  color: var(--text-secondary);
+  font-size: 14px;
+  font-style: italic;
+  line-height: 1.6;
+}
+
+/* ---------- category list with icons ---------- */
+.category-modal-item.category-modal-item-icon {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 14px;
+  font-size: 15px;
+}
+
+.category-modal-icon {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background: #23251f;
+  color: var(--text-primary);
+}
+
+/* ---------- group practice entry ---------- */
+.group-entry-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  max-width: 420px;
+  margin: 14px auto 0;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: var(--bg-card);
+  color: inherit;
+  text-align: left;
+}
+
+.group-entry-card:hover {
+  border-color: var(--olive-primary);
+}
+
+/* ---------- daily limits ---------- */
+.daily-limits-card {
+  width: 100%;
+  max-width: 420px;
+  margin: 18px auto 0;
+  padding: 14px 16px 6px;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: var(--bg-card);
+  text-align: left;
+}
+
+.daily-limits-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 4px;
+}
+
+.daily-limits-head h3 {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.daily-limits-head span {
+  color: var(--challenge-sage);
+  font-size: 12px;
+}
+
+.limit-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 0;
+  border: none;
+  background: none;
+  color: inherit;
+  text-align: left;
+}
+
+.limit-row + .limit-row {
+  border-top: 1px solid var(--border);
+}
+
+.limit-row-icon {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background: #222820;
+  color: var(--challenge-sage);
+}
+
+.limit-row-text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.limit-row-title {
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.limit-row-sub {
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+.limit-row-bar {
+  display: block;
+  height: 5px;
+  margin-top: 6px;
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.07);
+  overflow: hidden;
+}
+
+.limit-row-bar span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: #a9c08f;
+}
+
+.limit-row-chev {
+  flex: 0 0 auto;
+  color: var(--text-muted);
+}
+
+@media (min-width: 900px) {
+  .practice-page .practice-select-actions .daily-limits-card,
+  .practice-page .practice-select-actions .group-entry-card,
+  .practice-page .practice-select-actions .duration-picker {
+    max-width: none;
+    margin: 0;
+  }
+}

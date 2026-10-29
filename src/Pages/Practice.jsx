@@ -1,7 +1,10 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import StructureGuide from "../Components/StructureGuide";
-import { HELP_LAYER_1, HELP_LINK_TEXT } from "../data/help";
+import { HELP_LAYER_1 } from "../data/help";
+import { getUsage, isPaidPlan } from "../data/plans";
+import api from "../api/axios";
+import DurationPicker from "../Components/practice/DurationPicker";
+import "../styles/PracticeExtras.css";
 
 import {
   HelpCircle,
@@ -16,6 +19,15 @@ import {
   Volume2,
   ChevronDown,
   Check,
+  MessagesSquare,
+  Lightbulb,
+  Scale,
+  BriefcaseBusiness,
+  Mic,
+  BookOpen,
+  Presentation,
+  Users,
+  ChevronRight,
 } from "lucide-react";
 import jarImg from "../assets/jar.png";
 import spinningJar from "../assets/Jar2.PNG";
@@ -28,7 +40,18 @@ import {
   getRandomCategoryPrompt,
   YAP_HELP,
   YAP_QUOTE,
+  DEFAULT_SPEAK_SECONDS,
 } from "../data/prompts";
+
+const CATEGORY_ICONS = {
+  "everyday-conversations": MessagesSquare,
+  "word-play": Lightbulb,
+  "opinions-and-debates": Scale,
+  "workplace-and-interview": BriefcaseBusiness,
+  "the-speaking-stage": Mic,
+  storytelling: BookOpen,
+  "business-ideas-and-pitches": Presentation,
+};
 
 export default function Practice() {
   const navigate = useNavigate();
@@ -47,9 +70,19 @@ export default function Practice() {
   const [currentPrompt, setCurrentPrompt] = useState(wordOfTheDayPrompt);
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [promptError, setPromptError] = useState("");
+  const [speakSeconds, setSpeakSeconds] = useState(DEFAULT_SPEAK_SECONDS);
+  const [usage, setUsage] = useState(() => getUsage([]));
   const spinAudio = useRef(null);
 
   const levelInfo = LEVEL_META.find((l) => l.id === selectedLevel);
+  const hasPrep = (levelInfo?.prepareSeconds ?? 0) > 0;
+
+  useEffect(() => {
+    api
+      .get("/api/practice/recordings")
+      .then((response) => setUsage(getUsage(response.data)))
+      .catch(() => {});
+  }, []);
 
   if (!spinAudio.current) {
     spinAudio.current = new Audio(spinSound);
@@ -141,6 +174,8 @@ export default function Practice() {
         category: activeCategory,
         prompt: currentPrompt,
         isWordOfTheDay: activeCategory?.id === "word-of-the-day",
+        // With prep time, the duration is picked on the preparation screen.
+        speakSeconds: hasPrep ? undefined : speakSeconds,
       },
     });
   };
@@ -152,23 +187,25 @@ export default function Practice() {
     setPromptError("");
   };
 
+  // Yap Mode has no level: no prompt, no preparation, straight to speaking.
   const handleYapMode = () => {
-    if (!selectedLevel) {
-      setIsLevelOpen(true);
-      return;
-    }
-
     setView("yap");
   };
 
   const handleStartYapping = () => {
     navigate("yap-session", {
       state: {
-        level: selectedLevel,
+        level: 3,
+        isYap: true,
+        speakSeconds,
         category: { id: "yap", title: "Yap Mode" },
         prompt: "Yap Mode — free talk",
       },
     });
+  };
+
+  const handleGroupPractice = () => {
+    navigate(isPaidPlan() ? "/app/group-practice/room" : "/app/group-practice");
   };
 
   const handleSelectLevel = (levelId) => {
@@ -206,6 +243,8 @@ export default function Practice() {
 
         <p className="yap-quote">“{YAP_QUOTE}”</p>
 
+        <DurationPicker value={speakSeconds} onChange={setSpeakSeconds} />
+
         <button
           className="spin-jar-btn yap-start-btn"
           onClick={handleStartYapping}
@@ -234,10 +273,6 @@ export default function Practice() {
     );
   }
 
-  if (view === "structures") {
-    return <StructureGuide onBack={() => setView("result")} />;
-  }
-
   // ---------- RESULT VIEW ----------
   if (view === "result") {
     const help = HELP_LAYER_1[activeCategory?.id];
@@ -264,10 +299,12 @@ export default function Practice() {
                   <span className="topic-note-level">
                     LEVEL {selectedLevel}
                   </span>
-                  <span className="topic-note-timer">
-                    <Clock size={11} strokeWidth={2.5} />
-                    {levelInfo?.prepare} PREP
-                  </span>
+                  {hasPrep && (
+                    <span className="topic-note-timer">
+                      <Clock size={11} strokeWidth={2.5} />
+                      {levelInfo.prepareSeconds} SEC PREP
+                    </span>
+                  )}
                 </div>
                 <p className="topic-note-text">{currentPrompt}</p>
               </div>
@@ -285,11 +322,14 @@ export default function Practice() {
           </div>
 
           <div className="result-actions">
+            {!hasPrep && (
+              <DurationPicker value={speakSeconds} onChange={setSpeakSeconds} />
+            )}
             <button
               className="spin-jar-btn result-cta"
               onClick={handleStartPreparing}
             >
-              START PREPARING
+              {hasPrep ? "START PREPARING" : "I'M READY TO SPEAK"}
               <span className="arrow">→</span>
             </button>
 
@@ -335,36 +375,14 @@ export default function Practice() {
               <div className="help-modal-body">
                 <h3 className="help-modal-heading">{help.heading}</h3>
 
-                <p className="help-modal-copy">{help.intro}</p>
-
-                <ul className="help-modal-questions">
-                  {help.questions.map((q, i) => (
-                    <li className="help-modal-question" key={i}>
-                      {q}
-                    </li>
-                  ))}
-                </ul>
-
-                <p className="help-modal-copy">{help.outro}</p>
-
-                <button
-                  className="help-structures-link"
-                  onClick={() => {
-                    setShowHelp(false);
-                    setView("structures");
-                  }}
-                >
-                  <span className="help-structures-link-copy">
-                    <strong>{HELP_LINK_TEXT.question}</strong>
-                    <span>{HELP_LINK_TEXT.action}</span>
-                  </span>
-                  <span
-                    className="help-structures-link-arrow"
-                    aria-hidden="true"
-                  >
-                    →
-                  </span>
-                </button>
+                <div className="help-modal-box">
+                  <ul className="help-modal-bullets">
+                    {help.questions.map((q, i) => (
+                      <li key={i}>{q}</li>
+                    ))}
+                  </ul>
+                  <p className="help-modal-box-note">{help.outro}</p>
+                </div>
               </div>
             </div>
           </div>
@@ -491,6 +509,57 @@ export default function Practice() {
               <p className="mode-card-desc">No topic. Just you talking.</p>
             </button>
           </div>
+
+          <button className="group-entry-card" onClick={handleGroupPractice}>
+            <span className="limit-row-icon" aria-hidden="true">
+              <Users size={18} strokeWidth={1.8} />
+            </span>
+            <span className="limit-row-text">
+              <span className="limit-row-title">Group Practice</span>
+              <span className="limit-row-sub">
+                Practise with others in live sessions.
+              </span>
+            </span>
+            {isPaidPlan() ? (
+              <ChevronRight
+                size={18}
+                className="limit-row-chev"
+                aria-hidden="true"
+              />
+            ) : (
+              <LockKeyhole
+                size={16}
+                className="limit-row-chev"
+                aria-label="Members only"
+              />
+            )}
+          </button>
+
+          <div className="daily-limits-card">
+            <div className="daily-limits-head">
+              <h3>Your daily limits</h3>
+              <span>Resets at midnight</span>
+            </div>
+            <LimitRow
+              icon={MessageCircle}
+              title="AI Feedback"
+              left={usage.aiFeedback.left}
+              total={usage.aiFeedback.total}
+              unit="sessions"
+              onClick={() =>
+                navigate("/app/profile", { state: { open: "usage" } })
+              }
+            />
+            <LimitRow
+              icon={Users}
+              title="Group Practice"
+              left={usage.groupMinutes.left}
+              total={usage.groupMinutes.total}
+              unit="minutes"
+              locked={usage.groupMinutes.total === 0}
+              onClick={handleGroupPractice}
+            />
+          </div>
         </div>
       </div>
 
@@ -511,21 +580,56 @@ export default function Practice() {
             </div>
 
             <div className="category-modal-list">
-              {CATEGORIES.map((category) => (
-                <button
-                  key={category.id}
-                  className="category-modal-item"
-                  onClick={() =>
-                    handleChooseCategory(category.id, category.title)
-                  }
-                >
-                  {category.title}
-                </button>
-              ))}
+              {CATEGORIES.map((category) => {
+                const Icon = CATEGORY_ICONS[category.id] || MessageCircle;
+                return (
+                  <button
+                    key={category.id}
+                    className="category-modal-item category-modal-item-icon"
+                    onClick={() =>
+                      handleChooseCategory(category.id, category.title)
+                    }
+                  >
+                    <span className="category-modal-icon" aria-hidden="true">
+                      <Icon size={20} strokeWidth={1.8} />
+                    </span>
+                    {category.title}
+                  </button>
+                );
+              })}
             </div>
           </div>
         </div>
       )}
     </div>
+  );
+}
+
+function LimitRow({ icon: Icon, title, left, total, unit, locked, onClick }) {
+  const pct = total > 0 ? Math.round((left / total) * 100) : 0;
+  return (
+    <button type="button" className="limit-row" onClick={onClick}>
+      <span className="limit-row-icon" aria-hidden="true">
+        <Icon size={18} strokeWidth={1.8} />
+      </span>
+      <span className="limit-row-text">
+        <span className="limit-row-title">{title}</span>
+        <span className="limit-row-sub">
+          {locked
+            ? "Included with Bloom and Flourish"
+            : `${left} of ${total} ${unit} remaining`}
+        </span>
+        {!locked && (
+          <span className="limit-row-bar">
+            <span style={{ width: `${pct}%` }} />
+          </span>
+        )}
+      </span>
+      {locked ? (
+        <LockKeyhole size={16} className="limit-row-chev" aria-hidden="true" />
+      ) : (
+        <ChevronRight size={18} className="limit-row-chev" aria-hidden="true" />
+      )}
+    </button>
   );
 }

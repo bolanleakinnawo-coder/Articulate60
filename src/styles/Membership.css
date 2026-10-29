@@ -1,0 +1,628 @@
+/* Membership (plans + demo pay) and Group Practice screens. */
+
+.page.ms-page {
+  --ms-sage: #b9cc96;
+  --ms-card: #1b1e18;
+  --ms-card-2: #23281e;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 520px;
+  padding-bottom: 40px;
+  text-align: left;
+}
+
+.ms-back {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  margin-bottom: 18px;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: var(--bg-card);
+  color: var(--text-secondary);
+}
+
+.ms-kicker {
+  margin: 0 0 10px;
+  color: var(--challenge-sage);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.ms-title {
+  margin: 0 0 12px;
+  color: var(--text-primary);
+  font-size: clamp(28px, 7vw, 36px);
+  font-weight: 700;
+  line-height: 1.15;
+}
+
+.ms-sub {
+  margin: 0 0 20px;
+  color: var(--text-secondary);
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.ms-testing {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 18px;
+  padding: 14px;
+  border: 1px solid rgba(196, 209, 168, 0.22);
+  border-radius: 16px;
+  background: rgba(196, 209, 168, 0.06);
+  color: var(--challenge-sage);
+}
+
+.ms-testing svg {
+  flex: 0 0 auto;
+  margin-top: 2px;
+}
+
+.ms-testing p {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 13.5px;
+  line-height: 1.5;
+}
+
+.ms-testing strong {
+  color: var(--text-primary);
+}
+
+.ms-plans {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.ms-plan {
+  position: relative;
+  padding: 20px 18px;
+  border: 1px solid var(--border);
+  border-radius: 22px;
+  background: var(--bg-card);
+}
+
+.ms-plan-featured {
+  border-color: rgba(196, 209, 168, 0.4);
+  background: linear-gradient(180deg, #1c2318 0%, var(--bg-card) 100%);
+}
+
+.ms-badge {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--challenge-sage);
+  color: #1a2216;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.ms-plan h2 {
+  margin: 0 0 4px;
+  color: var(--text-primary);
+  font-size: 19px;
+  font-weight: 700;
+}
+
+.ms-plan-tagline {
+  margin: 0 0 10px;
+  color: var(--text-secondary);
+  font-size: 13.5px;
+}
+
+.ms-price {
+  margin: 0 0 14px;
+  color: var(--text-primary);
+  font-size: 22px;
+  font-weight: 800;
+}
+
+.ms-plan ul {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0 0 14px;
+  padding: 0;
+  list-style: none;
+}
+
+.ms-plan li {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  color: var(--text-primary);
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.ms-plan li svg {
+  flex: 0 0 auto;
+  margin-top: 2px;
+  color: var(--ms-sage);
+}
+
+.ms-offer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 16px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--ms-card-2);
+  color: var(--challenge-sage);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.ms-primary,
+.ms-current {
+  width: 100%;
+  padding: 15px;
+  border: none;
+  border-radius: 16px;
+  background: var(--ms-sage);
+  color: #1a2216;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.ms-primary:hover {
+  filter: brightness(1.05);
+}
+
+.ms-current {
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: default;
+}
+
+.ms-link {
+  margin-top: 14px;
+  border: none;
+  background: none;
+  color: var(--text-secondary);
+  font-size: 14px;
+  text-align: center;
+}
+
+.ms-footnote {
+  margin: 18px 0 0;
+  color: var(--text-muted);
+  font-size: 12.5px;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.ms-success {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 40px;
+  text-align: center;
+}
+
+.ms-success-icon,
+.gp-timeup-icon {
+  display: grid;
+  place-items: center;
+  width: 72px;
+  height: 72px;
+  margin-bottom: 20px;
+  border-radius: 50%;
+  background: #2c3322;
+  color: var(--challenge-sage);
+}
+
+.ms-success h1,
+.gp-timeup h1 {
+  margin: 0 0 10px;
+  color: var(--text-primary);
+  font-size: 26px;
+  font-weight: 700;
+}
+
+.ms-success p {
+  margin: 0 0 24px;
+  color: var(--text-secondary);
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+/* ---------- Group practice intro ---------- */
+.gp-feature-card {
+  margin-bottom: 26px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  background: var(--ms-card);
+}
+
+.gp-hero {
+  margin-bottom: 18px;
+  padding: 16px;
+  border-radius: 18px;
+  background: #2a3123;
+}
+
+.gp-hero-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.gp-hero-icon {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: #3a4330;
+  color: var(--text-primary);
+}
+
+.gp-hero-copy {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.gp-hero-copy strong {
+  color: var(--text-primary);
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.gp-hero-copy span {
+  color: var(--text-secondary);
+  font-size: 13.5px;
+}
+
+.gp-lock {
+  color: var(--challenge-sage);
+}
+
+.gp-hero-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 14px;
+}
+
+.gp-dots {
+  display: flex;
+  gap: 6px;
+}
+
+.gp-dots span {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #4a5636;
+  color: var(--text-primary);
+}
+
+.gp-tagline {
+  color: var(--text-secondary);
+  font-size: 13.5px;
+}
+
+.gp-list {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  margin: 0;
+  padding: 4px 6px 8px;
+  list-style: none;
+}
+
+.gp-list li {
+  display: flex;
+  gap: 14px;
+}
+
+.gp-list li > svg {
+  flex: 0 0 auto;
+  margin-top: 2px;
+  color: var(--ms-sage);
+}
+
+.gp-list li > span {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.gp-list strong {
+  color: var(--text-primary);
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.gp-list li > span > span {
+  color: var(--text-secondary);
+  font-size: 13.5px;
+  line-height: 1.45;
+}
+
+.gp-growth {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 10px;
+  color: var(--text-primary);
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.gp-growth svg {
+  color: var(--ms-sage);
+}
+
+/* ---------- Group practice room (preview) ---------- */
+.gp-room-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.gp-room-title {
+  margin-bottom: 4px;
+  font-size: 26px;
+}
+
+.gp-room-sub {
+  margin: 0;
+}
+
+.gp-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-radius: 999px;
+  background: #22301f;
+  color: var(--ms-sage);
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.gp-pill-warn {
+  background: rgba(214, 110, 40, 0.18);
+  color: #f0904a;
+}
+
+.gp-live-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--ms-sage);
+}
+
+.gp-warning {
+  margin-bottom: 14px;
+  padding: 16px;
+  border: 1px solid rgba(240, 144, 74, 0.3);
+  border-radius: 18px;
+  background: var(--ms-card);
+}
+
+.gp-warning p {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 6px;
+  color: var(--text-primary);
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.gp-warning p svg {
+  color: var(--ms-sage);
+}
+
+.gp-warning span {
+  display: block;
+  color: var(--text-secondary);
+  font-size: 13.5px;
+  line-height: 1.5;
+}
+
+.gp-warning button {
+  margin-top: 10px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--ms-sage);
+  font-size: 13.5px;
+  font-weight: 600;
+}
+
+.gp-allowance {
+  margin-bottom: 22px;
+  padding: 16px;
+  border-radius: 18px;
+  background: var(--ms-card);
+}
+
+.gp-allowance p {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 15px;
+}
+
+.gp-allowance p svg {
+  color: var(--ms-sage);
+}
+
+.gp-allowance strong {
+  margin-left: auto;
+  color: var(--ms-sage);
+  font-weight: 600;
+}
+
+.gp-allowance small {
+  display: block;
+  margin-top: 8px;
+  color: var(--text-secondary);
+  font-size: 12.5px;
+}
+
+.gp-section-title {
+  margin: 0 0 12px;
+  color: var(--text-primary);
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.gp-members {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.gp-member {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 18px 10px;
+  border-radius: 18px;
+  background: var(--ms-card);
+  color: var(--text-primary);
+  font-size: 14px;
+}
+
+.gp-avatar {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: #2c2f29;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.gp-avatar-you {
+  background: #3f5233;
+}
+
+.gp-hand {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  color: var(--ms-sage);
+}
+
+.gp-prompt {
+  margin-bottom: 18px;
+  padding: 16px;
+  border-radius: 18px;
+  background: var(--ms-card);
+}
+
+.gp-prompt span {
+  color: var(--text-secondary);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.gp-prompt p {
+  margin: 8px 0 0;
+  color: var(--text-primary);
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.gp-controls {
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+}
+
+.gp-controls button {
+  display: grid;
+  place-items: center;
+  width: 58px;
+  height: 58px;
+  border: none;
+  border-radius: 50%;
+  background: #2c2f29;
+  color: var(--text-primary);
+}
+
+.gp-controls .gp-on {
+  background: #3f5233;
+}
+
+.gp-controls .gp-leave {
+  background: #7a3a35;
+}
+
+.gp-demo-skip {
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--challenge-sage);
+  font-size: 12.5px;
+  text-decoration: underline;
+}
+
+.gp-timeup {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 30px;
+  text-align: center;
+}
+
+.gp-reset {
+  width: 100%;
+  margin-bottom: 18px;
+  padding: 16px;
+  border-radius: 18px;
+  background: var(--ms-card);
+  text-align: left;
+}
+
+.gp-reset p {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 6px;
+  color: var(--text-primary);
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.gp-reset p svg {
+  color: var(--ms-sage);
+}
+
+.gp-reset span {
+  color: var(--text-secondary);
+  font-size: 13.5px;
+}

@@ -13,32 +13,44 @@ export const YAP_HELP = [
 
 export const YAP_QUOTE = `Yap isn’t talking for the sake of talking. It’s practising your ability to think, organise, and express your thoughts in real time.`;
 
+// Speaking time is chosen per practice (see SPEAK_DURATIONS); the level only
+// sets the preparation time.
 export const LEVEL_META = [
   {
     id: 1,
-    title: "Find Your Voice",
-    description: "60 sec prep, speak for 60 seconds.",
-
+    title: "The Warm-Up",
+    description: "60 seconds to prepare",
     prepareSeconds: 60,
-    speakSeconds: 60,
   },
   {
     id: 2,
-    title: "Think Faster",
-    description: "30 seconds prep, speak for 60 seconds.",
-
+    title: "The Quick Think",
+    description: "30 seconds to prepare",
     prepareSeconds: 30,
-    speakSeconds: 60,
   },
   {
     id: 3,
-    title: "Speak Under Pressure",
-    description: "No prep, speak for 60 seconds.",
-
+    title: "The Hot Seat",
+    description: "No preparation time",
     prepareSeconds: 0,
-    speakSeconds: 60,
   },
 ];
+
+export const SPEAK_DURATIONS = [
+  { seconds: 30, label: "30 sec" },
+  { seconds: 60, label: "1 min" },
+  { seconds: 120, label: "2 min" },
+];
+
+export const DEFAULT_SPEAK_SECONDS = 60;
+
+// "up to 30 seconds", "up to one minute", "up to two minutes"
+export function describeSpeakTime(seconds) {
+  if (seconds < 60) return `${seconds} seconds`;
+  const minutes = Math.round(seconds / 60);
+  const words = ["", "one", "two", "three"];
+  return `${words[minutes] || minutes} minute${minutes === 1 ? "" : "s"}`;
+}
 
 export function getRandomPrompt(categoryId) {
   const pool = PROMPTS[categoryId];

@@ -16,7 +16,7 @@ const { computeMetrics } = require("../utils/speechMetrics");
 const { analyzeSpeech, isBusy } = require("../services/analyzer");
 
 // Keep the audio in memory just long enough to push it to R2 — never
-// touches disk. 15MB cap guards against abuse; a 60-second recording
+// touches disk. 15MB cap guards against abuse; a 2-minute recording
 // is nowhere near this.
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -188,6 +188,7 @@ router.get("/leaderboard", authMiddleware, async (_req, res) => {
           username: entry.username,
           profileImageUrl: entry.profileImageUrl,
           currentStreak: entry.currentStreak,
+          speakingTimeSeconds: entry.speakingTimeSeconds,
           speakingTimeDisplay: formatSpeakingTime(entry.speakingTimeSeconds),
           lastActive: entry.lastActive,
           displayValue:
@@ -195,7 +196,7 @@ router.get("/leaderboard", authMiddleware, async (_req, res) => {
               ? `${entry.currentStreak} day${entry.currentStreak === 1 ? "" : "s"}`
               : metric === "sessions"
                 ? `${entry.sessions} session${entry.sessions === 1 ? "" : "s"}`
-                : formatSpeakingTime(entry.speakingTimeSeconds),
+                : `${entry.speakingTimeSeconds} sec`,
         }));
 
     res.json({

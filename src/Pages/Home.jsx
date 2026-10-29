@@ -5,12 +5,12 @@ import {
   Pause,
   Volume2,
   ArrowRight,
-  X,
   Crown,
   Mic,
 } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import api from "../api/axios";
+import StreakPopup from "../Components/StreakPopup";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -44,15 +44,14 @@ function speakWord(word, availableVoices = []) {
 export default function Home() {
   const location = useLocation();
   const navigate = useNavigate();
-  const currentUser = location.state?.user || getStoredUser();
+  const [currentUser] = useState(() => location.state?.user || getStoredUser());
   const username = currentUser?.username || location.state?.username || "there";
 
   // Word of the Day state — fetched from the backend instead of hardcoded
   const [wordOfDay, setWordOfDay] = useState(null);
   const [loadingWord, setLoadingWord] = useState(true);
   const [currentStreak, setCurrentStreak] = useState(0);
-  const [needsPracticeToday, setNeedsPracticeToday] = useState(false);
-  const [showPracticeReminder, setShowPracticeReminder] = useState(true);
+  const [streakData, setStreakData] = useState(null);
   const [recentActivity, setRecentActivity] = useState(null);
   const [communityWins, setCommunityWins] = useState([]);
   const [communityWinsError, setCommunityWinsError] = useState("");
@@ -110,11 +109,10 @@ export default function Home() {
       .get("/api/practice/streak")
       .then((response) => {
         setCurrentStreak(response.data.current || 0);
-        setNeedsPracticeToday(Boolean(response.data.needsPracticeToday));
+        setStreakData(response.data);
       })
       .catch(() => {
         setCurrentStreak(0);
-        setNeedsPracticeToday(false);
       });
   }, []);
 
@@ -146,7 +144,9 @@ export default function Home() {
       });
   }, []);
 
-  const activeLeaderboardEntries = leaderboard.streak || [];
+  // Ranked by total speaking time, highest number of seconds first.
+  const activeLeaderboardEntries =
+    leaderboard.speakingTime || leaderboard.streak || [];
 
   return (
     <div className="page">
@@ -168,30 +168,8 @@ export default function Home() {
         </div>
       </header>
 
-      {needsPracticeToday && showPracticeReminder && (
-        <aside className="practice-reminder" aria-live="polite">
-          <span className="practice-reminder-icon" aria-hidden="true">
-            <Flame size={20} />
-          </span>
-          <div className="practice-reminder-copy">
-            <strong>Your streak is waiting!</strong>
-            <span>A quick practice today keeps your momentum going.</span>
-          </div>
-          <button
-            className="practice-reminder-action"
-            onClick={() => navigate("/app/practice")}
-          >
-            Keep my streak <ArrowRight size={16} />
-          </button>
-          <button
-            className="practice-reminder-dismiss"
-            aria-label="Dismiss practice reminder"
-            onClick={() => setShowPracticeReminder(false)}
-          >
-            <X size={18} />
-          </button>
-        </aside>
-      )}
+      {/* Tailored streak notification, shown as a pop-up. */}
+      <StreakPopup streak={streakData} user={currentUser} />
 
       <section className="home-grid">
         <div className="card today-practice-card">
@@ -199,7 +177,7 @@ export default function Home() {
             <span>Today's Practice</span>
           </div>
 
-          <h2>Get a topic. Speak for 60 seconds.</h2>
+          <h2>Get a topic. Speak for up to 2 minutes.</h2>
 
           <p>Build your ability to communicate clearly and confidently.</p>
 
@@ -295,7 +273,7 @@ export default function Home() {
                       <th scope="col">Rank</th>
                       <th scope="col">Username</th>
                       <th scope="col">Streak</th>
-                      <th scope="col">Speaking Time</th>
+                      <th scope="col">Speaking Time (sec)</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -506,9 +484,17 @@ function LeaderboardRow({ rank, entry }) {
       <td className="leaderboard-speaking-time-cell" data-label="Speaking Time">
         <span className="leaderboard-metric">
           <Mic size={15} aria-hidden="true" />
-          {entry.speakingTimeDisplay}
+          {formatLeaderboardSeconds(entry)}
         </span>
       </td>
     </tr>
   );
+}
+
+// Speaking time on the leaderboard is shown in seconds.
+function formatLeaderboardSeconds(entry) {
+  if (Number.isFinite(entry.speakingTimeSeconds)) {
+    return `${entry.speakingTimeSeconds.toLocaleString()} sec`;
+  }
+  return entry.speakingTimeDisplay;
 }
