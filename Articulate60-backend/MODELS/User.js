@@ -84,8 +84,38 @@ const userSchema = new mongoose.Schema(
       default: null,
     },
     plan: { type: String, enum: ["free", "pro"], default: "free" },
+
+    // --- Streak notifications ---
+    // IANA time zone from the member's device (e.g. "Africa/Lagos"). Streak
+    // days, the grace day and reminder times are all worked out in it.
+    timeZone: { type: String, default: "" },
+    // Mirrors the switches on Profile > Notifications.
+    notificationPrefs: {
+      streakPopups: { type: Boolean, default: true },
+      practiceNudges: { type: Boolean, default: true },
+    },
+    // Web Push subscriptions, one per device/browser that allowed them.
+    pushSubscriptions: {
+      type: [
+        {
+          _id: false,
+          endpoint: { type: String, required: true },
+          keys: {
+            p256dh: { type: String, required: true },
+            auth: { type: String, required: true },
+          },
+          userAgent: { type: String, default: "" },
+          createdAt: { type: Date, default: Date.now },
+        },
+      ],
+      default: [],
+    },
+    // Last local day (YYYY-MM-DD) each reminder was sent, so none repeats.
+    reminderLog: { type: Map, of: String, default: {} },
   },
   { timestamps: true },
 );
+
+userSchema.index({ "pushSubscriptions.endpoint": 1 });
 
 module.exports = mongoose.model("User", userSchema);

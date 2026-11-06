@@ -1,5 +1,8 @@
-// Pop-up notifications: preferences and the tailored streak message.
-// Preferences live in this browser; push notifications would need the server.
+// Streak notifications: preferences and the tailored in-app streak card.
+// Preferences are kept on this device and copied to the server, which uses
+// them for phone (push) reminders too. Wording matches the server's push
+// text in Articulate60-backend/services/streakNotices.js.
+import api from "../api/axios";
 
 const PREFS_KEY = "loquiex.notificationPrefs";
 const SEEN_KEY = "loquiex.popupSeen";
@@ -23,6 +26,25 @@ export function setNotificationPrefs(prefs) {
   } catch {
     // Storage blocked: the change lasts until the page reloads.
   }
+  syncNotificationPrefs(prefs);
+}
+
+// Copies the switches to the server so phone reminders follow them too.
+export function syncNotificationPrefs(prefs = getNotificationPrefs()) {
+  return api
+    .put("/api/push/prefs", {
+      streakPopups: !!prefs.streakPopups,
+      practiceNudges: !!prefs.practiceNudges,
+    })
+    .catch(() => {});
+}
+
+// "18h 24m", "45m"
+export function formatTimeLeft(ms) {
+  const totalMinutes = Math.max(0, Math.floor(ms / 60000));
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  return hours ? `${hours}h ${minutes}m` : `${minutes}m`;
 }
 
 // One pop-up per message per day, so it never nags.
@@ -78,19 +100,38 @@ function focusLine(user) {
   return FOCUS_LINES[goals[day % goals.length]];
 }
 
-// Works out which pop-up (if any) fits this person right now.
+function plural(n, word) {
+  return `${n} ${word}${n === 1 ? "" : "s"}`;
+}
+
+// Older servers only send { current, longest, needsPracticeToday }.
+function streakState(streak) {
+  if (streak.state) return streak.state;
+  const { current = 0, longest = 0, needsPracticeToday = true } = streak;
+  if (current === 0) return longest === 0 ? "new" : "lost";
+  return needsPracticeToday ? "active" : "done";
+}
+
+// Works out which streak card (if any) fits this person right now.
+//   first     just registered, no practice yet
+//   keep      streak going, not practised today
+//   restore   missed yesterday; today is the 24h grace day (local time)
+//   comeback  lost their streak or hasn't practised for a while
+//   milestone practised today and hit 3, 7, 14, 21, 30... days
+// layout "streak" is the left-aligned SPEAKING STREAK card; "center" is the
+// centred card with an icon on top.
 export function buildStreakNotification({ streak, user, prefs }) {
   if (!streak) return null;
-  const { current = 0, longest = 0, needsPracticeToday = true } = streak;
-  const name = user?.username
-    ? user.username.charAt(0).toUpperCase() + user.username.slice(1)
-    : "";
+  const state = streakState(streak);
+  const n = streak.current || 0;
   const focus = prefs.practiceNudges ? focusLine(user) : "";
 
-  if (current === 0 && longest === 0) {
+  if (state === "new") {
     if (!prefs.practiceNudges && !prefs.streakPopups) return null;
     return {
       id: "first-streak",
+      layout: "center",
+      icon: "flame",
       title: "Your first streak starts here.",
       body: "One practice today. One step towards expressing yourself with confidence.",
       focus,
@@ -100,39 +141,57 @@ export function buildStreakNotification({ streak, user, prefs }) {
 
   if (!prefs.streakPopups) return null;
 
-  if (current === 0) {
+  if (state === "active" && n > 0) {
     return {
-      id: "fresh-start",
-      title: name
-        ? `Ready for a fresh start, ${name}?`
-        : "Ready for a fresh start?",
-      body: `Your best streak was ${longest} day${longest === 1 ? "" : "s"}. One practice today starts a new one.`,
+      id: `keep-${n}`,
+      layout: "streak",
+      eyebrow: "Speaking streak",
+      headline: plural(n, "day"),
+      subline: "You've been showing up.",
+      title: "Let's keep it going.",
+      body: `You've made time to practise for ${plural(n, "day")}. Complete today's practice to keep your streak alive.`,
       focus,
-      action: "Start a new streak",
+      action: "Practise today",
     };
   }
 
-  if (needsPracticeToday) {
-    const next = current + 1;
+  if (state === "grace" && n > 0) {
     return {
-      id: `keep-${current}`,
-      title: `Keep your ${current}-day streak alive.`,
-      body: MILESTONES.includes(next)
-        ? `Practise today to reach ${next} days in a row.`
-        : "You haven't practised yet today. One quick practice keeps it going.",
+      id: `restore-${streak.today || new Date().toDateString()}`,
+      layout: "streak",
+      eyebrow: "Speaking streak",
+      headline: `${n}-day streak`,
+      restoreDeadline: streak.restoreDeadline,
+      title: "You can still save your streak.",
+      body: `Life happens. You still have today to restore your ${n}-day streak. Come back and pick up where you left off.`,
       focus,
-      action: "Keep my streak",
+      action: "Restore my streak",
     };
   }
 
-  if (MILESTONES.includes(current)) {
+  if (state === "lost") {
     return {
-      id: `milestone-${current}`,
-      title: `${current} days strong!`,
-      body: `You've practised ${current} days in a row. That's how confident speakers are made.`,
+      id: "comeback",
+      layout: "center",
+      icon: "trend",
+      eyebrow: "Your progress, in practice",
+      title: "You're building a skill that stays with you.",
+      body: "Give yourself another opportunity to practise expressing your thoughts clearly.",
+      focus,
+      action: "Practise today",
+    };
+  }
+
+  if (state === "done" && MILESTONES.includes(n)) {
+    return {
+      id: `milestone-${n}`,
+      layout: "center",
+      icon: "flame",
+      celebrate: true,
+      title: `${n} days strong!`,
+      body: `You've practised ${n} days in a row. That's how confident speakers are made.`,
       focus: "",
       action: "Keep going",
-      celebrate: true,
     };
   }
 

@@ -6,6 +6,8 @@ const { PutObjectCommand } = require("@aws-sdk/client-s3");
 const { randomUUID } = require("crypto");
 const User = require("../MODELS/User"); // adjust path/casing to match your actual folder
 const r2 = require("../config/r2");
+const rateLimit = require("express-rate-limit");
+const { planIdOf, subscriptionOf } = require("../utils/plans");
 
 const router = express.Router();
 
@@ -13,10 +15,7 @@ const EMAIL_REGEX = /^\S+@\S+\.\S+$/;
 const USERNAME_REGEX = /^[a-zA-Z0-9_]{3,20}$/;
 const normalizeUsername = (username) => username.trim().toLowerCase();
 const usernameLookup = (username) =>
-  new RegExp(
-    `^${username.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`,
-    "i",
-  );
+  new RegExp(`^${username.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, "i");
 const PHONE_REGEX = /^\+?[0-9]{10,15}$/;
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -26,19 +25,14 @@ const handleProfilePhotoUpload = (req, res, next) => {
   upload.single("profilePhoto")(req, res, (error) => {
     if (!error) return next();
 
-    if (
-      error instanceof multer.MulterError &&
-      error.code === "LIMIT_FILE_SIZE"
-    ) {
+    if (error instanceof multer.MulterError && error.code === "LIMIT_FILE_SIZE") {
       return res
         .status(413)
         .json({ message: "Profile photos must be smaller than 5 MB." });
     }
 
     console.error("Failed to receive profile photo:", error);
-    return res
-      .status(400)
-      .json({ message: "Could not process the profile photo." });
+    return res.status(400).json({ message: "Could not process the profile photo." });
   });
 };
 const PROFILE_IMAGE_EXTENSIONS = {
@@ -46,6 +40,18 @@ const PROFILE_IMAGE_EXTENSIONS = {
   "image/png": "png",
   "image/webp": "webp",
 };
+
+// Slows down password guessing: 10 tries per 15 minutes per IP + account.
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  skipSuccessfulRequests: true,
+  keyGenerator: (req) =>
+    `${rateLimit.ipKeyGenerator(req.ip)}|${String(req.body?.identifier || "").trim().toLowerCase()}`,
+  message: { message: "Too many sign-in attempts. Please wait 15 minutes and try again." },
+});
 
 const generateToken = (userId) => {
   return jwt.sign({ id: userId }, process.env.JWT_SECRET, { expiresIn: "7d" });
@@ -86,9 +92,7 @@ router.post("/signup", handleProfilePhotoUpload, async (req, res) => {
       practiceFrequency,
     } = req.body;
     const selectedImprovements =
-      typeof improvements === "string"
-        ? JSON.parse(improvements)
-        : improvements;
+      typeof improvements === "string" ? JSON.parse(improvements) : improvements;
 
     const errors = {};
 
@@ -125,15 +129,9 @@ router.post("/signup", handleProfilePhotoUpload, async (req, res) => {
       errors.roleOther = "Please tell us more.";
     }
 
-    if (
-      !Array.isArray(selectedImprovements) ||
-      selectedImprovements.length === 0
-    ) {
+    if (!Array.isArray(selectedImprovements) || selectedImprovements.length === 0) {
       errors.improvements = "Please select at least one improvement area.";
-    } else if (
-      selectedImprovements.includes("Other") &&
-      !improvementOther?.trim()
-    ) {
+    } else if (selectedImprovements.includes("Other") && !improvementOther?.trim()) {
       errors.improvementOther = "Please tell us more.";
     }
 
@@ -169,9 +167,7 @@ router.post("/signup", handleProfilePhotoUpload, async (req, res) => {
 
     if (req.file) {
       if (!req.file.mimetype.startsWith("image/")) {
-        return res
-          .status(400)
-          .json({ message: "Profile photo must be an image." });
+        return res.status(400).json({ message: "Profile photo must be an image." });
       }
 
       const extension = req.file.mimetype.split("/")[1] || "jpg";
@@ -202,7 +198,8 @@ router.post("/signup", handleProfilePhotoUpload, async (req, res) => {
       practiceFrequency,
       profileImageUrl,
       marketingOptIn: marketingOptIn === "true",
-      marketingOptInAt: marketingOptIn === "true" ? new Date() : null,
+      marketingOptInAt:
+        marketingOptIn === "true" ? new Date() : null,
     });
 
     const token = generateToken(newUser._id);
@@ -217,7 +214,8 @@ router.post("/signup", handleProfilePhotoUpload, async (req, res) => {
         email: newUser.email,
         profileImageUrl: newUser.profileImageUrl,
         createdAt: newUser.createdAt,
-        plan: newUser.plan,
+        plan: planIdOf(newUser),
+        subscription: subscriptionOf(newUser),
         improvements: newUser.improvements,
         practiceFrequency: newUser.practiceFrequency,
       },
@@ -247,7 +245,7 @@ router.post("/signup", handleProfilePhotoUpload, async (req, res) => {
 });
 
 // ---------- LOGIN ----------
-router.post("/login", async (req, res) => {
+router.post("/login", loginLimiter, async (req, res) => {
   try {
     const { identifier, password } = req.body; // identifier = email or username
 
@@ -285,7 +283,8 @@ router.post("/login", async (req, res) => {
         email: user.email,
         profileImageUrl: user.profileImageUrl,
         createdAt: user.createdAt,
-        plan: user.plan,
+        plan: planIdOf(user),
+        subscription: subscriptionOf(user),
         improvements: user.improvements,
         practiceFrequency: user.practiceFrequency,
       },
@@ -395,7 +394,8 @@ router.put(
           email: req.user.email,
           profileImageUrl: req.user.profileImageUrl,
           createdAt: req.user.createdAt,
-          plan: req.user.plan,
+          plan: planIdOf(req.user),
+          subscription: subscriptionOf(req.user),
           improvements: req.user.improvements,
           practiceFrequency: req.user.practiceFrequency,
         },
@@ -403,9 +403,7 @@ router.put(
     } catch (err) {
       console.error(err);
       if (err.code === 11000 && err.keyPattern?.username) {
-        return res
-          .status(409)
-          .json({ message: "This username is already taken." });
+        return res.status(409).json({ message: "This username is already taken." });
       }
       res
         .status(500)

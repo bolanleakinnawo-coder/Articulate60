@@ -5,6 +5,9 @@ const LearnNotification = require("../MODELS/LearnNotification");
 
 const router = express.Router();
 
+// Every admin route needs the admin key (see middleware/adminAuth.js).
+router.use(require("../middleware/adminAuth"));
+
 router.get("/subscribers", async (_req, res) => {
   try {
     const subscribers = await User.find({ marketingOptIn: true })

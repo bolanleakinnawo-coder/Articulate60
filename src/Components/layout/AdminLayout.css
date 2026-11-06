@@ -79,6 +79,92 @@
   padding: 40px;
 }
 
+/* Admin key screen */
+.admin-gate {
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+}
+
+.admin-gate-card {
+  display: grid;
+  gap: 10px;
+  width: 100%;
+  max-width: 400px;
+  padding: 28px 24px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg, 20px);
+  background: var(--bg-card);
+}
+
+.admin-gate-icon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  background: var(--olive-primary);
+  color: var(--text-primary);
+}
+
+.admin-gate-card h1 {
+  margin: 6px 0 0;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.admin-gate-card p {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.admin-gate-card label {
+  margin-top: 8px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.admin-gate-card input {
+  min-height: 48px;
+  padding: 0 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 16px;
+}
+
+.admin-gate-card input:focus-visible,
+.admin-gate-card button:focus-visible {
+  outline: 2px solid var(--olive-bright);
+  outline-offset: 2px;
+}
+
+.admin-gate-card .admin-gate-error {
+  color: #e0907f;
+}
+
+.admin-gate-card button {
+  min-height: 50px;
+  margin-top: 6px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--olive-primary);
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.admin-gate-card button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
 @media (max-width: 760px) {
   .admin-layout {
     display: block;
@@ -106,6 +192,17 @@
     display: flex;
     flex: 1;
     justify-content: space-around;
+    min-width: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .admin-nav-link {
+    flex: 0 0 auto;
+  }
+
+  .admin-logout {
+    margin-top: 0;
   }
 
   .admin-nav-link {

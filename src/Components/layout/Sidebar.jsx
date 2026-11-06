@@ -1,15 +1,9 @@
-import {
-  Home,
-  Target,
-  Trophy,
-  BookOpen,
-  User,
-
-  LogOut,
-} from "lucide-react";
+import { Home, Target, Trophy, BookOpen, User, LogOut } from "lucide-react";
 
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import brandLogo from "../../assets/brandlogo.PNG";
+import { disablePush } from "../../lib/push";
+import { disconnectRealtime } from "../../lib/realtime";
 
 const navigation = [
   {
@@ -38,7 +32,10 @@ const navigation = [
 export default function Sidebar() {
   const navigate = useNavigate();
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    // Stop this device's streak reminders and live updates for this member.
+    await disablePush().catch(() => {});
+    disconnectRealtime();
     sessionStorage.removeItem("token");
     sessionStorage.removeItem("user");
     navigate("/login", { replace: true });
@@ -46,11 +43,7 @@ export default function Sidebar() {
 
   return (
     <aside className="sidebar">
-      <Link
-        className="sidebar-logo"
-        to="/app/home"
-        aria-label="Loquiex home"
-      >
+      <Link className="sidebar-logo" to="/app/home" aria-label="Loquiex home">
         <img src={brandLogo} alt="Loquiex" />
       </Link>
 

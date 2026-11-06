@@ -10,7 +10,9 @@ const authMiddleware = require("../middleware/auth");
 const r2 = require("../config/r2");
 const Recording = require("../MODELS/Recording");
 const User = require("../MODELS/User");
-const { calculateStreak } = require("../utils/streak");
+const { calculateStreak, getStreakStatus } = require("../utils/streak");
+const { resolveTimeZone } = require("../utils/timeZone");
+const { emitToUser } = require("../services/realtime");
 const { transcribeAudio } = require("../services/deepgram");
 const { computeMetrics } = require("../utils/speechMetrics");
 const { analyzeSpeech, isBusy } = require("../services/analyzer");
@@ -87,14 +89,18 @@ router.post(
         return res.status(404).json({ message: "User not found." });
       }
 
+      const zone = await resolveTimeZone(req, user);
       const recordings = await Recording.find({ user: req.userId }).select(
         "createdAt",
       );
-      const streak = calculateStreak(recordings);
+      const streak = getStreakStatus(recordings, zone);
       user.currentStreak = streak.current;
       user.longestStreak = streak.longest;
       user.lastPracticeDate = new Date();
       await user.save();
+
+      // Other open tabs/devices update their streak straight away.
+      emitToUser(req.userId, "streak:status", streak);
 
       res.status(201).json({
         recording,
@@ -159,8 +165,11 @@ router.get("/leaderboard", authMiddleware, async (_req, res) => {
     const entries = statsByUser
       .filter((stats) => usersById.has(stats._id.toString()))
       .map((stats) => {
+        // Days were grouped in UTC above, so count them in UTC too.
         const streak = calculateStreak(
           stats.practiceDays.map((day) => ({ createdAt: new Date(day) })),
+          new Date(),
+          "UTC",
         ).current;
         const user = usersById.get(stats._id.toString());
 
@@ -242,18 +251,18 @@ router.get("/recordings", authMiddleware, async (req, res) => {
 });
 
 // GET /api/practice/streak
-// Powers the streak badge on Home.
+// Powers the streak badge and streak cards on Home. Worked out in the
+// member's own time zone (sent by the app in the X-Time-Zone header).
+// Returns { current, longest, needsPracticeToday, state, restoreDeadline,
+// restoreMsLeft, daysSincePractice, lastPracticeDay, today, timeZone }.
 router.get("/streak", authMiddleware, async (req, res) => {
   try {
+    const user = await User.findById(req.userId).select("timeZone");
+    const zone = await resolveTimeZone(req, user);
     const recordings = await Recording.find({ user: req.userId }).select(
       "createdAt",
     );
-    const streak = calculateStreak(recordings);
-    res.json({
-      current: streak.current,
-      longest: streak.longest,
-      needsPracticeToday: streak.needsPracticeToday,
-    });
+    res.json(getStreakStatus(recordings, zone));
   } catch (err) {
     console.error("Failed to fetch streak:", err);
     res.status(500).json({ message: "Failed to fetch streak." });

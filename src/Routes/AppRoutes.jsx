@@ -23,7 +23,11 @@ import ReadyIntro from "../Pages/ReadyIntro"; // NEW
 import Waitlist from "../Pages/Waitlist";
 import Membership from "../Pages/Membership";
 import HelpSupport from "../Pages/HelpSupport";
-import { GroupPracticeIntro, GroupPracticeRoom } from "../Pages/GroupPractice";
+import {
+  GroupPracticeIntro,
+  GroupPracticeRoom,
+  GroupPracticeCall,
+} from "../Pages/GroupPractice";
 
 export default function AppRoutes() {
   return (
@@ -60,10 +64,18 @@ export default function AppRoutes() {
 
           <Route path="practice/prepare" element={<PracticeSession />} />
           <Route path="practice/yap-session" element={<PracticeSession />} />
+          <Route
+            path="practice/research-session"
+            element={<PracticeSession />}
+          />
           <Route path="membership" element={<Membership />} />
           <Route path="help" element={<HelpSupport />} />
           <Route path="group-practice" element={<GroupPracticeIntro />} />
           <Route path="group-practice/room" element={<GroupPracticeRoom />} />
+          <Route
+            path="group-practice/room/:roomId"
+            element={<GroupPracticeCall />}
+          />
         </Route>
       </Route>
     </Routes>

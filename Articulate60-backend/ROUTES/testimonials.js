@@ -3,6 +3,7 @@ const mongoose = require("mongoose");
 const Testimonial = require("../MODELS/Testimonial");
 const authMiddleware = require("../middleware/auth");
 
+const adminAuth = require("../middleware/adminAuth");
 const router = express.Router();
 
 router.get("/", async (req, res) => {
@@ -17,6 +18,24 @@ router.get("/", async (req, res) => {
   } catch (error) {
     console.error("Failed to fetch approved testimonials:", error);
     res.status(500).json({ message: "Could not load testimonials." });
+  }
+});
+
+// GET /api/testimonials/mine
+// The signed-in user's own wins, newest first, with their review status.
+// Powers "Your recent wins" on the Share a Win page.
+router.get("/mine", authMiddleware, async (req, res) => {
+  try {
+    const testimonials = await Testimonial.find({ user: req.userId })
+      .select("quote displayName status createdAt reviewedAt")
+      .sort({ createdAt: -1 })
+      .limit(50)
+      .lean();
+
+    res.json(testimonials);
+  } catch (error) {
+    console.error("Failed to fetch the user's testimonials:", error);
+    res.status(500).json({ message: "Could not load your wins." });
   }
 });
 
@@ -54,7 +73,7 @@ router.post("/", authMiddleware, async (req, res) => {
   }
 });
 
-router.get("/admin", async (req, res) => {
+router.get("/admin", adminAuth, async (req, res) => {
   const allowedStatuses = ["pending", "approved", "rejected"];
   const status = req.query.status || "pending";
   if (!allowedStatuses.includes(status)) {
@@ -74,7 +93,7 @@ router.get("/admin", async (req, res) => {
   }
 });
 
-router.patch("/admin/:id", async (req, res) => {
+router.patch("/admin/:id", adminAuth, async (req, res) => {
     const { id } = req.params;
     const { status } = req.body;
     if (!mongoose.isValidObjectId(id)) {

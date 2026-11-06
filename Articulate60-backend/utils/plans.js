@@ -1,0 +1,113 @@
+// Plans, prices and allowances the SERVER enforces. The app (src/data/plans.js)
+// only displays these; every price charged and every plan granted comes from
+// here. Keep the two files in step.
+//
+//   groupMinutesPerMonth:  null = unlimited, 0 = not included
+const PLAN_LIMITS = {
+  free: { name: "Loquiex Free", groupMinutesPerMonth: 0 },
+  bloom: { name: "Loquiex Bloom", groupMinutesPerMonth: 0 },
+  flourish: { name: "Loquiex Flourish", groupMinutesPerMonth: 2700 },
+  infinity: { name: "Loquiex Infinity", groupMinutesPerMonth: null },
+};
+
+// ---- PRICES: monthly price per plan, per currency, before any billing-period
+// discount. This is the ONE place to change what members are charged (the
+// app's src/data/plans.js PRICES only displays them; keep both in step).
+// USD: Bloom is $4/month (Sheriff). Flourish and Infinity are PLACEHOLDERS
+// (same ratio to Bloom as in naira) until their dollar prices are decided.
+const PRICES = {
+  NGN: { bloom: 4900, flourish: 8000, infinity: 29800 },
+  USD: { bloom: 4, flourish: 7 /* placeholder */, infinity: 24 /* placeholder */ },
+};
+
+const PLAN_IDS = Object.keys(PLAN_LIMITS);
+const PAID_PLAN_IDS = Object.keys(PRICES.NGN);
+
+// Currencies members can pay in. NGN always; USD only once Paystack has
+// enabled USD on the account and PAYSTACK_USD_ENABLED=true is set.
+function enabledCurrencies() {
+  return process.env.PAYSTACK_USD_ENABLED === "true" ? ["NGN", "USD"] : ["NGN"];
+}
+
+const BILLING_PERIODS = {
+  monthly: { months: 1, discount: 0, label: "Monthly" },
+  quarterly: { months: 3, discount: 5, label: "3 months" },
+  "half-year": { months: 6, discount: 8, label: "6 months" },
+  yearly: { months: 12, discount: 15, label: "12 months" },
+};
+
+// Amount to charge in the currency's smallest unit (kobo / cents, which is
+// what Paystack expects), or null for an unknown plan, period or currency.
+function priceMinorFor(planId, periodId, currency = "NGN") {
+  const monthly = PRICES[currency]?.[planId];
+  const period = BILLING_PERIODS[periodId];
+  if (!monthly || !period) return null;
+  return Math.round(monthly * period.months * (1 - period.discount / 100) * 100);
+}
+
+// The plan a member actually has right now. A paid plan only counts while a
+// verified payment covers it (planExpiresAt in the future). Plans saved
+// without a payment (the old testing switch, or old "pro" accounts) count as
+// Free. Every projection that reads `plan` must also read `planExpiresAt`.
+function planIdOf(user, now = new Date()) {
+  const id = user?.plan === "pro" ? "bloom" : user?.plan;
+  if (!PLAN_LIMITS[id] || id === "free") return "free";
+  const expires = user?.planExpiresAt ? new Date(user.planExpiresAt) : null;
+  if (!expires || !(expires > now)) return "free";
+  return id;
+}
+
+function limitsFor(user) {
+  return PLAN_LIMITS[planIdOf(user)];
+}
+
+function hasGroupPractice(user) {
+  return limitsFor(user).groupMinutesPerMonth !== 0;
+}
+
+function isPaid(user) {
+  return planIdOf(user) !== "free";
+}
+
+// What the app shows on Manage Membership.
+function subscriptionOf(user, now = new Date()) {
+  const planId = planIdOf(user, now);
+  if (planId === "free") return { planId, periodId: null, startedAt: null, expiresAt: null };
+  return {
+    planId,
+    periodId: BILLING_PERIODS[user.planPeriodId] ? user.planPeriodId : "monthly",
+    startedAt: user.planStartedAt || null,
+    expiresAt: user.planExpiresAt,
+  };
+}
+
+// Calendar months, clamped so 31 Jan + 1 month = 28/29 Feb.
+function addMonths(date, months) {
+  const d = new Date(date);
+  const day = d.getUTCDate();
+  d.setUTCDate(1);
+  d.setUTCMonth(d.getUTCMonth() + months);
+  const last = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 0)).getUTCDate();
+  d.setUTCDate(Math.min(day, last));
+  return d;
+}
+
+// Fields to read whenever plan access is checked.
+const PLAN_FIELDS = { plan: 1, planExpiresAt: 1 };
+
+module.exports = {
+  PLAN_LIMITS,
+  PLAN_IDS,
+  PAID_PLAN_IDS,
+  BILLING_PERIODS,
+  PLAN_FIELDS,
+  PRICES,
+  enabledCurrencies,
+  priceMinorFor,
+  planIdOf,
+  limitsFor,
+  hasGroupPractice,
+  isPaid,
+  subscriptionOf,
+  addMonths,
+};

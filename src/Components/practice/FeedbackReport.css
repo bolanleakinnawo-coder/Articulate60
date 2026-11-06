@@ -22,12 +22,11 @@
   --fb-warn-bg: rgba(232, 169, 61, 0.09);
   --fb-warn-line: rgba(232, 169, 61, 0.26);
   --fb-track: rgba(255, 255, 255, 0.07);
-  /* Loquiex cream: headings, scores and values on this page use it instead
-     of white. Body copy that needs reading uses the brighter cream. */
-  --fb-cream: #ece3cf;
-  --fb-read: #ddd6c4;
-  --text-primary: var(--fb-cream);
-  --challenge-heading: var(--fb-cream);
+  /* Off-white: the same --text-primary (#f1ecde) the rest of the app uses
+     (Home, Yap Mode, Profile). No separate cream shade on this page. */
+  --fb-cream: #f1ecde;
+  --fb-read: #f1ecde;
+  --challenge-heading: #f1ecde;
 }
 
 /* =====================================================
@@ -56,8 +55,8 @@
 .fb-title {
   margin: 0 0 6px;
   color: var(--text-primary);
-  font-size: 30px;
-  font-weight: 800;
+  font-size: 28px;
+  font-weight: 700;
   line-height: 1.15;
 }
 
@@ -137,8 +136,8 @@
 
 .fb-ring-value {
   color: var(--challenge-heading);
-  font-size: 34px;
-  font-weight: 800;
+  font-size: 28px;
+  font-weight: 700;
   line-height: 1;
 }
 
@@ -155,7 +154,7 @@
 .fb-score-kicker {
   margin: 0 0 6px;
   color: var(--fb-sage);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -164,15 +163,15 @@
 .fb-score-verdict {
   margin: 0 0 6px;
   color: var(--challenge-heading);
-  font-size: 22px;
-  font-weight: 800;
+  font-size: 20px;
+  font-weight: 700;
   line-height: 1.2;
 }
 
 .fb-score-summary {
   margin: 0;
   color: var(--challenge-copy);
-  font-size: 13.5px;
+  font-size: 14px;
   line-height: 1.5;
 }
 
@@ -194,7 +193,7 @@
 
 .fb-score-stat-label {
   color: var(--challenge-copy);
-  font-size: 12.5px;
+  font-size: 12px;
 }
 
 .fb-score-stat-value {
@@ -214,7 +213,7 @@
   background: var(--fb-sage);
   color: var(--fb-sage-ink);
   font: inherit;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 700;
   cursor: pointer;
   transition: filter 0.2s ease;
@@ -236,14 +235,14 @@
 .fb-heading {
   margin: 0 0 4px;
   color: var(--text-primary);
-  font-size: 20px;
-  font-weight: 800;
+  font-size: 18px;
+  font-weight: 700;
 }
 
 .fb-subheading {
   margin: 0 0 14px;
   color: var(--text-secondary);
-  font-size: 13.5px;
+  font-size: 14px;
   line-height: 1.45;
 }
 
@@ -301,7 +300,7 @@
 .fb-player-title {
   margin: 0;
   color: var(--text-primary);
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 600;
 }
 
@@ -399,30 +398,37 @@
   margin-bottom: 14px;
 }
 
+/* Every tab you can switch to wears the sage highlight. The tab you are on
+   takes the quiet dark style, with an off-white outline so it still reads
+   as selected. */
 .fb-tab {
-  padding: 9px 16px;
-  border: 1px solid var(--border);
+  padding: 8px 14px;
+  border: 1px solid var(--fb-sage);
   border-radius: 999px;
-  background: var(--bg-secondary);
-  color: var(--text-secondary);
+  background: var(--fb-sage);
+  color: var(--fb-sage-ink);
   font: inherit;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   cursor: pointer;
   transition:
     background 0.2s ease,
-    color 0.2s ease;
+    border-color 0.2s ease,
+    color 0.2s ease,
+    filter 0.2s ease;
 }
 
 .fb-tab:hover {
-  color: var(--text-primary);
+  filter: brightness(1.06);
 }
 
 .fb-tab-active,
 .fb-tab-active:hover {
-  border-color: var(--fb-sage);
-  background: var(--fb-sage);
-  color: var(--fb-sage-ink);
+  border-color: var(--text-primary);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  filter: none;
+  cursor: default;
 }
 
 .fb-tab-panel {
@@ -452,21 +458,21 @@
 .fb-panel-title {
   margin: 0;
   color: var(--text-primary);
-  font-size: 18px;
-  font-weight: 800;
+  font-size: 15px;
+  font-weight: 700;
 }
 
 .fb-panel-sub {
   margin: -6px 0 0;
   color: var(--text-muted);
-  font-size: 13px;
+  font-size: 12px;
 }
 
 .fb-panel-headline {
   margin: 0;
   color: var(--text-primary);
-  font-size: 16px;
-  font-weight: 700;
+  font-size: 15px;
+  font-weight: 600;
   line-height: 1.35;
 }
 
@@ -479,7 +485,7 @@
 
 .fb-status {
   flex-shrink: 0;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 700;
 }
 
@@ -532,13 +538,13 @@
 
 .fb-metric-label {
   color: var(--text-primary);
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 600;
 }
 
 .fb-metric-sub {
   color: var(--text-muted);
-  font-size: 13px;
+  font-size: 12px;
 }
 
 .fb-metric-value {
@@ -605,8 +611,8 @@
   gap: 10px;
   margin: 0 0 10px;
   color: var(--text-primary);
-  font-size: 17px;
-  font-weight: 800;
+  font-size: 15px;
+  font-weight: 700;
 }
 
 .fb-callout-good .fb-callout-title svg {
@@ -621,7 +627,7 @@
 .fb-callout-headline {
   margin: 0 0 8px;
   color: var(--text-primary);
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 600;
 }
 
@@ -642,7 +648,7 @@
   background: none;
   color: var(--fb-warn);
   font: inherit;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   cursor: pointer;
 }
@@ -691,13 +697,13 @@
 
 .fb-glance-label {
   color: var(--text-primary);
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 600;
 }
 
 .fb-glance-text {
   color: var(--text-muted);
-  font-size: 13.5px;
+  font-size: 13px;
   line-height: 1.45;
 }
 
@@ -735,7 +741,7 @@
 .fb-eyebrow {
   margin: 0;
   color: var(--text-muted);
-  font-size: 11.5px;
+  font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.07em;
   text-transform: uppercase;
@@ -744,15 +750,15 @@
 .fb-box-label {
   margin: 0;
   color: var(--fb-good);
-  font-size: 13.5px;
+  font-size: 13px;
   font-weight: 600;
 }
 
 .fb-box-title {
   margin: 0;
   color: var(--text-primary);
-  font-size: 16px;
-  font-weight: 700;
+  font-size: 14px;
+  font-weight: 600;
 }
 
 .fb-box-head {
@@ -761,14 +767,14 @@
   gap: 8px;
   margin: 0;
   color: var(--text-primary);
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 700;
 }
 
 .fb-box-count {
   margin-left: auto;
   color: var(--text-muted);
-  font-size: 12.5px;
+  font-size: 12px;
   font-weight: 500;
 }
 
@@ -794,7 +800,7 @@
 .fb-quote {
   margin: 0;
   color: var(--text-primary);
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 600;
   line-height: 1.45;
 }
@@ -814,7 +820,7 @@
 .fb-count {
   flex-shrink: 0;
   color: var(--text-muted);
-  font-size: 12.5px;
+  font-size: 12px;
 }
 
 .fb-divider {
@@ -827,7 +833,7 @@
 .fb-footnote {
   margin: 0;
   color: var(--text-muted);
-  font-size: 12.5px;
+  font-size: 12px;
   line-height: 1.5;
 }
 
@@ -870,7 +876,7 @@
   background: var(--fb-deep);
   color: var(--challenge-heading);
   font: inherit;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 700;
   cursor: pointer;
 }
@@ -886,20 +892,20 @@
 
 .fb-transcript-text {
   margin: 0;
-  color: var(--fb-read);
-  font-size: 15px;
+  color: var(--text-primary);
+  font-size: 14px;
   line-height: 1.75;
 }
 
 /* "One clearer way to say it": brighter so it's easy to read */
 .fb-box-bright {
-  border-color: rgba(236, 227, 207, 0.14);
+  border-color: rgba(241, 236, 222, 0.14);
   background: #1d1f1a;
 }
 
 .fb-box-bright .fb-box-text {
-  color: var(--fb-read);
-  font-size: 15px;
+  color: var(--text-primary);
+  font-size: 14px;
 }
 
 .fb-mark {
@@ -934,7 +940,7 @@
   margin: 0 0 8px;
   color: var(--challenge-heading);
   font-size: 18px;
-  font-weight: 800;
+  font-weight: 700;
 }
 
 .fb-practice-text {
@@ -953,7 +959,7 @@
   color: var(--fb-sage-ink);
   font: inherit;
   font-size: 16px;
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
   transition:
     filter 0.2s ease,
@@ -973,7 +979,7 @@
   background: transparent;
   color: var(--text-primary);
   font: inherit;
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 600;
   cursor: pointer;
   transition: background 0.2s ease;
@@ -1023,7 +1029,7 @@
   margin: 10px 0 6px;
   color: var(--text-primary);
   font-size: 26px;
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: 0.02em;
 }
 
@@ -1110,11 +1116,11 @@
   }
 
   .fb-ring-value {
-    font-size: 28px;
+    font-size: 24px;
   }
 
   .fb-score-verdict {
-    font-size: 19px;
+    font-size: 18px;
   }
 
   .fb-score-stats {
@@ -1326,7 +1332,7 @@
 }
 
 .sh-sheet {
-  --text-primary: #ece3cf;
+  --sh-accent: #b3b083;
   width: min(100%, 480px);
   max-height: 94vh;
   max-height: 94dvh;
@@ -1349,7 +1355,7 @@
 
 .sh-kicker {
   margin: 0 0 4px;
-  color: var(--challenge-sage);
+  color: var(--sh-accent);
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -1359,8 +1365,8 @@
 .sh-title {
   margin: 0;
   color: var(--text-primary);
-  font-size: 20px;
-  font-weight: 800;
+  font-size: 22px;
+  font-weight: 700;
 }
 
 .sh-close {
@@ -1384,9 +1390,9 @@
 
 .sh-preview img {
   display: block;
-  width: min(62%, 260px);
+  width: min(66%, 280px);
   height: auto;
-  border-radius: 18px;
+  border-radius: 16px;
   box-shadow: 0 18px 40px rgba(0, 0, 0, 0.5);
 }
 
@@ -1401,7 +1407,7 @@
 .sh-caption-label {
   margin: 0 0 6px;
   color: var(--text-muted);
-  font-size: 11.5px;
+  font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.07em;
   text-transform: uppercase;
@@ -1423,7 +1429,7 @@
   border: 1px solid var(--border);
   border-radius: 999px;
   background: transparent;
-  color: var(--challenge-sage);
+  color: var(--sh-accent);
   font-size: 13px;
   font-weight: 600;
 }
@@ -1441,6 +1447,28 @@
   gap: 8px;
 }
 
+.sh-primary {
+  width: 100%;
+  padding: 15px;
+  border: none;
+  border-radius: 16px;
+  background: var(--olive-primary);
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.sh-primary:hover:not(:disabled) {
+  background: var(--olive-bright);
+}
+
+.fb-secondary-btn.sh-btn {
+  font-size: 16px;
+}
+
 .sh-btn:disabled {
   opacity: 0.55;
   cursor: default;
@@ -1453,7 +1481,7 @@
 .sh-hint {
   margin: 12px 0 0;
   color: var(--text-muted);
-  font-size: 12.5px;
+  font-size: 12px;
   text-align: center;
 }
 
@@ -1465,5 +1493,24 @@
   .sh-sheet {
     border-bottom: 1px solid var(--border);
     border-radius: 26px;
+  }
+}
+
+/* Share button on the "You did it!" and "Amazing!" pages */
+.sh-open-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+@media (max-width: 360px) {
+  .sh-sheet {
+    padding: 18px 14px 22px;
+  }
+
+  .sh-preview img {
+    width: min(78%, 280px);
   }
 }

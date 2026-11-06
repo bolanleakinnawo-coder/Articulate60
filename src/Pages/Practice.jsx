@@ -1,15 +1,36 @@
 import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { HELP_LAYER_1 } from "../data/help";
-import { getUsage, isPaidPlan } from "../data/plans";
+import {
+  getUsage,
+  fetchGroupUsage,
+  refreshPlanFromServer,
+  groupPracticePlanNames,
+  hasGroupPractice,
+} from "../data/plans";
 import api from "../api/axios";
 import DurationPicker from "../Components/practice/DurationPicker";
+import {
+  ResearchIntro,
+  ResearchSubjectSheet,
+  ResearchLoading,
+  ResearchWorkspace,
+  ResearchLeaveDialog,
+} from "../Components/practice/ResearchMode";
+import {
+  RESEARCH_SUBJECTS,
+  pickResearchTopic,
+  loadResearchSession,
+  saveResearchSession,
+  clearResearchSession,
+} from "../data/research";
 import "../styles/PracticeExtras.css";
 
 import {
   HelpCircle,
   Sparkles,
-  LayoutGrid,
+  Search,
+  Shuffle,
   MessageCircle,
   X,
   RotateCw,
@@ -63,12 +84,27 @@ export default function Practice() {
     : null;
   const [selectedLevel, setSelectedLevel] = useState(wordOfTheDay ? 1 : null);
   const [isLevelOpen, setIsLevelOpen] = useState(false);
-  const [view, setView] = useState(wordOfTheDay ? "result" : "select"); // select | spinning | result | yap
+  // Research sessions survive leaving the app, so reopen one that's in progress.
+  const [researchSession, setResearchSession] = useState(() =>
+    wordOfTheDay ? null : loadResearchSession(),
+  );
+  const [view, setView] = useState(
+    wordOfTheDay ? "result" : researchSession ? "research" : "select",
+  ); // select | spinning | result | yap | research-intro | research-loading | research
+  const [tab, setTab] = useState(() =>
+    new URLSearchParams(location.search).get("tab") === "group"
+      ? "group"
+      : "solo",
+  );
+  const [showSpinSheet, setShowSpinSheet] = useState(false);
+  const [showResearchSheet, setShowResearchSheet] = useState(false);
+  const [researchLoadingSubject, setResearchLoadingSubject] = useState("");
+  const [showLeaveResearch, setShowLeaveResearch] = useState(false);
+  const researchTimer = useRef(null);
   const [activeCategory, setActiveCategory] = useState(
     wordOfTheDay ? { id: "word-of-the-day", title: "Word of the Day" } : null,
   );
   const [currentPrompt, setCurrentPrompt] = useState(wordOfTheDayPrompt);
-  const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [promptError, setPromptError] = useState("");
   const [speakSeconds, setSpeakSeconds] = useState(DEFAULT_SPEAK_SECONDS);
   const [usage, setUsage] = useState(() => getUsage([]));
@@ -78,10 +114,14 @@ export default function Practice() {
   const hasPrep = (levelInfo?.prepareSeconds ?? 0) > 0;
 
   useEffect(() => {
-    api
-      .get("/api/practice/recordings")
-      .then((response) => setUsage(getUsage(response.data)))
-      .catch(() => {});
+    // Recordings give AI feedback usage; group minutes come from the server.
+    Promise.all([
+      api.get("/api/practice/recordings").catch(() => null),
+      refreshPlanFromServer().then(fetchGroupUsage),
+    ]).then(([response]) => {
+      if (response) setUsage(getUsage(response.data));
+      else setUsage(getUsage([]));
+    });
   }, []);
 
   if (!spinAudio.current) {
@@ -113,7 +153,18 @@ export default function Practice() {
     }, 1600);
   };
 
+  // Spin the Jar first asks: surprise me, or which category?
+  const handleOpenSpinSheet = () => {
+    if (!selectedLevel) {
+      setIsLevelOpen(true);
+      return;
+    }
+    setPromptError("");
+    setShowSpinSheet(true);
+  };
+
   const handleSpinTheJar = () => {
+    setShowSpinSheet(false);
     if (!selectedLevel) {
       setIsLevelOpen(true);
       return;
@@ -134,13 +185,12 @@ export default function Practice() {
   };
 
   const handleChooseCategory = (categoryId, categoryTitle) => {
+    setShowSpinSheet(false);
     if (!selectedLevel) {
-      setShowCategoryModal(false);
       setIsLevelOpen(true);
       return;
     }
 
-    setShowCategoryModal(false);
     const prompt = getRandomPrompt(categoryId);
     if (!prompt) {
       setPromptError(`${categoryTitle} doesn't have any topics available yet.`);
@@ -204,14 +254,142 @@ export default function Practice() {
     });
   };
 
+  // ---------- Research Mode ----------
+  useEffect(() => () => clearTimeout(researchTimer.current), []);
+
+  const handleResearchMode = () => {
+    setView("research-intro");
+    window.scrollTo(0, 0);
+  };
+
+  const handlePickResearchSubject = (subjectId) => {
+    setShowResearchSheet(false);
+    const subject = RESEARCH_SUBJECTS.find((s) => s.id === subjectId);
+    const picked = pickResearchTopic(subjectId);
+    if (!picked) {
+      setPromptError("No research topics are available right now.");
+      return;
+    }
+    setResearchLoadingSubject(subject?.title || "");
+    setView("research-loading");
+    clearTimeout(researchTimer.current);
+    researchTimer.current = setTimeout(() => {
+      const session = {
+        subjectId: picked.subjectId,
+        subjectTitle: picked.subjectTitle,
+        topic: picked.topic,
+        surprise: !subjectId,
+        status: "idle",
+        endsAt: null,
+        remaining: null,
+      };
+      saveResearchSession(session);
+      setResearchSession(session);
+      setView("research");
+      window.scrollTo(0, 0);
+    }, 1600);
+  };
+
+  const handleNewResearchTopic = () => {
+    if (!researchSession) return;
+    handlePickResearchSubject(
+      researchSession.surprise ? null : researchSession.subjectId,
+    );
+  };
+
+  const leaveResearch = () => {
+    clearResearchSession();
+    setResearchSession(null);
+    setShowLeaveResearch(false);
+    setView("research-intro");
+  };
+
+  const handleResearchBack = () => {
+    if (researchSession && researchSession.status !== "idle") {
+      setShowLeaveResearch(true);
+    } else {
+      leaveResearch();
+    }
+  };
+
+  const handleDoneResearching = () => {
+    const session = researchSession;
+    if (!session) return;
+    clearResearchSession();
+    navigate("research-session", {
+      state: {
+        level: 3,
+        isResearch: true,
+        speakSeconds,
+        category: {
+          id: `research-${session.subjectId}`,
+          title: `Research · ${session.subjectTitle}`,
+        },
+        prompt: session.topic,
+      },
+    });
+  };
+
+  const selectTab = (next) => {
+    setTab(next);
+    navigate(next === "group" ? "/app/practice?tab=group" : "/app/practice", {
+      replace: true,
+    });
+  };
+
   const handleGroupPractice = () => {
-    navigate(isPaidPlan() ? "/app/group-practice/room" : "/app/group-practice");
+    navigate(
+      hasGroupPractice() ? "/app/group-practice/room" : "/app/group-practice",
+    );
   };
 
   const handleSelectLevel = (levelId) => {
     setSelectedLevel(levelId);
     setIsLevelOpen(false);
   };
+
+  // ---------- RESEARCH MODE VIEWS ----------
+  if (view === "research-intro") {
+    return (
+      <>
+        <ResearchIntro
+          onBack={() => setView("select")}
+          onReady={() => setShowResearchSheet(true)}
+        />
+        {promptError && <p role="alert">{promptError}</p>}
+        {showResearchSheet && (
+          <ResearchSubjectSheet
+            onPick={handlePickResearchSubject}
+            onClose={() => setShowResearchSheet(false)}
+          />
+        )}
+      </>
+    );
+  }
+
+  if (view === "research-loading") {
+    return <ResearchLoading subjectTitle={researchLoadingSubject} />;
+  }
+
+  if (view === "research" && researchSession) {
+    return (
+      <>
+        <ResearchWorkspace
+          session={researchSession}
+          onSessionChange={setResearchSession}
+          onBack={handleResearchBack}
+          onNewTopic={handleNewResearchTopic}
+          onDone={handleDoneResearching}
+        />
+        {showLeaveResearch && (
+          <ResearchLeaveDialog
+            onStay={() => setShowLeaveResearch(false)}
+            onLeave={leaveResearch}
+          />
+        )}
+      </>
+    );
+  }
 
   // ---------- YAP MODE VIEW ----------
   if (view === "yap") {
@@ -396,190 +574,253 @@ export default function Practice() {
     <div className="page practice-page">
       <div className="practice-intro">
         <p className="practice-time-label">Practice Time</p>
-        <p className="practice-intro-title">
-          <LockKeyhole size={16} strokeWidth={1.8} aria-hidden="true" />
-          <span>Only you can access your recordings. Speak freely.</span>
-        </p>
       </div>
 
-      <div className="practice-select-layout">
-        <div className="practice-select-controls">
-          <p className="eyebrow practice-level-label">CHOOSE YOUR LEVEL</p>
+      <div className="practice-tabs" role="tablist" aria-label="Practice type">
+        <button
+          role="tab"
+          id="practice-tab-solo"
+          aria-selected={tab === "solo"}
+          aria-controls="practice-panel"
+          className={`practice-tab ${tab === "solo" ? "active" : ""}`}
+          onClick={() => selectTab("solo")}
+        >
+          Solo Practice
+        </button>
+        <button
+          role="tab"
+          id="practice-tab-group"
+          aria-selected={tab === "group"}
+          aria-controls="practice-panel"
+          className={`practice-tab ${tab === "group" ? "active" : ""}`}
+          onClick={() => selectTab("group")}
+        >
+          Group Practice
+        </button>
+      </div>
 
-          <div className="level-dropdown">
-            <button
-              className={`level-dropdown-trigger ${isLevelOpen ? "open" : ""}`}
-              onClick={() => setIsLevelOpen((prev) => !prev)}
-            >
-              <span className="level-dropdown-trigger-text">
-                <span className="level-dropdown-label">
-                  {levelInfo ? `LEVEL ${levelInfo.id}` : "LEVEL"}
-                </span>
-                <span className="level-dropdown-title">
-                  {levelInfo?.title || "Choose your level"}
-                </span>
-              </span>
-              <ChevronDown
-                size={20}
-                strokeWidth={2}
-                className={`level-dropdown-chevron ${isLevelOpen ? "open" : ""}`}
-              />
-            </button>
-
-            {isLevelOpen && (
-              <div className="level-dropdown-list">
-                {LEVEL_META.map((level) => {
-                  const isSelected = selectedLevel === level.id;
-                  return (
-                    <button
-                      key={level.id}
-                      className={`level-dropdown-item ${
-                        isSelected ? "selected" : ""
-                      }`}
-                      onClick={() => handleSelectLevel(level.id)}
-                    >
-                      <span className="level-dropdown-item-number">
-                        {String(level.id).padStart(2, "0")}
-                      </span>
-
-                      <span className="level-dropdown-item-text">
-                        <span className="level-dropdown-item-title">
-                          {level.title}
-                        </span>
-                        {level.description && (
-                          <span className="level-dropdown-item-desc">
-                            {level.description}
-                          </span>
-                        )}
-                      </span>
-
-                      {isSelected && (
-                        <Check
-                          size={16}
-                          strokeWidth={2.5}
-                          className="level-dropdown-item-check"
-                        />
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-            )}
+      {tab === "group" ? (
+        <div
+          className="practice-group-panel"
+          id="practice-panel"
+          role="tabpanel"
+          aria-labelledby="practice-tab-group"
+        >
+          <div className="practice-panel-intro">
+            <h2 className="practice-panel-title">Practise Together</h2>
+            <p className="practice-panel-sub">
+              Join live audio rooms and speak with other Loquiex members.
+            </p>
           </div>
-        </div>
-
-        <div className="jar-wrapper practice-main-jar">
-          <img
-            src={jarImg}
-            alt="Jar with speaking topics"
-            className="jar-image"
+          <GroupEntryCard onClick={handleGroupPractice} />
+          <LimitsCard
+            usage={usage}
+            onAiClick={() =>
+              navigate("/app/profile", { state: { open: "usage" } })
+            }
+            onGroupClick={handleGroupPractice}
           />
         </div>
-
-        <div className="practice-select-actions">
-          <button className="spin-jar-btn" onClick={handleSpinTheJar}>
-            <Sparkles size={18} strokeWidth={2} />
-            Spin the Jar
-          </button>
-          {promptError && <p role="alert">{promptError}</p>}
-
-          <div className="mode-cards">
-            <button
-              className="mode-card"
-              onClick={() => setShowCategoryModal(true)}
-            >
-              <div className="mode-card-heading">
-                <div className="mode-card-icon">
-                  <LayoutGrid size={18} strokeWidth={1.8} />
-                </div>
-                <h3 className="mode-card-title">Choose a category</h3>
-              </div>
-              <p className="mode-card-desc">
-                Pick a category and get a tailored topic.
-              </p>
-            </button>
-
-            <button className="mode-card" onClick={handleYapMode}>
-              <div className="mode-card-heading">
-                <div className="mode-card-icon">
-                  <MessageCircle size={18} strokeWidth={1.8} />
-                </div>
-                <h3 className="mode-card-title">Yap Mode</h3>
-              </div>
-              <p className="mode-card-desc">No topic. Just you talking.</p>
-            </button>
+      ) : (
+        <>
+          <div
+            className="practice-panel-intro practice-solo-intro"
+            id="practice-panel"
+            role="tabpanel"
+            aria-labelledby="practice-tab-solo"
+          >
+            <h2 className="practice-panel-title">Just You</h2>
+            <p className="practice-panel-sub">
+              <LockKeyhole size={14} strokeWidth={1.8} aria-hidden="true" />
+              Speak freely. Your recordings are visible only to you.
+            </p>
           </div>
 
-          <button className="group-entry-card" onClick={handleGroupPractice}>
-            <span className="limit-row-icon" aria-hidden="true">
-              <Users size={18} strokeWidth={1.8} />
-            </span>
-            <span className="limit-row-text">
-              <span className="limit-row-title">Group Practice</span>
-              <span className="limit-row-sub">
-                Practise with others in live sessions.
-              </span>
-            </span>
-            {isPaidPlan() ? (
-              <ChevronRight
-                size={18}
-                className="limit-row-chev"
-                aria-hidden="true"
-              />
-            ) : (
-              <LockKeyhole
-                size={16}
-                className="limit-row-chev"
-                aria-label="Members only"
-              />
-            )}
-          </button>
+          <div className="practice-select-layout">
+            <div className="practice-select-controls">
+              <p className="eyebrow practice-level-label">CHOOSE YOUR LEVEL</p>
 
-          <div className="daily-limits-card">
-            <div className="daily-limits-head">
-              <h3>Your daily limits</h3>
-              <span>Resets at midnight</span>
+              <div className="level-dropdown">
+                <button
+                  className={`level-dropdown-trigger ${isLevelOpen ? "open" : ""}`}
+                  onClick={() => setIsLevelOpen((prev) => !prev)}
+                >
+                  <span className="level-dropdown-trigger-text">
+                    <span className="level-dropdown-label">
+                      {levelInfo ? `LEVEL ${levelInfo.id}` : "LEVEL"}
+                    </span>
+                    <span className="level-dropdown-title">
+                      {levelInfo?.title || "Choose your level"}
+                    </span>
+                  </span>
+                  <ChevronDown
+                    size={20}
+                    strokeWidth={2}
+                    className={`level-dropdown-chevron ${isLevelOpen ? "open" : ""}`}
+                  />
+                </button>
+
+                {isLevelOpen && (
+                  <div className="level-dropdown-list">
+                    {LEVEL_META.map((level) => {
+                      const isSelected = selectedLevel === level.id;
+                      return (
+                        <button
+                          key={level.id}
+                          className={`level-dropdown-item ${
+                            isSelected ? "selected" : ""
+                          }`}
+                          onClick={() => handleSelectLevel(level.id)}
+                        >
+                          <span className="level-dropdown-item-number">
+                            {String(level.id).padStart(2, "0")}
+                          </span>
+
+                          <span className="level-dropdown-item-text">
+                            <span className="level-dropdown-item-title">
+                              {level.title}
+                            </span>
+                            {level.description && (
+                              <span className="level-dropdown-item-desc">
+                                {level.description}
+                              </span>
+                            )}
+                          </span>
+
+                          {isSelected && (
+                            <Check
+                              size={16}
+                              strokeWidth={2.5}
+                              className="level-dropdown-item-check"
+                            />
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
             </div>
-            <LimitRow
-              icon={MessageCircle}
-              title="AI Feedback"
-              left={usage.aiFeedback.left}
-              total={usage.aiFeedback.total}
-              unit="sessions"
-              onClick={() =>
-                navigate("/app/profile", { state: { open: "usage" } })
-              }
-            />
-            <LimitRow
-              icon={Users}
-              title="Group Practice"
-              left={usage.groupMinutes.left}
-              total={usage.groupMinutes.total}
-              unit="minutes"
-              locked={usage.groupMinutes.total === 0}
-              onClick={handleGroupPractice}
-            />
-          </div>
-        </div>
-      </div>
 
-      {showCategoryModal && (
+            <div className="jar-wrapper practice-main-jar">
+              <img
+                src={jarImg}
+                alt="Jar with speaking topics"
+                className="jar-image"
+              />
+            </div>
+
+            <div className="practice-select-actions">
+              <button className="spin-jar-btn" onClick={handleOpenSpinSheet}>
+                <Sparkles size={18} strokeWidth={2} />
+                Spin the Jar
+              </button>
+              {promptError && <p role="alert">{promptError}</p>}
+
+              <div className="mode-cards">
+                <button className="mode-card" onClick={handleResearchMode}>
+                  <div className="mode-card-heading">
+                    <div className="mode-card-icon">
+                      <Search size={18} strokeWidth={1.8} />
+                    </div>
+                    <h3 className="mode-card-title">Research Mode</h3>
+                  </div>
+                  <p className="mode-card-desc">
+                    Learn something new, then explain it.
+                  </p>
+                </button>
+
+                <button className="mode-card" onClick={handleYapMode}>
+                  <div className="mode-card-heading">
+                    <div className="mode-card-icon">
+                      <MessageCircle size={18} strokeWidth={1.8} />
+                    </div>
+                    <h3 className="mode-card-title">Yap Mode</h3>
+                  </div>
+                  <p className="mode-card-desc">No topic. Just you talking.</p>
+                </button>
+              </div>
+
+              <div className="practice-others-card">
+                <div className="practice-others-head">
+                  <span className="practice-others-icon" aria-hidden="true">
+                    <Users size={20} strokeWidth={1.8} />
+                  </span>
+                  <span>
+                    <span className="practice-others-title">
+                      Ready to practise with others?
+                    </span>
+                    <span className="practice-others-sub">
+                      Put your skills to the test in real conversations and
+                      build confidence together.
+                    </span>
+                  </span>
+                </div>
+                <button
+                  className="practice-others-btn"
+                  onClick={() => {
+                    selectTab("group");
+                    window.scrollTo(0, 0);
+                  }}
+                >
+                  Join or host a practice session
+                  <span aria-hidden="true">→</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
+      {showSpinSheet && (
         <div
           className="category-modal-backdrop"
-          onClick={() => setShowCategoryModal(false)}
+          onClick={() => setShowSpinSheet(false)}
         >
-          <div className="category-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="category-modal-header">
-              <h2>Choose Your Category</h2>
+          <div
+            className="category-modal spin-sheet"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="spin-sheet-title"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="category-modal-header spin-sheet-header">
+              <div>
+                <h2 id="spin-sheet-title">Spin the Jar</h2>
+                <p className="spin-sheet-sub">
+                  Where should your topic come from?
+                </p>
+              </div>
               <button
                 className="category-modal-close"
-                onClick={() => setShowCategoryModal(false)}
+                onClick={() => setShowSpinSheet(false)}
+                aria-label="Close"
               >
                 <X size={20} />
               </button>
             </div>
 
-            <div className="category-modal-list">
+            <button className="spin-surprise" onClick={handleSpinTheJar}>
+              <span
+                className="category-modal-icon spin-surprise-icon"
+                aria-hidden="true"
+              >
+                <Shuffle size={20} strokeWidth={1.8} />
+              </span>
+              <span className="spin-surprise-text">
+                <span className="spin-surprise-title">Surprise me</span>
+                <span className="spin-surprise-sub">
+                  Any topic from any category
+                </span>
+              </span>
+              <Sparkles size={18} strokeWidth={2} aria-hidden="true" />
+            </button>
+
+            <p className="spin-sheet-divider">
+              <span>or pick a category</span>
+            </p>
+
+            <div className="category-modal-list spin-sheet-list">
               {CATEGORIES.map((category) => {
                 const Icon = CATEGORY_ICONS[category.id] || MessageCircle;
                 return (
@@ -605,7 +846,73 @@ export default function Practice() {
   );
 }
 
-function LimitRow({ icon: Icon, title, left, total, unit, locked, onClick }) {
+function GroupEntryCard({ onClick }) {
+  return (
+    <button className="group-entry-card" onClick={onClick}>
+      <span className="limit-row-icon" aria-hidden="true">
+        <Users size={18} strokeWidth={1.8} />
+      </span>
+      <span className="limit-row-text">
+        <span className="limit-row-title">Group Practice</span>
+        <span className="limit-row-sub">
+          Practise with others in live sessions.
+        </span>
+      </span>
+      {hasGroupPractice() ? (
+        <ChevronRight size={18} className="limit-row-chev" aria-hidden="true" />
+      ) : (
+        <LockKeyhole
+          size={16}
+          className="limit-row-chev"
+          aria-label="Members only"
+        />
+      )}
+    </button>
+  );
+}
+
+function LimitsCard({ usage, onAiClick, onGroupClick }) {
+  return (
+    <div className="daily-limits-card">
+      <div className="daily-limits-head">
+        <h3>Your limits</h3>
+        <span>AI feedback resets at midnight</span>
+      </div>
+      <LimitRow
+        icon={MessageCircle}
+        title="AI Feedback"
+        left={usage.aiFeedback.left}
+        total={usage.aiFeedback.total}
+        unit="sessions"
+        period="today"
+        onClick={onAiClick}
+      />
+      <LimitRow
+        icon={Users}
+        title="Group Practice"
+        left={usage.groupMinutes.left}
+        total={usage.groupMinutes.total}
+        unit="minutes"
+        period="this month"
+        locked={usage.groupMinutes.total === 0}
+        onClick={onGroupClick}
+      />
+    </div>
+  );
+}
+
+// `total` null = unlimited, 0 = not on this plan (locked).
+function LimitRow({
+  icon: Icon,
+  title,
+  left,
+  total,
+  unit,
+  period,
+  locked,
+  onClick,
+}) {
+  const unlimited = total === null;
   const pct = total > 0 ? Math.round((left / total) * 100) : 0;
   return (
     <button type="button" className="limit-row" onClick={onClick}>
@@ -616,10 +923,12 @@ function LimitRow({ icon: Icon, title, left, total, unit, locked, onClick }) {
         <span className="limit-row-title">{title}</span>
         <span className="limit-row-sub">
           {locked
-            ? "Included with Bloom and Flourish"
-            : `${left} of ${total} ${unit} remaining`}
+            ? `Included with ${groupPracticePlanNames().join(" and ")}`
+            : unlimited
+              ? "Unlimited"
+              : `${left.toLocaleString()} of ${total.toLocaleString()} ${unit} left ${period}`}
         </span>
-        {!locked && (
+        {!locked && !unlimited && (
           <span className="limit-row-bar">
             <span style={{ width: `${pct}%` }} />
           </span>

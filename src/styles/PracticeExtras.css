@@ -225,3 +225,254 @@
     margin: 0;
   }
 }
+
+/* ---------- Solo / Group tabs ---------- */
+.practice-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  width: 100%;
+  max-width: 1040px;
+  margin: -12px 0 22px;
+  padding: 4px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--bg-card);
+}
+
+.practice-tab {
+  padding: 12px 8px;
+  border: none;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 15px;
+  font-weight: 600;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
+}
+
+.practice-tab:hover {
+  color: var(--text-primary);
+}
+
+.practice-tab.active {
+  background: var(--olive-primary);
+  color: var(--text-primary);
+}
+
+.practice-panel-intro {
+  align-self: flex-start;
+  width: 100%;
+  max-width: 1040px;
+  margin: 0 auto 6px;
+  text-align: left;
+}
+
+.practice-panel-title {
+  margin: 0 0 6px;
+  color: var(--text-primary);
+  font-size: 22px;
+  font-weight: 800;
+}
+
+.practice-panel-sub {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.practice-panel-sub svg {
+  flex: 0 0 auto;
+}
+
+.practice-solo-intro {
+  margin-bottom: 22px;
+}
+
+.practice-group-panel {
+  display: flex;
+  flex-direction: column;
+  align-self: flex-start;
+  width: 100%;
+  max-width: 560px;
+}
+
+.practice-group-panel .practice-panel-intro {
+  margin-bottom: 4px;
+}
+
+/* ---------- "Ready to practise with others?" ---------- */
+.practice-others-card {
+  width: 100%;
+  max-width: 420px;
+  margin: 14px auto 0;
+  padding: 18px;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: var(--bg-card);
+  text-align: left;
+}
+
+.practice-others-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.practice-others-icon {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  background: var(--bg-secondary);
+  color: var(--olive-bright);
+}
+
+.practice-others-head > span:last-child {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.practice-others-title {
+  color: var(--text-primary);
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.practice-others-sub {
+  color: var(--text-secondary);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.practice-others-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  margin-top: 16px;
+  padding: 13px;
+  border: none;
+  border-radius: 999px;
+  background: var(--text-primary);
+  color: var(--bg-card);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.practice-others-btn:hover {
+  background: #e6e0cf;
+}
+
+/* ---------- Spin the Jar sheet ---------- */
+.spin-sheet {
+  text-align: left;
+  max-height: 88vh;
+  max-height: 88dvh;
+  overflow-y: auto;
+}
+
+.spin-sheet-header {
+  align-items: flex-start;
+}
+
+.spin-sheet-sub {
+  margin-top: 4px;
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.spin-surprise {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--olive-bright);
+  border-radius: var(--radius-md);
+  background: var(--olive-primary);
+  color: var(--text-primary);
+  text-align: left;
+}
+
+.spin-surprise:hover {
+  background: var(--olive-bright);
+}
+
+.category-modal-icon.spin-surprise-icon {
+  background: rgba(0, 0, 0, 0.22);
+}
+
+.spin-surprise-text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.spin-surprise-title {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.spin-surprise-sub {
+  font-size: 12px;
+  opacity: 0.85;
+}
+
+.spin-sheet-divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 16px 0 12px;
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.spin-sheet-divider::before,
+.spin-sheet-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+.spin-sheet-list {
+  max-height: none;
+  overflow: visible;
+}
+
+.spin-sheet-list .category-modal-item.category-modal-item-icon {
+  padding: 8px 12px;
+}
+
+.spin-sheet-list .category-modal-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+}
+
+@media (min-width: 900px) {
+  .practice-page .practice-select-actions .practice-others-card {
+    max-width: none;
+    margin: 0;
+  }
+
+  .practice-group-panel .group-entry-card,
+  .practice-group-panel .daily-limits-card {
+    max-width: none;
+  }
+}

@@ -564,3 +564,42 @@
     margin: 0;
   }
 }
+
+/* ---------- RESEARCH: GET READY TO EXPLAIN ---------- */
+.research-ready-topic {
+  width: 100%;
+  margin-bottom: 24px;
+  padding: 18px;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--olive-bright);
+  border-radius: var(--radius-lg);
+  background: var(--bg-card);
+  text-align: left;
+}
+
+.research-ready-label {
+  margin-bottom: 8px;
+  color: var(--olive-bright);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.research-ready-text {
+  color: var(--text-primary);
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.research-ready-subject {
+  margin-top: 10px;
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+@media (min-width: 900px) {
+  .research-ready-page .research-ready-topic {
+    max-width: 1040px;
+  }
+}

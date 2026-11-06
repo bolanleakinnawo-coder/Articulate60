@@ -1,65 +1,84 @@
-// Help & Support content.
-// PLACEHOLDER COPY: these answers are drafts. Replace them with the final
-// wording once the plan and fees are decided.
+// Help & support content (Profile > Help & support).
+// Answers describe the app as it's built today. Update them when payments,
+// referral rewards and live group calls go live.
 
 export const SUPPORT_EMAIL = "support@loquiex.app"; // TODO: confirm address
 
+// The first QUICK_COUNT questions show under "Quick answers";
+// "View all questions" reveals the rest.
+export const QUICK_COUNT = 6;
+
 export const FAQS = [
   {
-    id: "how-it-works",
-    popular: true,
-    question: "How does Loquiex work?",
+    id: "start-practice",
+    question: "How do I start a speaking practice?",
     answer:
-      "Pick a level, spin the jar or choose a category, and you'll get a speaking prompt. Prepare if your level gives you time, then speak for 30 seconds, 1 minute or 2 minutes. Your recording is saved privately to your profile, and you can get AI feedback on how you did.",
+      "Go to Practice. Spin the jar, choose a category, or choose Yap Mode. Then prepare your thoughts and record yourself speaking. Follow the steps on the screen to complete your practice.",
   },
   {
     id: "ai-feedback",
-    popular: true,
-    question: "How do I understand my AI feedback?",
+    question: "How does AI feedback work?",
     answer:
-      "Your overall score is the average of grammar, vocabulary, structure, clarity and repetition. Start with Overview to see what you did well and the one thing to focus on next, then open each tab to see examples from your own words and how to improve them.",
+      "After completing a speaking practice, submit your recording for analysis. Your feedback highlights areas such as clarity, delivery, fillers, grammar and vocabulary, with examples from your own words and how to improve them.",
   },
   {
-    id: "manage-plan",
-    popular: true,
-    question: "Where can I manage my plan?",
+    id: "subscription",
+    question: "What is included in my subscription?",
     answer:
-      "Go to Profile, then My plan. Plan details and fees will be added here soon.",
+      "Your plan sets your monthly AI feedback allowance (with a daily limit) and, on Loquiex Flourish and Loquiex Infinity, your group practice minutes. Loquiex Bloom doesn't include group practice. Visit Usage & Limits in your profile to check your allowance.",
   },
   {
-    id: "recording-fails",
-    popular: true,
-    question: "What if my practice or recording fails?",
+    id: "free",
+    question: "Can I practise without a subscription?",
     answer:
-      "Check that Loquiex has permission to use your microphone in your browser settings, then try again. If a recording won't play, try opening Loquiex in Safari or Chrome. Your saved practices are always in Profile, under Your practices.",
+      "Yes. Loquiex Free includes unlimited personal practice and 3 AI feedback sessions a day. Group practice comes with Loquiex Flourish and Loquiex Infinity.",
   },
   {
-    id: "levels",
-    question: "What do the levels mean?",
+    id: "change-cancel",
+    question: "How do I change or cancel my subscription?",
     answer:
-      "The Warm-Up gives you 60 seconds to prepare, The Quick Think gives you 30 seconds, and The Hot Seat has no preparation time at all.",
+      "Go to Your Profile and select Manage Membership to compare plans, change your billing period or cancel. Payments aren't live yet, so for now any change is saved on your device and nothing is charged.",
   },
   {
-    id: "yap-mode",
-    question: "What is Yap Mode?",
+    id: "previous-practices",
+    question: "Where can I find my previous practices?",
     answer:
-      "Yap Mode has no prompt. Pick something on your mind, choose how long you want to speak, and talk it through out loud.",
+      "Go to Your Profile and select Your Practices to review your practice history and open your saved feedback.",
   },
   {
-    id: "privacy",
-    question: "Who can hear my recordings?",
-    answer: "Only you. Your recordings are private to your account.",
+    id: "limits",
+    question: "What happens when I reach my usage limits?",
+    answer:
+      "Your daily AI feedback limit resets at 12 a.m. in your own time zone. Monthly allowances reset on the 1st of each month. You can keep practising on your own in the meantime, because personal practice is unlimited.",
   },
   {
-    id: "streaks",
-    question: "How do streaks work?",
+    id: "group",
+    question: "How does group practice work?",
     answer:
-      "Complete at least one practice a day to grow your streak. Several practices on the same day still count as one day.",
+      "Group practice lets members practise speaking together in an audio-only session. It's included with Loquiex Flourish and Loquiex Infinity, and the time you spend in a room counts towards your monthly minutes. Live group calls are coming soon.",
   },
   {
-    id: "group-practice",
-    question: "What is group practice?",
+    id: "invite",
+    question: "How does Invite & Earn work?",
     answer:
-      "Live practice sessions with other learners, included with Loquiex Bloom and Loquiex Flourish. Each person has their own daily minutes. More details coming soon.",
+      "Share your referral link from Invite & Earn in your profile. You'll be able to earn a reward when someone you refer completes their first qualifying paid subscription payment. Rewards start once payments go live.",
+  },
+  {
+    id: "learn",
+    question: "Where can I find learning resources?",
+    answer:
+      "Open Learn to explore the learning resources and digital products available on Loquiex.",
+  },
+  {
+    id: "account",
+    question: "How do I update my account information?",
+    answer:
+      "Go to Your Profile and select Personal information to manage your name, username, email address, profile picture and password.",
+  },
+  {
+    id: "recording",
+    question: "How is my recording used?",
+    answer:
+      "Your recordings are private to your account and aren't shared with other members. They're stored so you can play them back, and used to create your speaking analysis.",
   },
 ];

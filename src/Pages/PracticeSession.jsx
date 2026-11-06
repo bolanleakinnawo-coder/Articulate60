@@ -16,6 +16,7 @@ import {
   CircleCheck,
   ScanSearch,
   MessagesSquare,
+  Share2,
 } from "lucide-react";
 import {
   LEVEL_META,
@@ -27,6 +28,7 @@ import api from "../api/axios";
 import FeedbackReport from "../Components/practice/FeedbackReport";
 import RecordingPlayer from "../Components/practice/RecordingPlayer";
 import DurationPicker from "../Components/practice/DurationPicker";
+import ShareSheet from "../Components/practice/ShareSheet";
 import "./PracticeSession.css";
 
 // ---- AI FEEDBACK SWITCHES ----
@@ -96,6 +98,7 @@ function PracticeSessionAttempt() {
     prompt,
     isWordOfTheDay = false,
     isYap = false,
+    isResearch = false,
   } = location.state || {};
   const currentUser = location.state?.user || getStoredUser();
   const username = capitalizeFirstLetter(
@@ -103,13 +106,16 @@ function PracticeSessionAttempt() {
   );
   const levelInfo = LEVEL_META.find((l) => l.id === level) || LEVEL_META[0];
 
-  const prepareTotal = isYap ? 0 : levelInfo.prepareSeconds;
+  const prepareTotal = isYap || isResearch ? 0 : levelInfo.prepareSeconds;
   // Chosen on the topic page (no prep) or on the preparation screen.
   const [speakTotal, setSpeakTotal] = useState(
     location.state?.speakSeconds || DEFAULT_SPEAK_SECONDS,
   );
 
-  const [phase, setPhase] = useState(prepareTotal > 0 ? "prepare" : "speak");
+  // Research Mode opens on a "get ready to explain" page (duration + I'm ready).
+  const [phase, setPhase] = useState(
+    isResearch ? "ready" : prepareTotal > 0 ? "prepare" : "speak",
+  );
   const [timeLeft, setTimeLeft] = useState(
     prepareTotal > 0 ? prepareTotal : speakTotal,
   );
@@ -150,6 +156,8 @@ function PracticeSessionAttempt() {
   const [savedRecordingId, setSavedRecordingId] = useState(null);
   const [report, setReport] = useState(null);
   const [analysisError, setAnalysisError] = useState("");
+  // Share image for practices without a feedback score (time spent speaking).
+  const [showShare, setShowShare] = useState(false);
 
   // ---------- MIC / RECORDING ----------
   const stopAudioAnalysis = useCallback(() => {
@@ -322,7 +330,7 @@ function PracticeSessionAttempt() {
   }, [speakTotal, startRecording]);
 
   useEffect(() => {
-    if (prepareTotal === 0) {
+    if (prepareTotal === 0 && !isResearch) {
       goToSpeak();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -642,6 +650,69 @@ function PracticeSessionAttempt() {
     );
   }
 
+  // ---------- RESEARCH: GET READY TO EXPLAIN ----------
+  if (phase === "ready") {
+    return (
+      <div className="page session-page session-prepare-page research-ready-page">
+        <div className="session-topbar">
+          <button
+            className="session-icon-btn"
+            onClick={handleExit}
+            aria-label="Back"
+          >
+            <ArrowLeft size={18} />
+          </button>
+          <button
+            className="session-icon-btn"
+            onClick={handleExit}
+            aria-label="Close"
+          >
+            <X size={18} />
+          </button>
+        </div>
+
+        <p className="session-phase-label">Get ready to explain</p>
+
+        <div className="research-ready-topic">
+          <p className="research-ready-label">YOUR RESEARCH TOPIC</p>
+          <p className="research-ready-text">{prompt}</p>
+          {category?.title && (
+            <p className="research-ready-subject">{category.title}</p>
+          )}
+        </div>
+
+        <div className="session-prep-guidance">
+          <DurationPicker
+            className="session-duration"
+            value={speakTotal}
+            onChange={setSpeakTotal}
+          />
+
+          <div className="session-tips-card session-tips-card-compact">
+            <p className="session-tips-title">Remember, {username}</p>
+            <p className="session-tip-line">
+              Put your notes aside and explain what you&apos;ve learned without
+              reading from them, as if you&apos;re teaching a friend.
+            </p>
+          </div>
+
+          <div className="session-ready-actions">
+            <p className="session-note">
+              You can start speaking when you&apos;re ready.
+            </p>
+
+            <button
+              className="spin-jar-btn session-ready-btn"
+              onClick={goToSpeak}
+            >
+              I&apos;M READY
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   // ---------- SPEAK PHASE ----------
   if (phase === "speak") {
     return (
@@ -666,7 +737,9 @@ function PracticeSessionAttempt() {
           </button>
         </div>
 
-        <h1 className="session-speak-title">Speak your response</h1>
+        <h1 className="session-speak-title">
+          {isResearch ? "Explain what you learned" : "Speak your response"}
+        </h1>
         <p className="session-speak-subtitle">
           {isRequestingMic
             ? "Waiting for microphone permission..."
@@ -894,6 +967,23 @@ function PracticeSessionAttempt() {
     );
   }
 
+  const shareButton = actualDurationSeconds > 0 && (
+    <button
+      type="button"
+      className="fb-secondary-btn sh-btn sh-open-btn"
+      onClick={() => setShowShare(true)}
+    >
+      <Share2 size={17} aria-hidden="true" /> Share my practice
+    </button>
+  );
+  const shareSheet = showShare && (
+    <ShareSheet
+      score={null}
+      seconds={actualDurationSeconds}
+      onClose={() => setShowShare(false)}
+    />
+  );
+
   // ---------- UNLOCK PHASE (free plan) ----------
   if (phase === "unlock") {
     return (
@@ -912,6 +1002,7 @@ function PracticeSessionAttempt() {
           title="Your speaking practice"
           subtitle="Tap play to listen"
         />
+        {shareButton}
 
         <hr className="an-rule" />
 
@@ -980,6 +1071,7 @@ function PracticeSessionAttempt() {
         >
           Back to practice
         </button>
+        {shareSheet}
       </div>
     );
   }
@@ -1106,6 +1198,8 @@ function PracticeSessionAttempt() {
         >
           Back to home
         </button>
+        {shareButton}
+        {shareSheet}
       </div>
     );
   }

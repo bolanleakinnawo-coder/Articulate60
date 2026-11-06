@@ -11,6 +11,7 @@ import {
 import { useLocation, useNavigate } from "react-router-dom";
 import api from "../api/axios";
 import StreakPopup from "../Components/StreakPopup";
+import useLiveStreak from "../hooks/useLiveStreak";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -50,8 +51,6 @@ export default function Home() {
   // Word of the Day state — fetched from the backend instead of hardcoded
   const [wordOfDay, setWordOfDay] = useState(null);
   const [loadingWord, setLoadingWord] = useState(true);
-  const [currentStreak, setCurrentStreak] = useState(0);
-  const [streakData, setStreakData] = useState(null);
   const [recentActivity, setRecentActivity] = useState(null);
   const [communityWins, setCommunityWins] = useState([]);
   const [communityWinsError, setCommunityWinsError] = useState("");
@@ -104,17 +103,10 @@ export default function Home() {
       window.speechSynthesis.removeEventListener("voiceschanged", loadVoices);
   }, []);
 
-  useEffect(() => {
-    api
-      .get("/api/practice/streak")
-      .then((response) => {
-        setCurrentStreak(response.data.current || 0);
-        setStreakData(response.data);
-      })
-      .catch(() => {
-        setCurrentStreak(0);
-      });
-  }, []);
+  // Live streak: worked out in the member's time zone and updated in real
+  // time (Socket.IO) after a practice on any device or at reminder time.
+  const streakData = useLiveStreak();
+  const currentStreak = streakData?.current || 0;
 
   useEffect(() => {
     api
