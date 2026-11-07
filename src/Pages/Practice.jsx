@@ -46,6 +46,7 @@ import {
   Presentation,
   Users,
   ChevronRight,
+  KeyRound,
 } from "lucide-react";
 import jarImg from "../assets/jar.png";
 import spinningJar from "../assets/Jar2.PNG";
@@ -605,6 +606,25 @@ export default function Practice() {
             </p>
           </div>
           <GroupEntryCard onClick={handleGroupPractice} />
+          <button
+            className="group-entry-card"
+            onClick={() => navigate("/app/group-practice/join")}
+          >
+            <span className="limit-row-icon" aria-hidden="true">
+              <KeyRound size={18} strokeWidth={1.8} />
+            </span>
+            <span className="limit-row-text">
+              <span className="limit-row-title">Join with a code</span>
+              <span className="limit-row-sub">
+                Got a code from a friend? Join their private call.
+              </span>
+            </span>
+            <ChevronRight
+              size={18}
+              className="limit-row-chev"
+              aria-hidden="true"
+            />
+          </button>
         </div>
       ) : (
         <>

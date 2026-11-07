@@ -665,7 +665,7 @@ export default function Profile({ user }) {
   ];
 
   return (
-    <div className="profile-content">
+    <div className="profile-content pf-home">
       <header className="pf-page-header">
         <h1>Your Profile</h1>
         <p>Your communication journey, all in one place.</p>
@@ -693,16 +693,18 @@ export default function Profile({ user }) {
         <ChevronRight size={20} className="pf-row-chev" />
       </button>
 
-      {sections.map((section) => (
-        <section className="pf-group" key={section.title}>
-          <h2 className="pf-group-title">{section.title}</h2>
-          <div className="pf-list">
-            {section.rows.map((row) => (
-              <NavRow key={row.title} {...row} />
-            ))}
-          </div>
-        </section>
-      ))}
+      <div className="pf-groups">
+        {sections.map((section) => (
+          <section className="pf-group" key={section.title}>
+            <h2 className="pf-group-title">{section.title}</h2>
+            <div className="pf-list">
+              {section.rows.map((row) => (
+                <NavRow key={row.title} {...row} />
+              ))}
+            </div>
+          </section>
+        ))}
+      </div>
 
       <div className="pf-list pf-list-logout">
         <NavRow

@@ -27,6 +27,7 @@ import {
   GroupPracticeIntro,
   GroupPracticeRoom,
   GroupPracticeCall,
+  GroupPracticeJoin,
 } from "../Pages/GroupPractice";
 
 export default function AppRoutes() {
@@ -75,6 +76,11 @@ export default function AppRoutes() {
           <Route
             path="group-practice/room/:roomId"
             element={<GroupPracticeCall />}
+          />
+          <Route path="group-practice/join" element={<GroupPracticeJoin />} />
+          <Route
+            path="group-practice/join/:code"
+            element={<GroupPracticeJoin />}
           />
         </Route>
       </Route>

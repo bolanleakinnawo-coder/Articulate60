@@ -9,10 +9,14 @@ import {
   ArrowLeft,
   AudioLines,
   CalendarClock,
+  Check,
   Clock,
   ClockAlert,
+  Copy,
   Crown,
+  Globe,
   Hand,
+  KeyRound,
   LoaderCircle,
   LockKeyhole,
   MessagesSquare,
@@ -21,6 +25,7 @@ import {
   PhoneOff,
   Plus,
   RefreshCw,
+  Share2,
   Shuffle,
   Sprout,
   Users,
@@ -35,10 +40,96 @@ import {
   refreshPlanFromServer,
 } from "../data/plans";
 import { CATEGORIES, getRandomPrompt } from "../data/prompts";
-import { GroupCall, watchRooms } from "../lib/groupCall";
+import {
+  CODE_LENGTH,
+  GroupCall,
+  inviteLink,
+  lookupCode,
+  normaliseCode,
+  watchRooms,
+} from "../lib/groupCall";
 import "../styles/GroupCall.css";
 
 const LOBBY = "/app/group-practice/room";
+const JOIN = "/app/group-practice/join";
+
+// Shows a code as "K7M 2QF" so it's easy to read out.
+function spacedCode(code = "") {
+  return code.length === 6 ? `${code.slice(0, 3)} ${code.slice(3)}` : code;
+}
+
+async function copyText(text) {
+  try {
+    await navigator.clipboard.writeText(text);
+    return true;
+  } catch {
+    // Older browsers / non-secure pages.
+    try {
+      const el = document.createElement("textarea");
+      el.value = text;
+      el.setAttribute("readonly", "");
+      el.style.position = "fixed";
+      el.style.opacity = "0";
+      document.body.appendChild(el);
+      el.select();
+      const ok = document.execCommand("copy");
+      el.remove();
+      return ok;
+    } catch {
+      return false;
+    }
+  }
+}
+
+// The 6-character code box + Join button. Used on the rooms page and the
+// join page.
+function CodeForm({ initial = "", busy = false, error = "", onSubmit }) {
+  const [value, setValue] = useState(normaliseCode(initial));
+  const complete = value.length === CODE_LENGTH;
+  return (
+    <form
+      className="gpc-code-form"
+      onSubmit={(e) => {
+        e.preventDefault();
+        if (complete && !busy) onSubmit(value);
+      }}
+    >
+      <label className="gpc-code-label" htmlFor="gpc-code-input">
+        Call code
+      </label>
+      <div className="gpc-code-row">
+        <input
+          id="gpc-code-input"
+          className="gpc-code-input"
+          value={value}
+          onChange={(e) => setValue(normaliseCode(e.target.value))}
+          placeholder="K7M2QF"
+          maxLength={CODE_LENGTH + 2}
+          autoComplete="off"
+          autoCapitalize="characters"
+          autoCorrect="off"
+          spellCheck={false}
+          inputMode="text"
+          aria-invalid={Boolean(error)}
+          aria-describedby={error ? "gpc-code-error" : undefined}
+        />
+        <button
+          type="submit"
+          className="gpc-secondary gpc-code-submit"
+          disabled={!complete || busy}
+        >
+          {busy ? <LoaderCircle size={16} className="gpc-spin" /> : null}
+          Join
+        </button>
+      </div>
+      {error && (
+        <p className="gpc-code-error" id="gpc-code-error" role="alert">
+          {error}
+        </p>
+      )}
+    </form>
+  );
+}
 
 function initials(name = "") {
   const parts = name.trim().split(/\s+/).filter(Boolean);
@@ -246,6 +337,7 @@ export function GroupPracticeRoom() {
   const [connection, setConnection] = useState("connecting");
   const [categoryId, setCategoryId] = useState(CATEGORIES[0].id);
   const [prompt, setPrompt] = useState(() => getRandomPrompt(CATEGORIES[0].id));
+  const [isPrivate, setIsPrivate] = useState(true);
 
   useEffect(() => {
     if (!hasGroupPractice()) navigate("/app/group-practice", { replace: true });
@@ -273,6 +365,7 @@ export function GroupPracticeRoom() {
           categoryId,
           categoryTitle: category?.title || "Open conversation",
           prompt,
+          private: isPrivate,
         },
       },
     });
@@ -290,11 +383,23 @@ export function GroupPracticeRoom() {
       <p className="gpc-eyebrow">Group practice</p>
       <h1 className="gpc-title">Speak with others, live.</h1>
       <p className="gpc-sub">
-        Audio-only rooms of up to six members. Join an open room or start one on
-        a topic you like.
+        Audio-only rooms of up to six members. Join an open room, start one on a
+        topic you like, or start a private call and invite friends with a code.
       </p>
 
       <Allowance usage={usage} />
+
+      <h2 className="gpc-section-title">Have a code?</h2>
+      <div className="gpc-card">
+        <p className="gpc-card-text">
+          <KeyRound size={18} aria-hidden="true" />
+          Enter the code a friend shared to join their call.
+        </p>
+        <CodeForm
+          onSubmit={(code) => navigate(`${JOIN}/${code}`)}
+          busy={false}
+        />
+      </div>
 
       <h2 className="gpc-section-title">Open rooms</h2>
       {offline ? (
@@ -356,6 +461,42 @@ export function GroupPracticeRoom() {
 
       <h2 className="gpc-section-title">Start a room</h2>
       <div className="gpc-card">
+        <p className="gpc-field-label" id="gpc-who-label">
+          Who can join
+        </p>
+        <div
+          className="gpc-visibility"
+          role="radiogroup"
+          aria-labelledby="gpc-who-label"
+        >
+          <button
+            type="button"
+            role="radio"
+            aria-checked={isPrivate}
+            className="gpc-visibility-option"
+            onClick={() => setIsPrivate(true)}
+          >
+            <LockKeyhole size={18} aria-hidden="true" />
+            <span>
+              <strong>Private call</strong>
+              <span>Only people with your code can join.</span>
+            </span>
+          </button>
+          <button
+            type="button"
+            role="radio"
+            aria-checked={!isPrivate}
+            className="gpc-visibility-option"
+            onClick={() => setIsPrivate(false)}
+          >
+            <Globe size={18} aria-hidden="true" />
+            <span>
+              <strong>Open room</strong>
+              <span>Listed under Open rooms for any member.</span>
+            </span>
+          </button>
+        </div>
+        <p className="gpc-field-label">Topic</p>
         <div className="gpc-chips" role="group" aria-label="Topic">
           {CATEGORIES.map((c) => (
             <button
@@ -382,7 +523,8 @@ export function GroupPracticeRoom() {
           <Shuffle size={14} /> Another prompt
         </button>
         <button className="gpc-primary" disabled={offline} onClick={startRoom}>
-          <Plus size={18} /> Start a room
+          <Plus size={18} />{" "}
+          {isPrivate ? "Start a private call" : "Start an open room"}
         </button>
       </div>
       <p className="gpc-note">
@@ -412,6 +554,9 @@ function Elapsed({ since }) {
 const END_COPY = {
   full: "This room is full.",
   gone: "This room has closed.",
+  "bad-code": "That code doesn't look right.",
+  "no-code": "No live call has that code.",
+  "slow-down": "Too many wrong codes.",
   "joined-elsewhere": "You joined group practice on another device or tab.",
   "signed-out": "Please sign in again to join group practice.",
   timeout: "We couldn't reach the server.",
@@ -424,6 +569,7 @@ export function GroupPracticeCall() {
   const location = useLocation();
   const { roomId } = useParams();
   const createRef = useRef(location.state?.create || null);
+  const codeRef = useRef(location.state?.code || null);
   const callRef = useRef(null);
   const [call, setCall] = useState(null);
   const [dismissed, setDismissed] = useState(null);
@@ -445,7 +591,11 @@ export function GroupPracticeCall() {
     const session = new GroupCall((snap) => setCall(snap));
     callRef.current = session;
     session.join(
-      createRef.current ? { create: createRef.current } : { roomId },
+      createRef.current
+        ? { create: createRef.current }
+        : codeRef.current
+          ? { code: codeRef.current }
+          : { roomId },
     );
     return () => {
       session.leave();
@@ -460,6 +610,7 @@ export function GroupPracticeCall() {
   useEffect(() => {
     if (liveRoomId && liveRoomId !== roomId) {
       createRef.current = null;
+      codeRef.current = null;
       navigate(`${LOBBY}/${liveRoomId}`, { replace: true, state: {} });
     }
   }, [liveRoomId, roomId, navigate]);
@@ -647,10 +798,20 @@ function LiveCall({ call, session, joinedAt, dismissed, onDismiss, onLeave }) {
             <Users size={18} aria-hidden="true" /> Waiting for others to join
           </p>
           <span>
-            Your room is listed under Open rooms. Minutes only count once
-            someone else is here.
+            {room.private
+              ? "Share your call code below so friends can join. Minutes only count once someone else is here."
+              : "Your room is listed under Open rooms. Minutes only count once someone else is here."}
           </span>
         </div>
+      )}
+
+      {room.code && (
+        <InviteCard
+          code={room.code}
+          isPrivate={room.private}
+          topic={room.categoryTitle}
+          full={members.length >= room.max}
+        />
       )}
 
       <div className="gpc-members">
@@ -734,6 +895,272 @@ function LiveCall({ call, session, joinedAt, dismissed, onDismiss, onLeave }) {
           ? "Unlimited group practice on your plan."
           : `${formatMinutes(left)} of group practice left this month.`}
       </p>
+    </div>
+  );
+}
+
+// The call's code with Copy and Share. Shown to everyone in the call.
+function InviteCard({ code, isPrivate, topic, full }) {
+  const [copied, setCopied] = useState(null); // "code" | "link" | null
+  const canShare = typeof navigator !== "undefined" && Boolean(navigator.share);
+  const link = inviteLink(code);
+  const message = `Join my Loquiex group practice call on "${topic}". Code: ${code}`;
+
+  useEffect(() => {
+    if (!copied) return undefined;
+    const t = setTimeout(() => setCopied(null), 2000);
+    return () => clearTimeout(t);
+  }, [copied]);
+
+  const copy = async (what) => {
+    const ok = await copyText(what === "code" ? code : `${message}\n${link}`);
+    if (ok) setCopied(what);
+  };
+
+  const share = async () => {
+    try {
+      await navigator.share({
+        title: "Loquiex group practice",
+        text: message,
+        url: link,
+      });
+    } catch (err) {
+      // Cancelled by the member, or sharing isn't allowed: copy instead.
+      if (err?.name !== "AbortError") copy("link");
+    }
+  };
+
+  return (
+    <div className="gpc-card gpc-invite">
+      <div className="gpc-card-heading">
+        <span>{isPrivate ? "Private call code" : "Invite code"}</span>
+        {isPrivate && (
+          <span className="gpc-invite-tag">
+            <LockKeyhole size={12} aria-hidden="true" /> Private
+          </span>
+        )}
+      </div>
+      <div className="gpc-invite-row">
+        <strong
+          className="gpc-invite-code"
+          aria-label={`Code ${code.split("").join(" ")}`}
+        >
+          {spacedCode(code)}
+        </strong>
+        <div className="gpc-invite-actions">
+          <button
+            type="button"
+            className="gpc-secondary"
+            onClick={() => copy("code")}
+          >
+            {copied === "code" ? <Check size={16} /> : <Copy size={16} />}
+            {copied === "code" ? "Copied" : "Copy code"}
+          </button>
+          <button
+            type="button"
+            className="gpc-secondary"
+            onClick={canShare ? share : () => copy("link")}
+          >
+            {copied === "link" ? <Check size={16} /> : <Share2 size={16} />}
+            {copied === "link"
+              ? "Invite copied"
+              : canShare
+                ? "Share"
+                : "Copy invite"}
+          </button>
+        </div>
+      </div>
+      <small>
+        {full
+          ? "The call is full right now. Others can join with this code when a seat opens."
+          : "Friends enter this code under Group practice, or open the link you share. They need Loquiex Flourish or Infinity to join."}
+      </small>
+    </div>
+  );
+}
+
+const CODE_ERRORS = {
+  "bad-code": "Codes have 6 letters and numbers. Check the code and try again.",
+  "no-code":
+    "No live call has that code. It may have ended, or the code has a typo.",
+  "slow-down": "Too many wrong codes. Please wait a few minutes and try again.",
+  "signed-out": "Please sign in again to join group practice.",
+  timeout: "We couldn't reach the server. Check your connection and try again.",
+};
+
+// Join a call with a code: /app/group-practice/join and /join/:code (the
+// link members share). Shows the call before joining.
+export function GroupPracticeJoin() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { code: codeParam } = useParams();
+  const code = normaliseCode(codeParam);
+  const allowed = hasGroupPractice();
+  const [usage] = useGroupUsage();
+  // Result of the latest lookup, tagged with the code + visit it belongs to.
+  const visit = `${code}:${location.key}`;
+  const [result, setResult] = useState(null);
+
+  useEffect(() => {
+    if (!code) return undefined;
+    let alive = true;
+    lookupCode(code).then((reply) => {
+      if (!alive) return;
+      if (reply?.ok) setResult({ visit, status: "found", room: reply.room });
+      else
+        setResult({
+          visit,
+          status: "error",
+          error:
+            CODE_ERRORS[reply?.error] ||
+            reply?.message ||
+            "Something went wrong. Please try again.",
+        });
+    });
+    return () => {
+      alive = false;
+    };
+    // location.key (in visit): look up again when the same code is entered twice.
+  }, [code, visit]);
+
+  const lookup = !code
+    ? { status: "idle" }
+    : result?.visit === visit
+      ? result
+      : { status: "loading" };
+
+  const submit = (value) =>
+    navigate(`${JOIN}/${value}`, { replace: Boolean(code) });
+  const room = lookup.room;
+  const full = room && room.members.length >= room.max;
+  const timeUp =
+    allowed && usage.loaded && usage.left !== null && usage.left <= 0;
+
+  const planNames = groupPracticePlanNames()
+    .map((name) => `Loquiex ${name}`)
+    .join(" or ");
+
+  return (
+    <div className="page gpc-page">
+      <button
+        className="gpc-back"
+        onClick={() => navigate(allowed ? LOBBY : "/app/practice?tab=group")}
+      >
+        <ArrowLeft size={16} /> {allowed ? "All rooms" : "Back to Practice"}
+      </button>
+      <p className="gpc-eyebrow">Group practice</p>
+      <h1 className="gpc-title">
+        {room ? "You're invited to a call" : "Join with a code"}
+      </h1>
+      <p className="gpc-sub">
+        {room
+          ? "Check the details, then join with your microphone on. You can mute any time."
+          : "Enter the 6-character code your friend shared with you."}
+      </p>
+
+      {lookup.status === "loading" && (
+        <div className="gpc-empty">
+          <span className="gpc-status">
+            <LoaderCircle size={16} className="gpc-spin" /> Finding the call…
+            The first call of the day can take up to a minute.
+          </span>
+        </div>
+      )}
+
+      {room && (
+        <div className="gpc-card gpc-join-preview">
+          <div className="gpc-card-heading">
+            <span>Call {spacedCode(room.code)}</span>
+            {room.private && (
+              <span className="gpc-invite-tag">
+                <LockKeyhole size={12} aria-hidden="true" /> Private
+              </span>
+            )}
+          </div>
+          <h3>{room.categoryTitle}</h3>
+          {room.prompt && <p>{room.prompt}</p>}
+          <div className="gpc-room-meta">
+            <span className="gpc-faces" aria-hidden="true">
+              {room.members.slice(0, 4).map((m) => (
+                <Avatar member={m} key={m.userId} />
+              ))}
+            </span>
+            <span>
+              {room.hostName ? `Hosted by ${room.hostName} · ` : ""}
+              {room.members.length} of {room.max} in the call
+            </span>
+          </div>
+        </div>
+      )}
+
+      {room && !allowed && (
+        <>
+          <div className="gpc-alert">
+            <p>
+              <Sprout size={18} aria-hidden="true" /> Group practice is part of{" "}
+              {planNames}
+            </p>
+            <span>
+              Upgrade to join this call and practise live with others.
+            </span>
+          </div>
+          <button
+            className="gpc-primary"
+            onClick={() =>
+              navigate("/app/membership", { state: { reason: "group" } })
+            }
+          >
+            Explore membership
+          </button>
+        </>
+      )}
+
+      {room && allowed && timeUp && <TimeUpNote />}
+
+      {room && allowed && !timeUp && (
+        <button
+          className="gpc-primary"
+          disabled={full}
+          onClick={() =>
+            navigate(`${LOBBY}/${room.id}`, {
+              state: { autoJoin: true, code: room.code },
+            })
+          }
+        >
+          <Mic size={18} /> {full ? "This call is full" : "Join the call"}
+        </button>
+      )}
+
+      {(lookup.status === "idle" || lookup.status === "error") && (
+        <div className="gpc-card">
+          <CodeForm
+            key={code}
+            initial={code}
+            error={lookup.status === "error" ? lookup.error : ""}
+            onSubmit={submit}
+          />
+        </div>
+      )}
+
+      {room && (
+        <button className="gpc-link gpc-center" onClick={() => navigate(JOIN)}>
+          Use a different code
+        </button>
+      )}
+    </div>
+  );
+}
+
+function TimeUpNote() {
+  return (
+    <div className="gpc-alert gpc-alert-warn" role="alert">
+      <p>
+        <ClockAlert size={18} aria-hidden="true" /> Your practice time is up
+      </p>
+      <span>
+        You&apos;ve used all your group practice minutes for this month. They
+        reset on the 1st.
+      </span>
     </div>
   );
 }

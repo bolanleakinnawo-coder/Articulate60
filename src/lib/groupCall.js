@@ -30,21 +30,38 @@ export function groupRequest(event, payload, timeoutMs = 60000) {
   const socket = getSocket();
   if (!socket) return Promise.resolve({ ok: false, error: "signed-out" });
   return new Promise((resolve) => {
-    socket
-      .timeout(timeoutMs)
-      .emit(event, payload, (err, reply) =>
-        resolve(
-          err
-            ? {
-                ok: false,
-                error: "timeout",
-                message:
-                  "We couldn't reach the server. Check your connection and try again.",
-              }
-            : reply,
-        ),
-      );
+    socket.timeout(timeoutMs).emit(event, payload, (err, reply) =>
+      resolve(
+        err
+          ? {
+              ok: false,
+              error: "timeout",
+              message:
+                "We couldn't reach the server. Check your connection and try again.",
+            }
+          : reply,
+      ),
+    );
   });
+}
+
+// Invite codes: 6 letters/numbers, no 0/O or 1/I/L (see the server).
+export const CODE_LENGTH = 6;
+export function normaliseCode(value) {
+  return String(value || "")
+    .toUpperCase()
+    .replace(/[^A-Z0-9]/g, "")
+    .slice(0, CODE_LENGTH);
+}
+
+// Link that opens the join screen for a code.
+export function inviteLink(code) {
+  return `${window.location.origin}/app/group-practice/join/${code}`;
+}
+
+// Looks up a live call by its code without joining it.
+export function lookupCode(code) {
+  return groupRequest("group:lookup", { code: normaliseCode(code) }, 20000);
 }
 
 // Watches the open-rooms list. Returns a function that stops watching.
@@ -162,7 +179,8 @@ export class GroupCall {
     return this.selfId || "__self";
   }
 
-  // `action` is { create: {categoryId, categoryTitle, prompt} } or { roomId }.
+  // `action` is { create: {categoryId, categoryTitle, prompt, private} },
+  // { roomId } or { code }.
   async join(action) {
     if (!this.socket) {
       this.end("signed-out");
@@ -181,7 +199,10 @@ export class GroupCall {
       this.audioCtx = null;
     }
 
-    const [, iceServers] = await Promise.all([this.startMic(), loadIceServers()]);
+    const [, iceServers] = await Promise.all([
+      this.startMic(),
+      loadIceServers(),
+    ]);
     this.iceServers = iceServers;
     if (this.closed) return;
 
@@ -192,7 +213,9 @@ export class GroupCall {
   async enterRoom(action) {
     const reply = action.create
       ? await groupRequest("group:create", action.create)
-      : await groupRequest("group:join", { roomId: action.roomId });
+      : action.code
+        ? await groupRequest("group:join", { code: action.code })
+        : await groupRequest("group:join", { roomId: action.roomId });
     if (this.closed) {
       if (reply?.ok) this.socket.emit("group:leave");
       return;
@@ -263,10 +286,17 @@ export class GroupCall {
     const rejoin = () => {
       if (this.status !== "live" || !this.room) return;
       for (const id of [...this.peers.keys()]) this.dropPeer(id);
-      const { id, categoryId, categoryTitle, prompt } = this.room;
+      const { id, categoryId, categoryTitle, prompt, code } = this.room;
       this.enterRoom({
         roomId: id,
-        recreate: { categoryId, categoryTitle, prompt },
+        // Same topic, privacy and (if still free) the same invite code.
+        recreate: {
+          categoryId,
+          categoryTitle,
+          prompt,
+          code,
+          private: Boolean(this.room.private),
+        },
       });
     };
     this.socket.io.on("reconnect", rejoin);
@@ -288,7 +318,11 @@ export class GroupCall {
     pc.onconnectionstatechange = () => {
       const s = pc.connectionState;
       peer.state =
-        s === "connected" ? "connected" : s === "failed" ? "failed" : "connecting";
+        s === "connected"
+          ? "connected"
+          : s === "failed"
+            ? "failed"
+            : "connecting";
       if (s === "failed" && peer.offerer) this.restart(userId);
       this.emit();
     };
@@ -306,7 +340,11 @@ export class GroupCall {
       }
       return;
     }
-    if (track) pc.addTransceiver(track, { direction: "sendrecv", streams: [this.localStream] });
+    if (track)
+      pc.addTransceiver(track, {
+        direction: "sendrecv",
+        streams: [this.localStream],
+      });
     else pc.addTransceiver("audio", { direction: "recvonly" });
   }
 

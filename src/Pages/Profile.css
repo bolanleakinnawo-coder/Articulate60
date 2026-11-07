@@ -978,10 +978,11 @@
   padding-top: 0;
 }
 
-@media (min-width: 900px) {
-  .profile-content {
-    max-width: 640px;
-  }
+/* Profile pages use the full page width (same 1400px cap as Home). */
+.profile-content {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
 }
 
 /* =====================================================
@@ -2727,4 +2728,115 @@
 
 .pf-currency-title {
   margin-top: 18px;
+}
+
+/* =====================================================
+   WIDE SCREENS: Profile pages fill the page width.
+   Phones keep the single-column layout above.
+   ===================================================== */
+.pf-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+@media (min-width: 900px) {
+  /* Profile home: the groups sit side by side */
+  .pf-groups {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px 24px;
+    align-items: start;
+  }
+
+  .pf-groups > .pf-group:last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+  }
+
+  /* Your Stats: four overview tiles in a row, milestones in two columns */
+  .pf-stats .pf-overview-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .pf-stats .pf-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 32px;
+  }
+
+  .pf-stats .pf-list.pf-list > :nth-child(2) {
+    border-top: none;
+  }
+
+  /* Personal information: photo and name on the left, form on the right */
+  .pf-personal-page {
+    display: grid;
+    grid-template-columns: minmax(220px, 300px) minmax(0, 1fr);
+    gap: 20px 32px;
+    align-items: start;
+  }
+
+  .pf-personal-page > * {
+    grid-column: 1 / -1;
+  }
+
+  .pf-personal-page > .pf-identity {
+    grid-column: 1;
+    position: sticky;
+    top: 24px;
+    padding: 28px 20px;
+    border: 1px solid var(--border);
+    border-radius: 22px;
+    background: var(--pf-card);
+  }
+
+  .pf-personal-page > .pf-form {
+    grid-column: 2;
+  }
+
+  .pf-personal-page > .pf-back {
+    justify-self: start;
+  }
+}
+
+@media (min-width: 1200px) {
+  .pf-groups {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .pf-groups > .pf-group:last-child:nth-child(odd) {
+    grid-column: auto;
+  }
+
+  /* Usage & Limits and Manage Membership: allowance and plan cards side by side */
+  .pf-usage-page,
+  .pf-membership-page {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 20px 24px;
+  }
+
+  .pf-usage-page > *,
+  .pf-membership-page > * {
+    grid-column: 1 / -1;
+  }
+
+  .pf-usage-page > .pf-allowance,
+  .pf-membership-page > .pf-compare {
+    grid-column: auto;
+  }
+
+  .pf-membership-page > .pf-compare {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .pf-membership-page > .pf-compare .pf-outline-button {
+    margin-top: auto;
+  }
+
+  .pf-usage-page > .pf-back,
+  .pf-membership-page > .pf-back {
+    justify-self: start;
+  }
 }
