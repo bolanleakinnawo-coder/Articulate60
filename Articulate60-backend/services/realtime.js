@@ -5,7 +5,7 @@
 //                    or when a reminder time arrives)
 //   group:*          group practice rooms (see services/groupRooms.js)
 const { Server } = require("socket.io");
-const jwt = require("jsonwebtoken");
+const { verifyToken } = require("../utils/authToken");
 const { initGroupRooms, registerGroupHandlers } = require("./groupRooms");
 
 let io = null;
@@ -17,17 +17,15 @@ function initRealtime(httpServer) {
     transports: ["polling", "websocket"],
   });
 
-  io.use((socket, next) => {
+  io.use(async (socket, next) => {
     try {
       const token = socket.handshake.auth?.token;
       if (!token) return next(new Error("No token provided."));
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      const userId = decoded.userId || decoded.id;
-      if (!userId) return next(new Error("Invalid token payload."));
-      socket.data.userId = String(userId);
+      const { userId } = await verifyToken(token);
+      socket.data.userId = userId;
       next();
-    } catch {
-      next(new Error("Invalid or expired token."));
+    } catch (err) {
+      next(new Error(err.code ? err.message : "Invalid or expired token."));
     }
   });
 
@@ -53,4 +51,13 @@ async function isUserOnline(userId) {
   return sockets.length > 0;
 }
 
-module.exports = { initRealtime, emitToUser, isUserOnline };
+// Closes every open tab of a member (after a password reset or account
+// deletion). Leaving a group room happens in the socket's disconnect handler.
+function disconnectUser(userId, event, payload) {
+  if (!io) return;
+  const room = io.to(`user:${userId}`);
+  if (event) room.emit(event, payload);
+  io.in(`user:${userId}`).disconnectSockets(true);
+}
+
+module.exports = { initRealtime, emitToUser, isUserOnline, disconnectUser };

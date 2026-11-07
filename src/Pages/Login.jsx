@@ -1,9 +1,17 @@
 import { useState } from "react";
-import { useNavigate, Link, useLocation } from "react-router-dom";
+import { useNavigate, Link, useLocation, useSearchParams } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
 import axios from "axios";
 
 const API_URL = import.meta.env.VITE_API_URL;
+
+// Shown above the form after a password reset, an account deletion, or when
+// this device was signed out (see src/api/axios.js).
+const SESSION_NOTICES = {
+  revoked: "Your password was changed, so you were signed out. Please log in again.",
+  expired: "Your session has ended. Please log in again.",
+  deleted: "Your account has been deleted.",
+};
 
 function Login() {
   const [identifier, setIdentifier] = useState("");
@@ -13,6 +21,9 @@ function Login() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
+  const notice =
+    location.state?.notice || SESSION_NOTICES[searchParams.get("session")] || "";
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -55,6 +66,12 @@ function Login() {
           <p>Log in to continue with Loquiex.</p>
         </div>
 
+        {notice && (
+          <p className="auth-notice" role="status">
+            {notice}
+          </p>
+        )}
+
         <form className="registration-form" onSubmit={handleSubmit}>
           <div className="form-field">
             <label htmlFor="identifier">Email or username</label>
@@ -62,6 +79,7 @@ function Login() {
               id="identifier"
               type="text"
               placeholder="Enter your email or username"
+              autoComplete="username"
               value={identifier}
               aria-invalid={Boolean(error)}
               onChange={(e) => setIdentifier(e.target.value)}
@@ -75,6 +93,7 @@ function Login() {
                 id="password"
                 type={showPassword ? "text" : "password"}
                 placeholder="Enter your password"
+                autoComplete="current-password"
                 value={password}
                 aria-invalid={Boolean(error)}
                 onChange={(e) => setPassword(e.target.value)}
@@ -88,6 +107,13 @@ function Login() {
                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
+            <Link
+              to="/forgot-password"
+              state={{ identifier: identifier.includes("@") ? identifier : "" }}
+              className="auth-forgot-link"
+            >
+              Forgot password?
+            </Link>
           </div>
 
           {error && <p className="form-error">{error}</p>}

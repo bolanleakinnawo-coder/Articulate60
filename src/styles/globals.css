@@ -4638,3 +4638,102 @@ a {
   margin-bottom: auto; /* pushes the label to the top, rest stays centered */
   text-align: center;
 }
+
+/* ---------- FORGOT / RESET PASSWORD (same scale as Log in) ---------- */
+.auth-forgot-link {
+  align-self: flex-end;
+  margin-top: 2px;
+  color: var(--text-secondary);
+  font-size: 13px;
+  text-decoration: none;
+}
+
+.auth-forgot-link:hover,
+.auth-forgot-link:focus-visible {
+  color: var(--text-primary);
+  text-decoration: underline;
+}
+
+.auth-notice {
+  margin: 0 0 18px;
+  padding: 12px 14px;
+  border: 1px solid var(--olive-primary);
+  border-radius: var(--radius-md);
+  background: rgba(100, 103, 66, 0.16);
+  color: var(--text-primary);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.auth-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  margin-bottom: 18px;
+  border-radius: 50%;
+  background: rgba(100, 103, 66, 0.22);
+  color: var(--text-primary);
+}
+
+.registration-header p .auth-strong {
+  color: var(--text-primary);
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.auth-help {
+  margin: 0 0 18px;
+  color: var(--text-secondary);
+  font-size: 13px;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.auth-help-tight {
+  margin: -4px 0 0;
+  text-align: left;
+}
+
+.auth-full {
+  width: 100%;
+}
+
+.auth-link-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--olive-primary);
+  border: 1px solid var(--olive-primary);
+  color: var(--text-primary);
+  text-decoration: none;
+}
+
+.auth-text-button {
+  display: block;
+  width: 100%;
+  margin-top: 12px;
+  padding: 10px;
+  border: 0;
+  background: none;
+  color: var(--text-secondary);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.auth-text-button:hover {
+  color: var(--text-primary);
+}
+
+.login-switch .auth-back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-secondary);
+  text-decoration: none;
+}
+
+.login-switch .auth-back-link:hover {
+  color: var(--text-primary);
+}

@@ -55,13 +55,13 @@ export const FAQS = [
     id: "group",
     question: "How does group practice work?",
     answer:
-      "Group practice lets members practise speaking together in an audio-only session. It's included with Loquiex Flourish and Loquiex Infinity, and the time you spend in a room counts towards your monthly minutes. Live group calls are coming soon.",
+      "Group practice lets members practise speaking together in an audio-only session. It's included with Loquiex Flourish and Loquiex Infinity, and the time you spend in a room with others counts towards your monthly minutes. Open Practice, choose Group Practice, then join a public practice, start your own, or enter a code for a private one.",
   },
   {
     id: "invite",
     question: "How does Invite & Earn work?",
     answer:
-      "Share your referral link from Invite & Earn in your profile. You'll be able to earn a reward when someone you refer completes their first qualifying paid subscription payment. Rewards start once payments go live.",
+      "Invite & Earn is coming soon. When it's ready, you'll find your referral link in your profile and we'll let you know how rewards work.",
   },
   {
     id: "learn",

@@ -1646,3 +1646,10 @@
     max-width: 1320px;
   }
 }
+
+/* "You did it!" (no AI feedback): Unlock, Share, Back to practice */
+.an-page .an-unlock-btn + .sh-open-btn {
+  width: 100%;
+  margin: 0 0 12px;
+  border-radius: 10px;
+}

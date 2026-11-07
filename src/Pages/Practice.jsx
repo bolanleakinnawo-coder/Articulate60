@@ -4,7 +4,6 @@ import { HELP_LAYER_1 } from "../data/help";
 import {
   fetchGroupUsage,
   refreshPlanFromServer,
-  hasGroupPractice,
 } from "../data/plans";
 import DurationPicker from "../Components/practice/DurationPicker";
 import {
@@ -22,6 +21,7 @@ import {
   clearResearchSession,
 } from "../data/research";
 import "../styles/PracticeExtras.css";
+import { GroupPracticeTab } from "./GroupPractice";
 
 import {
   HelpCircle,
@@ -45,8 +45,6 @@ import {
   BookOpen,
   Presentation,
   Users,
-  ChevronRight,
-  KeyRound,
 } from "lucide-react";
 import jarImg from "../assets/jar.png";
 import spinningJar from "../assets/Jar2.PNG";
@@ -330,12 +328,6 @@ export default function Practice() {
     });
   };
 
-  const handleGroupPractice = () => {
-    navigate(
-      hasGroupPractice() ? "/app/group-practice/room" : "/app/group-practice",
-    );
-  };
-
   const handleSelectLevel = (levelId) => {
     setSelectedLevel(levelId);
     setIsLevelOpen(false);
@@ -599,32 +591,7 @@ export default function Practice() {
           role="tabpanel"
           aria-labelledby="practice-tab-group"
         >
-          <div className="practice-panel-intro">
-            <h2 className="practice-panel-title">Practise Together</h2>
-            <p className="practice-panel-sub">
-              Join live audio rooms and speak with other Loquiex members.
-            </p>
-          </div>
-          <GroupEntryCard onClick={handleGroupPractice} />
-          <button
-            className="group-entry-card"
-            onClick={() => navigate("/app/group-practice/join")}
-          >
-            <span className="limit-row-icon" aria-hidden="true">
-              <KeyRound size={18} strokeWidth={1.8} />
-            </span>
-            <span className="limit-row-text">
-              <span className="limit-row-title">Join with a code</span>
-              <span className="limit-row-sub">
-                Got a code from a friend? Join their private call.
-              </span>
-            </span>
-            <ChevronRight
-              size={18}
-              className="limit-row-chev"
-              aria-hidden="true"
-            />
-          </button>
+          <GroupPracticeTab />
         </div>
       ) : (
         <>
@@ -848,30 +815,5 @@ export default function Practice() {
         </div>
       )}
     </div>
-  );
-}
-
-function GroupEntryCard({ onClick }) {
-  return (
-    <button className="group-entry-card" onClick={onClick}>
-      <span className="limit-row-icon" aria-hidden="true">
-        <Users size={18} strokeWidth={1.8} />
-      </span>
-      <span className="limit-row-text">
-        <span className="limit-row-title">Group Practice</span>
-        <span className="limit-row-sub">
-          Practise with others in live sessions.
-        </span>
-      </span>
-      {hasGroupPractice() ? (
-        <ChevronRight size={18} className="limit-row-chev" aria-hidden="true" />
-      ) : (
-        <LockKeyhole
-          size={16}
-          className="limit-row-chev"
-          aria-label="Members only"
-        />
-      )}
-    </button>
   );
 }

@@ -1,28 +1,26 @@
-const jwt = require("jsonwebtoken");
+const { verifyToken } = require("../utils/authToken");
 
 // Protects any route it's attached to. Expects:
 //   Authorization: Bearer <token>
 // On success, attaches req.userId so downstream routes know who's calling.
-module.exports = function authMiddleware(req, res, next) {
+// Tokens from before a password reset, or for a deleted account, are refused
+// with a `code` the app uses to send the member back to the sign-in page.
+module.exports = async function authMiddleware(req, res, next) {
   const authHeader = req.headers.authorization;
 
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
     return res.status(401).json({ message: "No token provided." });
   }
 
-  const token = authHeader.split(" ")[1];
-
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    // Support either { userId } or { id } depending on how your login signs it.
-    req.userId = decoded.userId || decoded.id;
-
-    if (!req.userId) {
-      return res.status(401).json({ message: "Invalid token payload." });
-    }
-
+    const { userId } = await verifyToken(authHeader.split(" ")[1]);
+    req.userId = userId;
     next();
   } catch (err) {
-    return res.status(401).json({ message: "Invalid or expired token." });
+    if (err.code) {
+      return res.status(401).json({ message: err.message, code: err.code });
+    }
+    console.error("Auth check failed:", err);
+    return res.status(503).json({ message: "Please try again in a moment." });
   }
 };

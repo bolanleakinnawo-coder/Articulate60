@@ -27,13 +27,31 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.data?.code === "ADMIN_KEY") {
+    const code = error.response?.data?.code;
+    if (code === "ADMIN_KEY") {
       setAdminKey(null);
       window.dispatchEvent(new Event("loquiex:admin-key"));
+    }
+    // The password was reset on another device, or the account was deleted:
+    // this sign-in no longer works, so go back to the sign-in page.
+    if (
+      error.response?.status === 401 &&
+      SESSION_ENDED_CODES[code] &&
+      sessionStorage.getItem("token")
+    ) {
+      sessionStorage.removeItem("token");
+      sessionStorage.removeItem("user");
+      window.location.assign(`/login?session=${SESSION_ENDED_CODES[code]}`);
     }
     return Promise.reject(error);
   },
 );
+
+const SESSION_ENDED_CODES = {
+  SESSION_REVOKED: "revoked",
+  SESSION_EXPIRED: "expired",
+  ACCOUNT_GONE: "deleted",
+};
 
 const ADMIN_KEY = "loquiex.adminKey";
 

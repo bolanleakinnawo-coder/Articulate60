@@ -15,6 +15,8 @@ import AdminProductNotifications from "../Pages/AdminProductNotifications";
 import AdminLayout from "../Components/layout/AdminLayout";
 import Registration from "../Pages/Registration";
 import Login from "../Pages/Login";
+import ForgotPassword from "../Pages/ForgotPassword";
+import ResetPassword from "../Pages/ResetPassword";
 import ProtectedRoute from "./ProtectedRoute";
 
 import PracticeSession from "../Pages/PracticeSession";
@@ -26,6 +28,7 @@ import HelpSupport from "../Pages/HelpSupport";
 import {
   GroupPracticeIntro,
   GroupPracticeRoom,
+  GroupPracticeStart,
   GroupPracticeCall,
   GroupPracticeJoin,
 } from "../Pages/GroupPractice";
@@ -40,6 +43,8 @@ export default function AppRoutes() {
       <Route path="/ready" element={<ReadyIntro />} /> {/* NEW */}
       <Route path="/waitlist" element={<Waitlist />} />
       <Route path="/login" element={<Login />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/admin" element={<AdminLayout />}>
         <Route index element={<AdminOverview />} />
         <Route path="testimonials" element={<AdminTestimonials />} />
@@ -73,6 +78,7 @@ export default function AppRoutes() {
           <Route path="help" element={<HelpSupport />} />
           <Route path="group-practice" element={<GroupPracticeIntro />} />
           <Route path="group-practice/room" element={<GroupPracticeRoom />} />
+          <Route path="group-practice/start" element={<GroupPracticeStart />} />
           <Route
             path="group-practice/room/:roomId"
             element={<GroupPracticeCall />}

@@ -15,7 +15,7 @@
 //
 // Socket events, app -> server (each takes an ack callback):
 //   group:lobby      { watch: true|false }   follow the open-rooms list
-//   group:create     { categoryId, categoryTitle, prompt, private?, code? }
+//   group:create     { categoryId, categoryTitle, prompt, private?, code?, max? }
 //   group:join       { roomId } or { code }
 //   group:lookup     { code }                preview a call before joining
 //   group:leave
@@ -71,6 +71,12 @@ function newCode(preferred) {
     for (const b of bytes) code += CODE_ALPHABET[b % CODE_ALPHABET.length];
     if (!codes.has(code)) return code;
   }
+}
+
+function seatCount(value) {
+  const n = Math.floor(Number(value));
+  if (!Number.isFinite(n)) return MAX_MEMBERS;
+  return Math.min(MAX_MEMBERS, Math.max(2, n));
 }
 
 function deleteRoom(room) {
@@ -140,7 +146,7 @@ function publicRoom(room) {
     code: room.code,
     private: room.private,
     createdAt: room.createdAt,
-    max: MAX_MEMBERS,
+    max: room.max || MAX_MEMBERS,
     members: [...room.members.values()].map(publicMember),
   };
 }
@@ -312,6 +318,8 @@ function registerGroupHandlers(socket) {
         // Reconnecting hosts get their old code back if it's still free.
         code: newCode(payload?.code),
         private: payload?.private === true,
+        // The host picks how many seats (2 up to the server limit).
+        max: seatCount(payload?.max),
         categoryId: clean(payload?.categoryId, 60),
         categoryTitle: clean(payload?.categoryTitle, 80) || "Open conversation",
         prompt: clean(payload?.prompt, 500),
@@ -355,7 +363,7 @@ function registerGroupHandlers(socket) {
           access.summary ? { usage: usagePayload(access.summary) } : {},
         );
       const already = room.members.has(userId);
-      if (!already && room.members.size >= MAX_MEMBERS)
+      if (!already && room.members.size >= (room.max || MAX_MEMBERS))
         return fail(ack, "full");
       const joined = addToRoom(socket, room, access.user, access.summary);
       ack?.({ ok: true, ...joined, usage: usagePayload(access.summary) });

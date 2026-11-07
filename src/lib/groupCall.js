@@ -7,6 +7,7 @@
 // the same moment.
 import api from "../api/axios";
 import { getSocket } from "./realtime";
+import { requestMic } from "./microphone";
 
 const FALLBACK_ICE = [
   { urls: ["stun:stun.cloudflare.com:3478", "stun:stun.l.google.com:19302"] },
@@ -139,6 +140,7 @@ export class GroupCall {
       micError: this.micError,
       usage: this.usage,
       audioBlocked: this.audioBlocked,
+      hasMic: Boolean(this.localStream),
       isHost: this.room?.hostId === this.selfId,
     };
   }
@@ -152,36 +154,59 @@ export class GroupCall {
     this.handlers.push([event, fn]);
   }
 
-  async startMic() {
-    if (this.localStream) return;
-    try {
-      this.localStream = await navigator.mediaDevices.getUserMedia({
-        audio: {
-          echoCancellation: true,
-          noiseSuppression: true,
-          autoGainControl: true,
-        },
-        video: false,
-      });
-      this.micError = null;
-      this.meter(this.selfIdOrLocal(), this.localStream);
-    } catch (err) {
-      // Join to listen anyway; others just won't hear this member.
-      this.micError =
-        err?.name === "NotAllowedError"
-          ? "Microphone access is blocked. Allow it in your browser settings so others can hear you."
-          : "We couldn't find a microphone. You can still listen.";
+  // Uses the stream the member already allowed on the join screen. Without
+  // one they join to listen, and can turn the mic on later with Unmute.
+  useStream(stream) {
+    if (!stream) {
+      this.micError = this.micError || "listen-only";
       this.muted = true;
+      return;
     }
+    this.localStream = stream;
+    this.micError = null;
+    this.muted = false;
+    this.meter(this.selfIdOrLocal(), stream);
+  }
+
+  // Turns the microphone on during a call (after joining without it).
+  // Returns { ok } or { error } (see requestMic).
+  async enableMic() {
+    if (this.localStream) {
+      this.setMuted(false);
+      return { ok: true };
+    }
+    const result = await requestMic();
+    if (this.closed || this.status === "ended") {
+      result.stream?.getTracks().forEach((t) => t.stop());
+      return { error: "ended" };
+    }
+    if (result.error) {
+      this.micError = result.error;
+      this.emit();
+      return result;
+    }
+    this.localStream = result.stream;
+    const track = result.stream.getAudioTracks()[0];
+    // Every connection already has an audio slot, so the new track simply
+    // starts flowing: no reconnecting needed.
+    for (const peer of this.peers.values()) {
+      const sender = peer.transceiver?.sender;
+      if (sender) sender.replaceTrack(track).catch(() => {});
+    }
+    this.micError = null;
+    this.meter(this.selfIdOrLocal(), result.stream);
+    this.setMuted(false);
+    return { ok: true };
   }
 
   selfIdOrLocal() {
     return this.selfId || "__self";
   }
 
-  // `action` is { create: {categoryId, categoryTitle, prompt, private} },
-  // { roomId } or { code }.
-  async join(action) {
+  // `action` is { create: {categoryId, categoryTitle, prompt, private, max} },
+  // { roomId } or { code }. `stream` is the microphone the member allowed
+  // (none = join to listen only).
+  async join(action, { stream = null } = {}) {
     if (!this.socket) {
       this.end("signed-out");
       return;
@@ -199,11 +224,8 @@ export class GroupCall {
       this.audioCtx = null;
     }
 
-    const [, iceServers] = await Promise.all([
-      this.startMic(),
-      loadIceServers(),
-    ]);
-    this.iceServers = iceServers;
+    this.useStream(stream);
+    this.iceServers = await loadIceServers();
     if (this.closed) return;
 
     this.bindSocket();
@@ -295,6 +317,7 @@ export class GroupCall {
           categoryTitle,
           prompt,
           code,
+          max: this.room.max,
           private: Boolean(this.room.private),
         },
       });
@@ -329,30 +352,28 @@ export class GroupCall {
     return peer;
   }
 
-  attachLocal(pc, transceiver) {
-    const track = this.localStream?.getAudioTracks()[0];
+  // Every connection gets a two-way audio slot, even without a microphone,
+  // so the mic can be switched on later without reconnecting.
+  attachLocal(peer, transceiver) {
+    const track = this.localStream?.getAudioTracks()[0] || null;
     if (transceiver) {
-      if (track) {
-        transceiver.sender.replaceTrack(track);
-        transceiver.direction = "sendrecv";
-      } else {
-        transceiver.direction = "recvonly";
-      }
+      transceiver.direction = "sendrecv";
+      if (track) transceiver.sender.replaceTrack(track).catch(() => {});
+      peer.transceiver = transceiver;
       return;
     }
-    if (track)
-      pc.addTransceiver(track, {
-        direction: "sendrecv",
-        streams: [this.localStream],
-      });
-    else pc.addTransceiver("audio", { direction: "recvonly" });
+    if (!this.placeholderStream) this.placeholderStream = new MediaStream();
+    peer.transceiver = peer.pc.addTransceiver(track || "audio", {
+      direction: "sendrecv",
+      streams: [this.localStream || this.placeholderStream],
+    });
   }
 
   async connectTo(userId, offerer) {
     this.dropPeer(userId);
     const peer = this.newPeer(userId, offerer);
     if (!offerer) return peer;
-    this.attachLocal(peer.pc);
+    this.attachLocal(peer);
     try {
       const offer = await peer.pc.createOffer();
       await peer.pc.setLocalDescription(offer);
@@ -393,7 +414,7 @@ export class GroupCall {
             .getTransceivers()
             .find((t) => t.receiver.track?.kind === "audio");
           if (!peer.attached) {
-            this.attachLocal(peer.pc, transceiver);
+            this.attachLocal(peer, transceiver);
             peer.attached = true;
           }
           const answer = await peer.pc.createAnswer();
@@ -503,7 +524,8 @@ export class GroupCall {
   }
 
   setMuted(muted) {
-    if (this.micError && !muted) return;
+    // No microphone yet: unmuting asks for it (see enableMic).
+    if (!muted && !this.localStream) return;
     this.muted = muted;
     this.localStream?.getAudioTracks().forEach((t) => {
       t.enabled = !muted;

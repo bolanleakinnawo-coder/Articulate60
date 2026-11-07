@@ -6,14 +6,13 @@ import {
   Bell,
   Check,
   ChevronRight,
-  Copy,
   CreditCard,
   Eye,
   EyeOff,
   LifeBuoy,
   LogOut,
   Mic,
-  Share2,
+  Trash2,
   TrendingUp,
   Trophy,
   User,
@@ -43,9 +42,8 @@ export default function Profile({ user }) {
   const location = useLocation();
   const storedUser = user || getStoredUser();
   const [profileUser, setProfileUser] = useState(storedUser);
-  // main | stats | win | practices | usage | invite | notifications | account
+  // main | stats | win | practices | usage | notifications | account
   const [view, setView] = useState(location.state?.open || "main");
-  const [inviteCopied, setInviteCopied] = useState(false);
   const [saveMessage, setSaveMessage] = useState("");
   const [feedbackRecording, setFeedbackRecording] = useState(null);
   const [analysingId, setAnalysingId] = useState(null);
@@ -61,6 +59,10 @@ export default function Profile({ user }) {
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [notificationPrefs, setPrefs] = useState(getNotificationPrefs);
+  const [deleteForm, setDeleteForm] = useState({ password: "", confirmText: "" });
+  const [showDeletePassword, setShowDeletePassword] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
+  const [isDeleting, setIsDeleting] = useState(false);
   const [formData, setFormData] = useState({
     fullName: storedUser?.fullName || "",
     username: storedUser?.username || "",
@@ -89,6 +91,12 @@ export default function Profile({ user }) {
 
       const response = await api.put("/user/profile", payload);
       const updatedUser = response.data.user;
+      // A new password signs out every other device; this one gets a new
+      // sign-in token so it stays signed in.
+      if (response.data.token) {
+        sessionStorage.setItem("token", response.data.token);
+        disconnectRealtime();
+      }
       setProfileUser(updatedUser);
       sessionStorage.setItem("user", JSON.stringify(updatedUser));
       setProfilePhoto(null);
@@ -138,6 +146,53 @@ export default function Profile({ user }) {
     sessionStorage.removeItem("token");
     sessionStorage.removeItem("user");
     navigate("/login", { replace: true });
+  };
+
+  const openDelete = () => {
+    setDeleteForm({ password: "", confirmText: "" });
+    setDeleteError("");
+    setShowDeletePassword(false);
+    setView("delete");
+  };
+
+  const handleDeleteAccount = async (event) => {
+    event.preventDefault();
+    setDeleteError("");
+    if (deleteForm.confirmText.trim() !== "DELETE") {
+      setDeleteError("Type DELETE in capital letters to confirm.");
+      return;
+    }
+    if (!deleteForm.password) {
+      setDeleteError("Enter your password to confirm it's you.");
+      return;
+    }
+    setIsDeleting(true);
+    try {
+      await api.delete("/user/account", {
+        data: {
+          password: deleteForm.password,
+          confirmText: deleteForm.confirmText.trim(),
+        },
+      });
+      await disablePush().catch(() => {});
+      disconnectRealtime();
+      sessionStorage.clear();
+      try {
+        localStorage.clear();
+      } catch {
+        // Storage blocked: nothing kept on this device.
+      }
+      navigate("/login", {
+        replace: true,
+        state: { notice: "Your account has been deleted. We're sorry to see you go." },
+      });
+    } catch (requestError) {
+      setDeleteError(
+        requestError.response?.data?.message ||
+          "We couldn't delete your account just now. Please try again.",
+      );
+      setIsDeleting(false);
+    }
   };
 
   // Streak and recordings drive the stats, so keep them live: load on open,
@@ -338,71 +393,128 @@ export default function Profile({ user }) {
     );
   }
 
-  // ---------- INVITE & EARN ----------
-  if (view === "invite") {
-    const inviteLink = `${window.location.origin}/register?ref=${encodeURIComponent(
-      profileUser?.username || "",
-    )}`;
-    const copyLink = async () => {
-      try {
-        await navigator.clipboard.writeText(inviteLink);
-        setInviteCopied(true);
-        setTimeout(() => setInviteCopied(false), 2000);
-      } catch {
-        setInviteCopied(false);
-      }
-    };
-    const shareLink = () =>
-      navigator
-        .share({
-          title: "Join me on Loquiex",
-          text: "I'm practising speaking with Loquiex. Come practise with me.",
-          url: inviteLink,
-        })
-        .catch(() => {});
+  // ---------- DELETE ACCOUNT ----------
+  if (view === "delete") {
+    const subscription = profileUser?.subscription;
+    const expiresAt = subscription?.expiresAt ? new Date(subscription.expiresAt) : null;
+    const daysLeft =
+      plan.id !== "free" && expiresAt
+        ? daysUntil(expiresAt)
+        : 0;
+    const count = recordings.length;
+    const losing = [
+      `${count} practice recording${count === 1 ? "" : "s"} and ${count === 1 ? "its" : "their"} AI feedback`,
+      streak.current > 0
+        ? `Your ${streak.current}-day streak (best: ${streak.longest} days)`
+        : `Your streak history (best: ${streak.longest} day${streak.longest === 1 ? "" : "s"})`,
+      "Your wins and testimonials",
+      "Your profile, photo and notification settings",
+    ];
+    const ready =
+      deleteForm.confirmText.trim() === "DELETE" && deleteForm.password.length > 0;
     return (
-      <div className="profile-content">
+      <div className="profile-content pf-delete-page">
         <SubHeader
-          title="Invite & Earn"
-          subtitle="Referrals and rewards."
+          title="Delete account"
+          subtitle="Permanently remove your Loquiex account and data."
           onBack={() => setView("main")}
         />
-        <section className="pf-panel">
-          <p className="pf-panel-title">Invite a friend to Loquiex</p>
+
+        <section className="pf-panel pf-delete-warning">
+          <p className="pf-panel-title">This can't be undone</p>
           <p className="pf-panel-text">
-            Share your personal link. When friends join and start practising,
-            you&apos;ll both earn rewards.
+            Deleting your account removes everything below from Loquiex
+            straight away. You won't be able to get it back.
           </p>
-          <div className="pf-invite-link">
-            <span>{inviteLink}</span>
-            <button type="button" onClick={copyLink}>
-              {inviteCopied ? <Check size={16} /> : <Copy size={16} />}
-              {inviteCopied ? "Copied" : "Copy"}
-            </button>
-          </div>
-          {typeof navigator !== "undefined" && navigator.share && (
-            <button
-              type="button"
-              className="profile-save-button pf-wide-button"
-              onClick={shareLink}
-            >
-              <Share2 size={16} /> Share invite link
-            </button>
+          <ul className="pf-delete-list">
+            {losing.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
+          {daysLeft > 0 && (
+            <p className="pf-delete-plan">
+              Your {plan.name.replace(/^Loquiex\s+/i, "")} plan has {daysLeft} day
+              {daysLeft === 1 ? "" : "s"} left. It ends when your account is
+              deleted, and unused time isn't refunded. Plans don't renew on
+              their own, so nothing else will be charged.
+            </p>
           )}
+          <p className="pf-field-hint">
+            We keep payment receipts (amount, date and reference, with no name
+            or email) because the law requires financial records.
+          </p>
         </section>
-        <section className="pf-panel">
-          <p className="pf-panel-title">Your rewards</p>
-          <div className="pf-invite-stats">
-            <div>
-              <strong>0</strong>
-              <span>Friends joined</span>
-            </div>
-            <div>
-              <strong>0</strong>
-              <span>Rewards earned</span>
-            </div>
-          </div>
-        </section>
+
+        <form className="pf-panel pf-form" onSubmit={handleDeleteAccount} noValidate>
+          <p className="pf-panel-title">Confirm it's you</p>
+          <label className="pf-field">
+            <span className="pf-field-label">Password</span>
+            <span className="pf-field-wrap">
+              <input
+                type={showDeletePassword ? "text" : "password"}
+                value={deleteForm.password}
+                placeholder="Enter your password"
+                autoComplete="current-password"
+                onChange={(event) =>
+                  setDeleteForm({ ...deleteForm, password: event.target.value })
+                }
+              />
+              <button
+                type="button"
+                className="pf-field-eye"
+                onClick={() => setShowDeletePassword((v) => !v)}
+                aria-label={showDeletePassword ? "Hide password" : "Show password"}
+              >
+                {showDeletePassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </span>
+            <span className="pf-field-hint">
+              Forgot it?{" "}
+              <button
+                type="button"
+                className="pf-inline-link"
+                onClick={() =>
+                  navigate("/forgot-password", {
+                    state: { identifier: profileUser?.email || "" },
+                  })
+                }
+              >
+                Reset your password
+              </button>
+            </span>
+          </label>
+          <label className="pf-field">
+            <span className="pf-field-label">Type DELETE to confirm</span>
+            <input
+              type="text"
+              value={deleteForm.confirmText}
+              placeholder="DELETE"
+              autoComplete="off"
+              autoCapitalize="characters"
+              spellCheck={false}
+              onChange={(event) =>
+                setDeleteForm({ ...deleteForm, confirmText: event.target.value })
+              }
+            />
+          </label>
+          {deleteError && <p className="form-error">{deleteError}</p>}
+          <button
+            type="submit"
+            className="pf-danger-button pf-delete-submit"
+            disabled={!ready || isDeleting}
+          >
+            <Trash2 size={18} />
+            {isDeleting ? "Deleting your account..." : "Delete my account"}
+          </button>
+          <button
+            type="button"
+            className="pf-outline-button"
+            onClick={() => setView("main")}
+            disabled={isDeleting}
+          >
+            Keep my account
+          </button>
+        </form>
       </div>
     );
   }
@@ -628,7 +740,7 @@ export default function Profile({ user }) {
           icon: Users,
           title: "Invite & Earn",
           text: "Referrals and rewards",
-          onClick: () => setView("invite"),
+          soon: true,
         },
         {
           icon: CreditCard,
@@ -714,12 +826,45 @@ export default function Profile({ user }) {
           onClick={handleLogout}
           className="pf-row-logout"
         />
+        <NavRow
+          icon={Trash2}
+          title="Delete account"
+          text="Permanently remove your account and data"
+          onClick={openDelete}
+          className="pf-row-logout"
+        />
       </div>
     </div>
   );
 }
 
-function NavRow({ icon: Icon, title, text, onClick, className = "" }) {
+function NavRow({
+  icon: Icon,
+  title,
+  text,
+  onClick,
+  className = "",
+  soon = false,
+}) {
+  // Not available yet: shown, but it can't be opened.
+  if (soon) {
+    return (
+      <div
+        className={`pf-row pf-row-soon ${className}`}
+        aria-disabled="true"
+        aria-label={`${title}, coming soon`}
+      >
+        <span className="pf-row-icon">
+          <Icon size={20} />
+        </span>
+        <span className="pf-row-text">
+          <strong>{title}</strong>
+          <span>{text}</span>
+        </span>
+        <span className="pf-soon-pill">Coming soon</span>
+      </div>
+    );
+  }
   return (
     <button className={`pf-row ${className}`} onClick={onClick}>
       <span className="pf-row-icon">
@@ -746,6 +891,11 @@ function SubHeader({ title, subtitle, onBack }) {
       </header>
     </>
   );
+}
+
+// Whole days left until `date` (rounded up), never below 0.
+function daysUntil(date) {
+  return Math.max(0, Math.ceil((date.getTime() - Date.now()) / 86400000));
 }
 
 function getStoredUser() {

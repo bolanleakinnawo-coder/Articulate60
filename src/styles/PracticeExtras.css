@@ -300,7 +300,8 @@
   flex-direction: column;
   align-self: flex-start;
   width: 100%;
-  max-width: 560px;
+  max-width: 1040px;
+  margin: 0 auto;
 }
 
 .practice-group-panel .practice-panel-intro {

@@ -23,7 +23,7 @@ import {
   DEFAULT_SPEAK_SECONDS,
   describeSpeakTime,
 } from "../data/prompts";
-import { canUseAiFeedback } from "../data/plans";
+import { canUseAiFeedback, isPaidPlan } from "../data/plans";
 import api from "../api/axios";
 import FeedbackReport from "../Components/practice/FeedbackReport";
 import RecordingPlayer from "../Components/practice/RecordingPlayer";
@@ -995,7 +995,6 @@ function PracticeSessionAttempt() {
           title="Your speaking practice"
           subtitle="Tap play to listen"
         />
-        {shareButton}
 
         <hr className="an-rule" />
 
@@ -1058,6 +1057,7 @@ function PracticeSessionAttempt() {
         >
           Unlock my AI feedback
         </button>
+        {shareButton}
         <button
           type="button"
           className="fb-secondary-btn"
@@ -1082,7 +1082,13 @@ function PracticeSessionAttempt() {
         >
           Try again
         </button>
-        <button className="fb-link-btn" onClick={() => setPhase("complete")}>
+        <button
+          className="fb-link-btn"
+          onClick={() =>
+            // Members without a paid plan always end on "You did it!".
+            setPhase(isPaidPlan(currentUser) ? "complete" : "unlock")
+          }
+        >
           Skip for now
         </button>
       </div>

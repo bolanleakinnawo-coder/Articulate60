@@ -42,6 +42,11 @@ const userSchema = new mongoose.Schema(
       required: true,
       minlength: 8,
     },
+    // Goes up by one whenever the password is reset or changed. Every sign-in
+    // token carries the number it was made with, so raising it signs the
+    // member out on every device (see utils/authToken.js).
+    tokenVersion: { type: Number, default: 0 },
+    passwordChangedAt: { type: Date, default: null },
     role: {
       type: String,
       required: true,

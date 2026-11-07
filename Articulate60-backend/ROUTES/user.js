@@ -1,13 +1,22 @@
 const express = require("express");
 const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken");
 const multer = require("multer");
 const { PutObjectCommand } = require("@aws-sdk/client-s3");
-const { randomUUID } = require("crypto");
+const { randomUUID, randomBytes, createHash } = require("crypto");
 const User = require("../MODELS/User"); // adjust path/casing to match your actual folder
 const r2 = require("../config/r2");
 const rateLimit = require("express-rate-limit");
 const { planIdOf, subscriptionOf } = require("../utils/plans");
+const PasswordReset = require("../MODELS/PasswordReset");
+const { signToken, verifyToken } = require("../utils/authToken");
+const { disconnectUser } = require("../services/realtime");
+const { deleteAccount } = require("../services/accountDeletion");
+const {
+  sendEmail,
+  passwordResetEmail,
+  passwordChangedEmail,
+  accountDeletedEmail,
+} = require("../services/email");
 
 const router = express.Router();
 
@@ -53,9 +62,7 @@ const loginLimiter = rateLimit({
   message: { message: "Too many sign-in attempts. Please wait 15 minutes and try again." },
 });
 
-const generateToken = (userId) => {
-  return jwt.sign({ id: userId }, process.env.JWT_SECRET, { expiresIn: "7d" });
-};
+const generateToken = (user) => signToken(user);
 
 const authenticate = async (req, res, next) => {
   try {
@@ -63,16 +70,66 @@ const authenticate = async (req, res, next) => {
     if (!token)
       return res.status(401).json({ message: "Authentication required." });
 
-    const payload = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await User.findById(payload.id);
-    if (!user) return res.status(404).json({ message: "User not found." });
-
+    const { user } = await verifyToken(token, { full: true });
     req.user = user;
     next();
-  } catch {
-    res.status(401).json({ message: "Invalid or expired session." });
+  } catch (err) {
+    if (err.code) {
+      return res.status(401).json({ message: err.message, code: err.code });
+    }
+    console.error("Auth check failed:", err);
+    res.status(503).json({ message: "Please try again in a moment." });
   }
 };
+
+const isStrongPassword = (password) =>
+  typeof password === "string" &&
+  password.length >= 8 &&
+  password.length <= 128 &&
+  /[a-zA-Z]/.test(password) &&
+  /[0-9]/.test(password);
+
+const appUrl = () => (process.env.APP_URL || "").trim().replace(/\/+$/, "");
+const hashToken = (token) => createHash("sha256").update(token).digest("hex");
+const RESET_MINUTES = 30;
+const RESET_TOKEN_RE = /^[A-Za-z0-9_-]{43}$/;
+const clientIp = (req) => rateLimit.ipKeyGenerator(req.ip || "");
+
+// Forgot password: 5 requests per 15 minutes per IP, and 3 per hour for one
+// email/username, so nobody can flood someone's inbox.
+const forgotIpLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: (req) => clientIp(req),
+  message: { message: "Too many reset requests. Please wait 15 minutes and try again." },
+});
+const forgotAccountLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  limit: 3,
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: (req) =>
+    `forgot|${String(req.body?.identifier || req.body?.email || "").trim().toLowerCase()}`,
+  message: { message: "Too many reset requests. Please wait an hour and try again." },
+});
+const resetLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: (req) => clientIp(req),
+  message: { message: "Too many attempts. Please wait 15 minutes and try again." },
+});
+const deleteLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: (req) => `delete|${clientIp(req)}`,
+  message: { message: "Too many attempts. Please wait 15 minutes and try again." },
+});
 
 // ---------- SIGNUP ----------
 router.post("/signup", handleProfilePhotoUpload, async (req, res) => {
@@ -202,7 +259,7 @@ router.post("/signup", handleProfilePhotoUpload, async (req, res) => {
         marketingOptIn === "true" ? new Date() : null,
     });
 
-    const token = generateToken(newUser._id);
+    const token = generateToken(newUser);
 
     res.status(201).json({
       message: "Account created successfully!",
@@ -271,7 +328,7 @@ router.post("/login", loginLimiter, async (req, res) => {
       return res.status(401).json({ message: "Invalid credentials." });
     }
 
-    const token = generateToken(user._id);
+    const token = generateToken(user);
 
     res.status(200).json({
       message: "Login successful!",
@@ -382,11 +439,23 @@ router.put(
       }
       if (newPassword) {
         req.user.password = await bcrypt.hash(newPassword, 10);
+        // Signs out every other device; this one gets a fresh token below.
+        req.user.tokenVersion = (req.user.tokenVersion || 0) + 1;
+        req.user.passwordChangedAt = new Date();
       }
       await req.user.save();
+      if (newPassword) {
+        disconnectUser(String(req.user._id), "session:revoked", {});
+        PasswordReset.deleteMany({ user: req.user._id }).catch(() => {});
+        const mail = passwordChangedEmail({ name: req.user.fullName, appUrl: appUrl() });
+        sendEmail({ to: req.user.email, ...mail }).catch((e) =>
+          console.error("Password-changed email failed:", e.message),
+        );
+      }
 
       res.json({
         message: "Profile updated successfully.",
+        ...(newPassword ? { token: generateToken(req.user) } : {}),
         user: {
           id: req.user._id,
           fullName: req.user.fullName,
@@ -411,5 +480,159 @@ router.put(
     }
   },
 );
+
+// ---------- FORGOT PASSWORD ----------
+// Always answers the same way, whether or not the account exists, and does
+// the lookup and email after replying, so nobody can use it to find out
+// which emails have Loquiex accounts.
+const FORGOT_REPLY = {
+  message:
+    "If an account matches what you entered, we've sent a link to reset your password. It expires in 30 minutes.",
+};
+
+async function sendResetLink(identifier, ip) {
+  const value = identifier.trim();
+  const user = await User.findOne(
+    EMAIL_REGEX.test(value)
+      ? { email: value.toLowerCase() }
+      : { username: usernameLookup(value) },
+  ).select("fullName email");
+  if (!user) return;
+
+  const base = appUrl();
+  if (!base) {
+    console.error("Forgot password: APP_URL is not set, so no link can be made.");
+    return;
+  }
+
+  // Only the newest link works.
+  await PasswordReset.deleteMany({ user: user._id, usedAt: null });
+  const token = randomBytes(32).toString("base64url");
+  await PasswordReset.create({
+    user: user._id,
+    tokenHash: hashToken(token),
+    expiresAt: new Date(Date.now() + RESET_MINUTES * 60 * 1000),
+    requestedIp: ip,
+  });
+
+  const url = `${base}/reset-password?token=${token}`;
+  const mail = passwordResetEmail({ name: user.fullName, url, minutes: RESET_MINUTES });
+  await sendEmail({ to: user.email, ...mail });
+}
+
+router.post("/forgot-password", forgotIpLimiter, forgotAccountLimiter, (req, res) => {
+  const identifier = String(req.body?.identifier || req.body?.email || "");
+  if (!identifier.trim() || identifier.length > 254) {
+    return res
+      .status(400)
+      .json({ message: "Please enter your email address or username." });
+  }
+  res.json(FORGOT_REPLY);
+  sendResetLink(identifier, req.ip || "").catch((err) =>
+    console.error("Forgot password failed:", err.message),
+  );
+});
+
+async function findLiveReset(token) {
+  if (!RESET_TOKEN_RE.test(String(token || ""))) return null;
+  return PasswordReset.findOne({
+    tokenHash: hashToken(token),
+    usedAt: null,
+    expiresAt: { $gt: new Date() },
+  });
+}
+
+// Lets the reset page say "this link has expired" before the member types.
+router.post("/reset-password/check", resetLimiter, async (req, res) => {
+  try {
+    const reset = await findLiveReset(req.body?.token);
+    res.json({ valid: Boolean(reset) });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Something went wrong. Please try again." });
+  }
+});
+
+// ---------- RESET PASSWORD ----------
+router.post("/reset-password", resetLimiter, async (req, res) => {
+  try {
+    const { token, password, confirmPassword } = req.body || {};
+    if (!isStrongPassword(password)) {
+      return res.status(400).json({
+        message: "Password must be 8–128 characters and include a letter and a number.",
+      });
+    }
+    if (password !== confirmPassword) {
+      return res.status(400).json({ message: "Passwords do not match." });
+    }
+
+    const expired = {
+      message: "This reset link has expired or was already used. Please ask for a new one.",
+      code: "RESET_LINK_INVALID",
+    };
+    if (!RESET_TOKEN_RE.test(String(token || ""))) return res.status(400).json(expired);
+
+    // Marks the link used in the same step that finds it, so it can't be
+    // used twice even if two requests arrive together.
+    const reset = await PasswordReset.findOneAndUpdate(
+      { tokenHash: hashToken(token), usedAt: null, expiresAt: { $gt: new Date() } },
+      { $set: { usedAt: new Date() } },
+      { returnDocument: "after" },
+    );
+    if (!reset) return res.status(400).json(expired);
+
+    const user = await User.findById(reset.user);
+    if (!user) return res.status(400).json(expired);
+
+    user.password = await bcrypt.hash(password, 10);
+    user.tokenVersion = (user.tokenVersion || 0) + 1; // signs out every device
+    user.passwordChangedAt = new Date();
+    await user.save();
+    await PasswordReset.deleteMany({ user: user._id, _id: { $ne: reset._id } });
+    disconnectUser(String(user._id), "session:revoked", {});
+
+    const mail = passwordChangedEmail({ name: user.fullName, appUrl: appUrl() });
+    sendEmail({ to: user.email, ...mail }).catch((e) =>
+      console.error("Password-changed email failed:", e.message),
+    );
+
+    res.json({ message: "Your password has been reset. You can sign in now." });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Something went wrong. Please try again." });
+  }
+});
+
+// ---------- DELETE ACCOUNT ----------
+// Needs the current password, and the word DELETE typed by the member.
+router.delete("/account", deleteLimiter, authenticate, async (req, res) => {
+  try {
+    const { password, confirmText } = req.body || {};
+    if (String(confirmText || "").trim() !== "DELETE") {
+      return res.status(400).json({ message: "Type DELETE to confirm." });
+    }
+    if (!password || !(await bcrypt.compare(String(password), req.user.password))) {
+      return res.status(401).json({
+        message: "That password isn't right.",
+        code: "WRONG_PASSWORD",
+      });
+    }
+
+    const { fullName, email } = req.user;
+    await deleteAccount(req.user);
+
+    const mail = accountDeletedEmail({ name: fullName });
+    sendEmail({ to: email, ...mail }).catch((e) =>
+      console.error("Account-deleted email failed:", e.message),
+    );
+
+    res.json({ message: "Your account has been deleted." });
+  } catch (err) {
+    console.error("Account deletion failed:", err);
+    res
+      .status(500)
+      .json({ message: "We couldn't delete your account just now. Please try again." });
+  }
+});
 
 module.exports = router;

@@ -2840,3 +2840,97 @@
     justify-self: start;
   }
 }
+
+/* ---------- Delete account ---------- */
+.pf-delete-warning {
+  border-color: rgba(224, 144, 127, 0.35);
+}
+
+.pf-delete-warning .pf-panel-title {
+  color: var(--pf-danger);
+}
+
+.pf-delete-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0 0 14px;
+  padding-left: 20px;
+  color: var(--text-primary);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.pf-delete-plan {
+  margin: 0 0 14px;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  background: var(--pf-danger-tile);
+  color: var(--text-primary);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.pf-delete-submit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 4px 0 0;
+}
+
+.pf-delete-submit:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pf-delete-page .pf-outline-button:disabled {
+  opacity: 0.5;
+}
+
+.pf-delete-page .pf-field-hint .pf-inline-link {
+  padding: 0;
+  font-size: 12px;
+}
+
+@media (min-width: 900px) {
+  .pf-delete-page {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px 24px;
+    align-items: start;
+  }
+
+  .pf-delete-page > * {
+    grid-column: 1 / -1;
+  }
+
+  .pf-delete-page > .pf-panel {
+    grid-column: auto;
+  }
+
+  .pf-delete-page > .pf-back {
+    justify-self: start;
+  }
+}
+
+/* Invite & Earn: shown as "Coming soon" and can't be opened. */
+.pf-row-soon {
+  cursor: default;
+}
+
+.pf-row-soon .pf-row-icon,
+.pf-row-soon .pf-row-text {
+  opacity: 0.6;
+}
+
+.pf-soon-pill {
+  flex: 0 0 auto;
+  padding: 4px 10px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}

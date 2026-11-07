@@ -573,63 +573,6 @@
   opacity: 0.55;
 }
 
-.gpc-prompt-card p {
-  margin: 0;
-  font-size: 22px;
-  font-weight: 700;
-  line-height: 1.35;
-}
-
-.gpc-prompt-card .gpc-card-heading .gpc-link {
-  margin: 0;
-  letter-spacing: 0;
-  text-transform: none;
-}
-
-.gpc-controls {
-  position: sticky;
-  bottom: 16px;
-  z-index: 2;
-  display: flex;
-  justify-content: center;
-  gap: 14px;
-  margin-top: 8px;
-  padding: 12px;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  background: var(--bg-card);
-  align-self: center;
-}
-
-.gpc-controls button {
-  display: grid;
-  place-items: center;
-  width: 56px;
-  height: 56px;
-  border: 1px solid var(--border);
-  border-radius: 50%;
-  background: var(--bg-secondary);
-  color: var(--text-primary);
-}
-
-.gpc-controls button[aria-pressed="true"] {
-  border-color: var(--olive-bright);
-  background: var(--olive-primary);
-}
-
-.gpc-controls button:disabled {
-  color: var(--text-muted);
-  cursor: not-allowed;
-}
-
-.gpc-controls .gpc-leave {
-  border-color: #7a3a35;
-  background: #7a3a35;
-}
-
-.gpc-controls .gpc-leave:hover {
-  background: #8c4540;
-}
 
 .gpc-allowance-inline {
   margin: 14px 0 0;
@@ -683,12 +626,6 @@
   font-size: 14px;
 }
 
-/* Keep the call buttons above the phone tab bar. */
-@media (max-width: 760px) {
-  .gpc-controls {
-    bottom: calc(86px + env(safe-area-inset-bottom));
-  }
-}
 
 @media (max-width: 520px) {
   .gpc-card {
@@ -715,14 +652,6 @@
     height: 56px;
   }
 
-  .gpc-prompt-card p {
-    font-size: 20px;
-  }
-
-  .gpc-controls button {
-    width: 52px;
-    height: 52px;
-  }
 }
 
 /* ---------- Join with a code / private calls ---------- */
@@ -925,4 +854,707 @@
   .gpc-invite-actions .gpc-secondary {
     flex: 1;
   }
+}
+
+/* ======================================================================
+   Group Practice tab (Practice > Group Practice) and the live room.
+   Home palette only (olive + cream), same type scale as above.
+   ====================================================================== */
+
+.gpt {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  color: var(--text-primary);
+  text-align: left;
+}
+
+.gpt-intro {
+  margin-bottom: 18px;
+}
+
+.gpt-actions {
+  display: grid;
+  gap: 12px;
+}
+
+.gpt-action {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 18px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  text-align: left;
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease;
+}
+
+.gpt-action:hover {
+  border-color: var(--olive-bright);
+}
+
+.gpt-action > svg {
+  flex-shrink: 0;
+  color: var(--olive-bright);
+}
+
+.gpt-action-text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.gpt-action-text strong {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.gpt-action-text span {
+  color: var(--text-secondary);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.gpt-action-primary {
+  border-color: var(--olive-bright);
+  background: var(--olive-primary);
+}
+
+.gpt-action-primary:hover {
+  background: var(--olive-bright);
+}
+
+.gpt-action-primary > svg,
+.gpt-action-primary .gpt-action-text span {
+  color: var(--text-primary);
+}
+
+.gpt-action-primary .gpt-action-text span {
+  opacity: 0.85;
+}
+
+.gpt-plan-note {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 12px 0 0;
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.gpt-plan-note svg {
+  flex-shrink: 0;
+  color: var(--olive-bright);
+}
+
+.gpt-divider {
+  width: 100%;
+  margin: 26px 0 22px;
+  border: none;
+  border-top: 1px solid var(--border);
+}
+
+.gpt-section-title {
+  margin: 0 0 4px;
+  color: var(--text-primary);
+  font-size: 22px;
+  font-weight: 800;
+}
+
+.gpt-section-sub {
+  margin: 0 0 16px;
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.gpt-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.gpt-filter {
+  padding: 8px 16px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.gpt-filter:hover {
+  color: var(--text-primary);
+}
+
+.gpt-filter[aria-pressed="true"] {
+  border-color: var(--olive-bright);
+  background: var(--olive-primary);
+  color: var(--text-primary);
+}
+
+.gpt-rooms {
+  display: grid;
+  gap: 12px;
+}
+
+.gpt-room {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 18px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--bg-card);
+}
+
+.gpt-room-top {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.gpt-room-icon {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 12px;
+  background: var(--bg-secondary);
+  color: var(--olive-bright);
+}
+
+.gpt-room-info {
+  min-width: 0;
+}
+
+.gpt-room-info h4 {
+  margin: 0 0 4px;
+  color: var(--text-primary);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.gpt-room-info p {
+  margin: 0 0 6px;
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.gpt-room-meta {
+  color: var(--olive-bright);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.gpt-room-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: auto;
+}
+
+.gpt-room-host {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--text-secondary);
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.gpt-join {
+  flex-shrink: 0;
+  min-width: 84px;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 999px;
+  background: var(--olive-primary);
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 600;
+  transition: background 0.2s ease;
+}
+
+.gpt-join:hover:not(:disabled) {
+  background: var(--olive-bright);
+}
+
+.gpt-join:disabled {
+  background: var(--bg-secondary);
+  color: var(--text-muted);
+  cursor: not-allowed;
+}
+
+.gpt-invite {
+  margin-top: 16px;
+  padding: 18px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--bg-secondary);
+}
+
+.gpt-invite-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 6px;
+  color: var(--text-primary);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.gpt-invite-title svg {
+  flex-shrink: 0;
+  color: var(--olive-bright);
+}
+
+.gpt-invite-text {
+  margin: 0 0 14px;
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.gpt-invite-button {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid var(--olive-bright);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.gpt-invite-button:hover {
+  background: rgba(100, 103, 66, 0.22);
+}
+
+@media (min-width: 760px) {
+  .gpt-actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .gpt-rooms {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1200px) {
+  .gpt-rooms {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* ---------- Seats chips on Start a practice ---------- */
+.gpc-chip-seat {
+  min-width: 84px;
+}
+
+/* ---------- Microphone prompt ---------- */
+.gpc-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.72);
+  overflow-y: auto;
+}
+
+.gpc-modal {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: 100%;
+  max-width: 440px;
+  padding: 24px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  text-align: left;
+}
+
+.gpc-modal-icon {
+  display: grid;
+  place-items: center;
+  align-self: center;
+  width: 64px;
+  height: 64px;
+  margin-bottom: 16px;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: var(--bg-secondary);
+  color: var(--olive-bright);
+}
+
+.gpc-modal-title {
+  margin: 0 0 8px;
+  color: var(--text-primary);
+  font-size: 22px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.gpc-modal-text {
+  margin: 0 0 18px;
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.gpc-modal-text strong {
+  color: var(--text-primary);
+}
+
+.gpc-modal-hint {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: -6px 0 16px;
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.gpc-modal-actions,
+.gpc-mic-actions {
+  display: grid;
+  gap: 10px;
+}
+
+.gpc-modal-actions .gpc-secondary,
+.gpc-mic-actions .gpc-secondary {
+  width: 100%;
+  padding: 13px 16px;
+  white-space: normal;
+}
+
+.gpc-modal .gpc-link {
+  margin-top: 16px;
+}
+
+.gpc-mic-help-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 6px;
+  color: var(--text-primary);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.gpc-mic-help-title svg {
+  flex-shrink: 0;
+  color: var(--olive-bright);
+}
+
+.gpc-mic-help-text {
+  margin: 0 0 12px;
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.gpc-mic-steps {
+  margin: 0 0 16px;
+  padding: 14px 14px 14px 34px;
+  border-radius: var(--radius-md);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.gpc-mic-steps li + li {
+  margin-top: 6px;
+}
+
+.gpc-mic-help-compact .gpc-mic-actions {
+  grid-template-columns: minmax(0, 220px);
+}
+
+/* ---------- Live room ---------- */
+.gpc-call .gpc-leave-link {
+  align-self: center;
+}
+
+.gpc-call .gpc-call-head .gpc-title {
+  font-size: clamp(24px, 3vw, 32px);
+}
+
+.gpc-room-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.gpc-room-card-icon {
+  color: var(--olive-bright);
+}
+
+.gpc-room-card-title {
+  margin: 8px 0 6px;
+  color: var(--text-primary);
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.gpc-room-card-text {
+  max-width: 460px;
+  margin: 0 0 18px;
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.gpc-seats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  width: 100%;
+}
+
+.gpc-seat {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  padding: 16px 10px 14px;
+  border-radius: var(--radius-md);
+  background: var(--bg-secondary);
+  text-align: center;
+}
+
+.gpc-seat .gpc-avatar {
+  width: 48px;
+  height: 48px;
+  font-size: 16px;
+}
+
+.gpc-seat .gpc-member-icons {
+  top: 8px;
+  right: 8px;
+}
+
+.gpc-seat-open {
+  border: 1px dashed var(--border);
+  background: transparent;
+}
+
+.gpc-avatar-open {
+  background: transparent;
+  color: var(--text-muted);
+}
+
+.gpc-seat-open .gpc-member-name {
+  color: var(--text-secondary);
+}
+
+.gpc-seat.gpc-speaking .gpc-avatar {
+  box-shadow:
+    0 0 0 3px var(--bg-secondary),
+    0 0 0 6px var(--olive-bright);
+}
+
+.gpc-prompt-card {
+  border-color: var(--olive-primary);
+}
+
+.gpc-prompt-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 10px;
+  color: var(--olive-bright);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.gpc-prompt-text {
+  margin: 0 0 16px;
+  color: var(--text-primary);
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.gpc-prompt-note {
+  display: block;
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+.gpc-prompt-buttons {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.gpc-outline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 11px 12px;
+  border: 1px solid var(--olive-bright);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.gpc-outline:hover:not(:disabled) {
+  background: rgba(100, 103, 66, 0.22);
+}
+
+.gpc-outline:disabled {
+  border-color: var(--border);
+  color: var(--text-muted);
+  cursor: not-allowed;
+}
+
+.gpc-outline-strong {
+  background: var(--olive-primary);
+}
+
+.gpc-prompt-input {
+  width: 100%;
+  margin-bottom: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 16px;
+  line-height: 1.45;
+  resize: vertical;
+}
+
+.gpc-prompt-input:focus {
+  outline: none;
+  border-color: var(--olive-bright);
+}
+
+.gpc-controls {
+  position: sticky;
+  bottom: 16px;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 8px;
+  padding: 8px 0;
+  background: var(--bg-primary);
+}
+
+.gpc-control {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 84px;
+  padding: 14px 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.gpc-control svg {
+  color: var(--olive-bright);
+}
+
+.gpc-control[aria-pressed="true"] {
+  border-color: var(--olive-bright);
+  background: var(--olive-primary);
+}
+
+.gpc-control[aria-pressed="true"] svg {
+  color: var(--text-primary);
+}
+
+.gpc-control:disabled {
+  cursor: wait;
+}
+
+.gpc-control.gpc-leave {
+  border-color: #5c2f2b;
+  background: #3a1f1d;
+  color: #f0b4ad;
+}
+
+.gpc-control.gpc-leave svg {
+  color: #f0b4ad;
+}
+
+.gpc-control.gpc-leave:hover {
+  background: #4a2421;
+}
+
+/* Keep the call buttons above the phone tab bar. */
+@media (max-width: 760px) {
+  .gpc-controls {
+    bottom: calc(78px + env(safe-area-inset-bottom));
+  }
+}
+
+@media (min-width: 640px) {
+  .gpc-seats {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 380px) {
+  .gpc-prompt-buttons {
+    grid-template-columns: 1fr;
+  }
+
+  .gpc-prompt-text {
+    font-size: 20px;
+  }
+
+  .gpc-modal {
+    padding: 20px 16px;
+  }
+}
+
+.gpc-alert .gpc-mic-help-text {
+  display: block;
+  margin: 0 0 12px;
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--text-secondary);
+}
+
+.gpc-alert .gpc-mic-help-title {
+  margin: 0 0 6px;
+}
+
+.practice-group-panel .gpt-intro {
+  margin-bottom: 18px;
 }

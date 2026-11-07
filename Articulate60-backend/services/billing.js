@@ -52,6 +52,14 @@ async function settlePayment(payment) {
   );
 
   const applied = await applyToUser(payment);
+  if (applied?.accountDeleted) {
+    console.error(`Payment ${payment.reference} paid after account deletion: refund it in Paystack.`);
+    return Payment.findOneAndUpdate(
+      { _id: payment._id },
+      { $set: { status: "flagged", flagReason: "paid after account was deleted: refund" } },
+      { returnDocument: "after" },
+    );
+  }
   return Payment.findOneAndUpdate(
     { _id: payment._id },
     {
@@ -85,7 +93,8 @@ async function applyToUser(payment) {
       planPeriodId: 1,
       appliedPaymentRefs: 1,
     });
-    if (!user) throw new Error(`User for payment ${ref} not found.`);
+    // The member deleted their account before this payment came through.
+    if (!user) return { accountDeleted: true };
     if (user.appliedPaymentRefs?.includes(ref)) return null;
 
     const now = new Date();
