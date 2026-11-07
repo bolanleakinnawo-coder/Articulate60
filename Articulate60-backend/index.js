@@ -21,7 +21,18 @@ const port = process.env.PORT || 3001;
 
 // CORS must run before routes so browser preflight (OPTIONS) requests for
 // authenticated uploads and streak requests receive the required headers.
+// Render puts one proxy in front of the app; needed for per-IP rate limits.
+app.set("trust proxy", 1);
 app.use(cors());
+
+// Paystack webhook needs the exact raw bytes to check its signature, so it is
+// mounted BEFORE express.json().
+app.post(
+  "/api/billing/paystack/webhook",
+  express.raw({ type: "*/*", limit: "1mb" }),
+  require("./ROUTES/billing").paystackWebhook,
+);
+
 app.use(express.json());
 
 app.use("/user", userRoutes);
@@ -32,6 +43,8 @@ app.use(wordOfTheDayRoute);
 app.use("/api/practice", require("./ROUTES/practice"));
 app.use("/api/testimonials", require("./ROUTES/testimonials"));
 app.use("/api/push", require("./ROUTES/push"));
+app.use("/api/group", require("./ROUTES/group"));
+app.use("/api/billing", require("./ROUTES/billing"));
 connectDB();
 
 // Live in-app updates (Socket.IO) share the same port as the API.

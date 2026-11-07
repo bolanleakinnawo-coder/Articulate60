@@ -1,29 +1,53 @@
-import axios from "axios";
+/* Loquiex phone notifications. Loaded into the service worker that
+   vite-plugin-pwa generates (see workbox.importScripts in vite.config.js). */
 
-const API_URL = import.meta.env.VITE_API_URL;
-
-const api = axios.create({ baseURL: API_URL });
-
-api.interceptors.request.use((config) => {
-  const isAdminRequest =
-    config.url?.startsWith("/api/testimonials/admin") ||
-    config.url?.startsWith("/api/admin/");
-  const token = isAdminRequest ? null : sessionStorage.getItem("token");
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+self.addEventListener("push", (event) => {
+  let data = {};
+  try {
+    data = event.data ? event.data.json() : {};
+  } catch {
+    data = { title: "Loquiex", body: event.data ? event.data.text() : "" };
   }
-  // Streak days and reminder times are worked out in the device's time zone.
-  const timeZone = deviceTimeZone();
-  if (timeZone && !isAdminRequest) config.headers["X-Time-Zone"] = timeZone;
-  return config;
+
+  const title = data.title || "Loquiex";
+  const options = {
+    body: data.body || "",
+    icon: "/icons/app-icon-192.png",
+    badge: "/icons/app-icon-192.png",
+    tag: data.tag || "loquiex",
+    renotify: true,
+    data: { url: data.url || "/app/home" },
+    actions: [
+      { action: "open", title: data.action || "Practise today" },
+      { action: "later", title: "Maybe later" },
+    ],
+  };
+
+  event.waitUntil(self.registration.showNotification(title, options));
 });
 
-export function deviceTimeZone() {
-  try {
-    return Intl.DateTimeFormat().resolvedOptions().timeZone || "";
-  } catch {
-    return "";
-  }
-}
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  // "Maybe later" just dismisses; the next reminder comes at its usual time.
+  if (event.action === "later") return;
 
-export default api;
+  const target = new URL(
+    event.notification.data?.url || "/app/home",
+    self.location.origin,
+  ).href;
+
+  event.waitUntil(
+    self.clients
+      .matchAll({ type: "window", includeUncontrolled: true })
+      .then((windows) => {
+        const open = windows.find((w) => w.url.startsWith(self.location.origin));
+        if (open) {
+          return open
+            .focus()
+            .then((w) => (w || open).navigate(target))
+            .catch(() => self.clients.openWindow(target));
+        }
+        return self.clients.openWindow(target);
+      }),
+  );
+});

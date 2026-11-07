@@ -17,7 +17,11 @@ const PLAN_LIMITS = {
 // (same ratio to Bloom as in naira) until their dollar prices are decided.
 const PRICES = {
   NGN: { bloom: 4900, flourish: 8000, infinity: 29800 },
-  USD: { bloom: 4, flourish: 7 /* placeholder */, infinity: 24 /* placeholder */ },
+  USD: {
+    bloom: 4,
+    flourish: 7 /* placeholder */,
+    infinity: 24 /* placeholder */,
+  },
 };
 
 const PLAN_IDS = Object.keys(PLAN_LIMITS);
@@ -42,7 +46,9 @@ function priceMinorFor(planId, periodId, currency = "NGN") {
   const monthly = PRICES[currency]?.[planId];
   const period = BILLING_PERIODS[periodId];
   if (!monthly || !period) return null;
-  return Math.round(monthly * period.months * (1 - period.discount / 100) * 100);
+  return Math.round(
+    monthly * period.months * (1 - period.discount / 100) * 100,
+  );
 }
 
 // The plan a member actually has right now. A paid plan only counts while a
@@ -69,13 +75,50 @@ function isPaid(user) {
   return planIdOf(user) !== "free";
 }
 
+// ---- FREE TRIAL of AI feedback (Sheriff, 2026-11-06) ----------------------
+// Free has NO AI feedback, except a trial for the first 3 days after sign-up
+// (up to AI_TRIAL_PER_DAY a day). Bloom: AI feedback, no group practice.
+// Flourish and Infinity: AI feedback and group practice.
+const AI_TRIAL_DAYS = 3;
+const AI_TRIAL_PER_DAY = 3;
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+// When this member's free AI trial ends (null if the sign-up date is unknown).
+function aiTrialEndsAt(user) {
+  const created = user?.createdAt ? new Date(user.createdAt) : null;
+  if (!created || Number.isNaN(created.getTime())) return null;
+  return new Date(created.getTime() + AI_TRIAL_DAYS * DAY_MS);
+}
+
+function isOnAiTrial(user, now = new Date()) {
+  if (isPaid(user)) return false;
+  const ends = aiTrialEndsAt(user);
+  return Boolean(ends && ends > now);
+}
+
+function canUseAiFeedback(user, now = new Date()) {
+  return isPaid(user) || isOnAiTrial(user, now);
+}
+
 // What the app shows on Manage Membership.
 function subscriptionOf(user, now = new Date()) {
   const planId = planIdOf(user, now);
-  if (planId === "free") return { planId, periodId: null, startedAt: null, expiresAt: null };
+  if (planId === "free") {
+    const trialEnds = aiTrialEndsAt(user);
+    return {
+      planId,
+      periodId: null,
+      startedAt: null,
+      expiresAt: null,
+      aiTrialEndsAt: trialEnds,
+      onAiTrial: isOnAiTrial(user, now),
+    };
+  }
   return {
     planId,
-    periodId: BILLING_PERIODS[user.planPeriodId] ? user.planPeriodId : "monthly",
+    periodId: BILLING_PERIODS[user.planPeriodId]
+      ? user.planPeriodId
+      : "monthly",
     startedAt: user.planStartedAt || null,
     expiresAt: user.planExpiresAt,
   };
@@ -87,13 +130,15 @@ function addMonths(date, months) {
   const day = d.getUTCDate();
   d.setUTCDate(1);
   d.setUTCMonth(d.getUTCMonth() + months);
-  const last = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 0)).getUTCDate();
+  const last = new Date(
+    Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 0),
+  ).getUTCDate();
   d.setUTCDate(Math.min(day, last));
   return d;
 }
 
 // Fields to read whenever plan access is checked.
-const PLAN_FIELDS = { plan: 1, planExpiresAt: 1 };
+const PLAN_FIELDS = { plan: 1, planExpiresAt: 1, createdAt: 1 };
 
 module.exports = {
   PLAN_LIMITS,
@@ -108,6 +153,11 @@ module.exports = {
   limitsFor,
   hasGroupPractice,
   isPaid,
+  AI_TRIAL_DAYS,
+  AI_TRIAL_PER_DAY,
+  aiTrialEndsAt,
+  isOnAiTrial,
+  canUseAiFeedback,
   subscriptionOf,
   addMonths,
 };

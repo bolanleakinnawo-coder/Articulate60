@@ -36,7 +36,9 @@ const checkoutLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   keyGenerator: (req) => String(req.userId),
-  message: { message: "Too many checkout attempts. Please wait a few minutes." },
+  message: {
+    message: "Too many checkout attempts. Please wait a few minutes.",
+  },
 });
 
 const verifyLimiter = rateLimit({
@@ -61,6 +63,7 @@ async function subscriptionFor(userId) {
     planExpiresAt: 1,
     planStartedAt: 1,
     planPeriodId: 1,
+    createdAt: 1,
   });
   return user ? subscriptionOf(user) : null;
 }
@@ -87,13 +90,18 @@ router.post("/checkout", authMiddleware, checkoutLimiter, async (req, res) => {
   const periodId = String(req.body?.periodId || "");
   const currency = String(req.body?.currency || "NGN").toUpperCase();
   if (!PAID_PLAN_IDS.includes(planId) || !BILLING_PERIODS[periodId]) {
-    return res.status(400).json({ message: "Choose a plan and billing period." });
+    return res
+      .status(400)
+      .json({ message: "Choose a plan and billing period." });
   }
   if (!enabledCurrencies().includes(currency)) {
     return res.status(400).json({ message: "That currency isn't available." });
   }
   const amountMinor = priceMinorFor(planId, periodId, currency);
-  if (!amountMinor) return res.status(400).json({ message: "Choose a plan and billing period." });
+  if (!amountMinor)
+    return res
+      .status(400)
+      .json({ message: "Choose a plan and billing period." });
 
   try {
     const user = await User.findById(req.userId, { email: 1 });
@@ -137,7 +145,9 @@ router.post("/checkout", authMiddleware, checkoutLimiter, async (req, res) => {
   } catch (err) {
     console.error("Checkout failed:", err.message);
     if (err.code === "NOT_CONFIGURED") return notConfigured(res);
-    res.status(502).json({ message: "Couldn't start the payment. Please try again." });
+    res
+      .status(502)
+      .json({ message: "Couldn't start the payment. Please try again." });
   }
 });
 
@@ -163,7 +173,9 @@ router.post("/verify", authMiddleware, verifyLimiter, async (req, res) => {
     });
   } catch (err) {
     console.error("Verify failed:", err.message);
-    res.status(502).json({ message: "Couldn't confirm the payment yet. Please try again." });
+    res
+      .status(502)
+      .json({ message: "Couldn't confirm the payment yet. Please try again." });
   }
 });
 
@@ -176,14 +188,17 @@ router.get("/me", authMiddleware, async (req, res) => {
         .sort({ createdAt: -1 })
         .limit(12),
     ]);
-    if (!subscription) return res.status(404).json({ message: "User not found." });
+    if (!subscription)
+      return res.status(404).json({ message: "User not found." });
     res.json({
       subscription,
       payments: payments.map(publicPayment),
       mode: paystack.mode(),
       available: paystack.isConfigured(),
       currencies: enabledCurrencies(),
-      prices: Object.fromEntries(enabledCurrencies().map((c) => [c, PRICES[c]])),
+      prices: Object.fromEntries(
+        enabledCurrencies().map((c) => [c, PRICES[c]]),
+      ),
     });
   } catch (err) {
     console.error(err);

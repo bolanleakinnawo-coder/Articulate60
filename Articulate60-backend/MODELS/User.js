@@ -83,7 +83,23 @@ const userSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
-    plan: { type: String, enum: ["free", "pro"], default: "free" },
+    // "pro" is the old paid value (shown as Bloom). See utils/plans.js.
+    // Never set this from a request body: only billing sets it.
+    plan: {
+      type: String,
+      enum: ["free", "pro", "bloom", "flourish", "infinity"],
+      default: "free",
+    },
+    // --- Paid membership (set ONLY by services/billing.js after Paystack
+    // confirms a payment). The plan counts only while planExpiresAt is in
+    // the future; see utils/plans.js planIdOf().
+    planExpiresAt: { type: Date, default: null },
+    planStartedAt: { type: Date, default: null },
+    planPeriodId: { type: String, default: null },
+    // Paystack references already applied, so a payment is never counted twice.
+    appliedPaymentRefs: { type: [String], default: [] },
+    // Group practice minutes per local day, e.g. { "2026-11-05": 34 }.
+    groupMinutes: { type: Map, of: Number, default: {} },
 
     // --- Streak notifications ---
     // IANA time zone from the member's device (e.g. "Africa/Lagos"). Streak

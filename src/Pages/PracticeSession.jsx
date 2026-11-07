@@ -23,7 +23,7 @@ import {
   DEFAULT_SPEAK_SECONDS,
   describeSpeakTime,
 } from "../data/prompts";
-import { isPaidPlan } from "../data/plans";
+import { canUseAiFeedback } from "../data/plans";
 import api from "../api/axios";
 import FeedbackReport from "../Components/practice/FeedbackReport";
 import RecordingPlayer from "../Components/practice/RecordingPlayer";
@@ -32,11 +32,11 @@ import ShareSheet from "../Components/practice/ShareSheet";
 import "./PracticeSession.css";
 
 // ---- AI FEEDBACK SWITCHES ----
+// false (live): paid members, and Free members in their 3-day trial, get AI
+// feedback; everyone else sees "You did it!" with "Unlock my AI feedback".
 // TESTING: true = everyone gets the AI feedback screen after saving.
-// AT LAUNCH: set to false. Then only paid members get feedback, and free
-// users see the "You did it!" page with "Unlock my AI feedback".
 // (The server also checks the plan, so this is only for the screen flow.)
-const ANALYZER_FOR_ALL = true;
+const ANALYZER_FOR_ALL = false;
 // true  = after the feedback screen, continue to the "Amazing!" page.
 // false = the feedback screen's button goes straight back home.
 const SHOW_COMPLETE_AFTER_FEEDBACK = false;
@@ -156,6 +156,7 @@ function PracticeSessionAttempt() {
   const [savedRecordingId, setSavedRecordingId] = useState(null);
   const [report, setReport] = useState(null);
   const [analysisError, setAnalysisError] = useState("");
+  const [unlockNote, setUnlockNote] = useState("");
   // Share image for practices without a feedback score (time spent speaking).
   const [showShare, setShowShare] = useState(false);
 
@@ -475,6 +476,7 @@ function PracticeSessionAttempt() {
       setPhase("feedback");
     } catch (err) {
       if (err.response?.data?.code === "UPGRADE_REQUIRED") {
+        setUnlockNote(err.response.data.message || "");
         setPhase("unlock");
         return;
       }
@@ -523,7 +525,7 @@ function PracticeSessionAttempt() {
 
       const recordingId = res.data.recording?._id;
       setSavedRecordingId(recordingId || null);
-      const showAnalyzer = ANALYZER_FOR_ALL || isPaidPlan(currentUser);
+      const showAnalyzer = ANALYZER_FOR_ALL || canUseAiFeedback(currentUser);
 
       if (recordingId && showAnalyzer) {
         runAnalysis(recordingId);
@@ -915,14 +917,13 @@ function PracticeSessionAttempt() {
         <hr className="an-rule" />
 
         <h2 className="an-heading">Your feedback will help you...</h2>
-        <ul className="an-list">
+        <ul className="an-list an-list-compact">
           <li>
             <span className="an-icon" aria-hidden="true">
               <Check size={18} />
             </span>
             <span>
               <strong>Recognise what you're doing well</strong>
-              <span>Know which communication habits to keep.</span>
             </span>
           </li>
           <li>
@@ -931,10 +932,6 @@ function PracticeSessionAttempt() {
             </span>
             <span>
               <strong>Spot what you can improve</strong>
-              <span>
-                Understand where your message could be clearer or better
-                organised.
-              </span>
             </span>
           </li>
           <li>
@@ -943,10 +940,6 @@ function PracticeSessionAttempt() {
             </span>
             <span>
               <strong>Learn how to express yourself better</strong>
-              <span>
-                Get practical corrections and a stronger version of your
-                response.
-              </span>
             </span>
           </li>
         </ul>
@@ -1014,6 +1007,7 @@ function PracticeSessionAttempt() {
           Unlock AI feedback to understand how you communicated and what you can
           do to improve.
         </p>
+        {unlockNote && <p className="an-note">{unlockNote}</p>}
         <ul className="an-list an-list-plain">
           <li>
             <CircleCheck

@@ -441,3 +441,83 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* ---------- wider research workspace (Sheriff, 2026-11-06) ----------
+   Topic card, toolkit card and the CTA buttons fill the page width
+   instead of sitting in a narrow column. */
+.session-page.rm-work {
+  width: 100%;
+  max-width: 760px;
+}
+
+.rm-topic-card {
+  padding: 22px 22px 24px;
+}
+
+.rm-topic-text {
+  font-size: 20px;
+}
+
+.rm-toolkit {
+  padding: 22px 22px 24px;
+}
+
+.rm-timer-btn,
+.rm-done-btn,
+.rm-secondary-btn {
+  width: 100%;
+  max-width: none;
+}
+
+.rm-search-btn,
+.rm-new-topic {
+  min-height: 42px;
+}
+
+@media (max-width: 480px) {
+  .rm-topic-card,
+  .rm-toolkit {
+    padding: 18px;
+  }
+
+  .rm-topic-text {
+    font-size: 18px;
+  }
+
+  .rm-topic-actions {
+    width: 100%;
+  }
+
+  .rm-search-btn {
+    flex: 1 1 auto;
+    justify-content: center;
+  }
+}
+
+@media (min-width: 900px) {
+  .session-page.rm-work {
+    width: min(100%, 1180px);
+    max-width: 1180px;
+  }
+
+  .rm-work-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 28px;
+  }
+
+  .rm-work-side {
+    align-self: stretch;
+  }
+
+  .rm-topic-card {
+    margin-top: 0;
+  }
+}
+
+.spin-jar-btn.rm-timer-btn,
+.spin-jar-btn.rm-done-btn {
+  width: 100%;
+  max-width: none;
+  margin-left: 0;
+  margin-right: 0;
+}

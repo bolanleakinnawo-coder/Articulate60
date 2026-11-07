@@ -31,7 +31,7 @@ export const FAQS = [
     id: "free",
     question: "Can I practise without a subscription?",
     answer:
-      "Yes. Loquiex Free includes unlimited personal practice and 3 AI feedback sessions a day. Group practice comes with Loquiex Flourish and Loquiex Infinity.",
+      "Yes. Loquiex Free includes unlimited personal practice and a 3-day free trial of AI feedback (up to 3 a day). After the trial, AI feedback comes with Loquiex Bloom, Flourish and Infinity. Group practice comes with Loquiex Flourish and Loquiex Infinity.",
   },
   {
     id: "change-cancel",

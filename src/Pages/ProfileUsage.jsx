@@ -11,8 +11,6 @@ import {
 import { PLANS, fetchGroupUsage, getUsage } from "../data/plans";
 import { PLAN_ICONS } from "../data/planIcons";
 
-
-
 // "Usage & Limits" page. AI feedback comes from the user's saved recordings
 // (each analysed recording counts on the day it was analysed); group minutes
 // come from the group-practice tracker in data/plans.js. AI feedback has a
@@ -34,45 +32,58 @@ export default function ProfileUsage({ user, recordings, onBack, onPlans }) {
   const ai = usage.aiFeedback;
   const group = usage.groupMinutes;
   const { aiFeedbackPerDay, aiFeedbackPerMonth, groupMinutesPerMonth } =
-    plan.limits;
+    usage.limits;
 
   // Each card: big number + label, a right-hand note, an optional bar, a foot.
   const aiCard =
-    aiFeedbackPerDay === null && aiFeedbackPerMonth === null
-      ? { unlimited: true, used: period === "today" ? ai.usedToday : ai.usedThisMonth }
-      : period === "today"
+    aiFeedbackPerDay === 0
+      ? { notIncluded: true, trialOver: plan.id === "free" }
+      : aiFeedbackPerDay === null && aiFeedbackPerMonth === null
         ? {
-            big: ai.left,
-            label: "sessions left today",
-            right: `${ai.usedToday} used today`,
-            pct: aiFeedbackPerDay
-              ? Math.min(100, Math.round((ai.usedToday / aiFeedbackPerDay) * 100))
-              : null,
-            foot:
-              aiFeedbackPerDay !== null
-                ? `Up to ${aiFeedbackPerDay} a day${
-                    aiFeedbackPerMonth ? ` · ${aiFeedbackPerMonth} a month` : ""
-                  }`
-                : null,
+            unlimited: true,
+            used: period === "today" ? ai.usedToday : ai.usedThisMonth,
           }
-        : aiFeedbackPerMonth
+        : period === "today"
           ? {
-              big: Math.max(0, aiFeedbackPerMonth - ai.usedThisMonth),
-              label: "sessions left this month",
-              right: `${ai.usedThisMonth} of ${aiFeedbackPerMonth} used`,
-              pct: Math.min(
-                100,
-                Math.round((ai.usedThisMonth / aiFeedbackPerMonth) * 100),
-              ),
-              foot: `Up to ${aiFeedbackPerDay} a day · resets on the 1st`,
+              big: ai.left,
+              label: "sessions left today",
+              right: `${ai.usedToday} used today`,
+              pct: aiFeedbackPerDay
+                ? Math.min(
+                    100,
+                    Math.round((ai.usedToday / aiFeedbackPerDay) * 100),
+                  )
+                : null,
+              foot: usage.onAiTrial
+                ? `Free trial: up to ${aiFeedbackPerDay} a day · ${usage.aiTrialDaysLeft} day${
+                    usage.aiTrialDaysLeft === 1 ? "" : "s"
+                  } left`
+                : aiFeedbackPerDay !== null
+                  ? `Up to ${aiFeedbackPerDay} a day${
+                      aiFeedbackPerMonth
+                        ? ` · ${aiFeedbackPerMonth} a month`
+                        : ""
+                    }`
+                  : null,
             }
-          : {
-              big: ai.usedThisMonth,
-              label: "sessions used this month",
-              right: `${aiFeedbackPerDay} a day`,
-              pct: null,
-              foot: "Your daily sessions reset at midnight.",
-            };
+          : aiFeedbackPerMonth
+            ? {
+                big: Math.max(0, aiFeedbackPerMonth - ai.usedThisMonth),
+                label: "sessions left this month",
+                right: `${ai.usedThisMonth} of ${aiFeedbackPerMonth} used`,
+                pct: Math.min(
+                  100,
+                  Math.round((ai.usedThisMonth / aiFeedbackPerMonth) * 100),
+                ),
+                foot: `Up to ${aiFeedbackPerDay} a day · resets on the 1st`,
+              }
+            : {
+                big: ai.usedThisMonth,
+                label: "sessions used this month",
+                right: `${aiFeedbackPerDay} a day`,
+                pct: null,
+                foot: "Your daily sessions reset at midnight.",
+              };
 
   const groupCard =
     groupMinutesPerMonth === 0
@@ -186,7 +197,9 @@ export default function ProfileUsage({ user, recordings, onBack, onPlans }) {
           </div>
           {card.notIncluded ? (
             <p className="pf-allowance-foot">
-              Not included in {plan.name}.{" "}
+              {card.trialOver
+                ? "Your 3-day free trial has ended. AI feedback is included with Bloom, Flourish and Infinity."
+                : `Not included in ${plan.name}.`}{" "}
               <button className="pf-inline-link" onClick={onPlans}>
                 See plans
               </button>
@@ -255,8 +268,8 @@ export default function ProfileUsage({ user, recordings, onBack, onPlans }) {
             </li>
             <li>
               Group practice counts each minute you spend in a call with at
-              least one other member against your monthly minutes. Waiting
-              alone in a room is free.
+              least one other member against your monthly minutes. Waiting alone
+              in a room is free.
             </li>
             <li>Monthly allowances reset on the 1st of each month.</li>
             <li>
@@ -273,7 +286,10 @@ export default function ProfileUsage({ user, recordings, onBack, onPlans }) {
             Explore a plan with higher allowances to support your communication
             journey.
           </p>
-          <button className="profile-save-button pf-wide-button" onClick={onPlans}>
+          <button
+            className="profile-save-button pf-wide-button"
+            onClick={onPlans}
+          >
             Explore plans
           </button>
         </section>

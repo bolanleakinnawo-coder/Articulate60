@@ -2668,3 +2668,63 @@
 .pf-text-link:hover {
   color: var(--text-primary);
 }
+
+/* Manage Membership: Paystack checkout */
+.pf-pay-error {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0 0 12px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: var(--pf-danger-tile);
+  color: var(--pf-danger);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.pf-pay-error svg {
+  flex: 0 0 auto;
+  margin-top: 2px;
+}
+
+.pf-secure-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 12px 0 0;
+  color: var(--text-secondary);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.pf-secure-note svg {
+  flex: 0 0 auto;
+  margin-top: 2px;
+  color: var(--olive-bright);
+}
+
+.profile-save-button.pf-wide-button:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+.pf-spin svg {
+  animation: pf-spin 1s linear infinite;
+}
+
+@keyframes pf-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pf-spin svg {
+    animation: none;
+  }
+}
+
+.pf-currency-title {
+  margin-top: 18px;
+}

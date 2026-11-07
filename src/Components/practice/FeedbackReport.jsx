@@ -68,6 +68,27 @@ const SCORED = [
   },
 ];
 
+// Short, shareable wording for the strongest criterion.
+const STRENGTH_PHRASE = {
+  grammar: "Well-built sentences",
+  vocabulary: "Clear choice of words",
+  structure: "Well-organised ideas",
+  clarity: "Clear expression of ideas",
+  repetition: "Ideas that kept moving forward",
+};
+
+// Keep the "next focus" line short enough for the share image.
+function shortFocus(text = "") {
+  const clean = String(text)
+    .trim()
+    .replace(/[.!]+$/, "");
+  if (!clean) return "";
+  // "Reducing fillers" -> "reducing fillers", but keep "STAR method".
+  return /^[A-Z][a-z]/.test(clean)
+    ? clean.charAt(0).toLowerCase() + clean.slice(1)
+    : clean;
+}
+
 const TABS = [
   { id: "overview", label: "Overview" },
   { id: "clarity", label: "Clarity" },
@@ -353,6 +374,13 @@ export default function FeedbackReport({
     SCORED.filter((k) => isScore(scores[k.key])).sort(
       (a, b) => scores[b.key] - scores[a.key],
     )[0] || null;
+
+  // "A quick look at my progress" on the share image, from this report.
+  const shareStrength =
+    strongest && scores[strongest.key] >= 6
+      ? STRENGTH_PHRASE[strongest.key]
+      : "";
+  const shareFocus = shortFocus(nextSkill.name || opportunity.title);
 
   const fillerPhrases = [
     ...Object.keys(fillers.breakdown || {}),
@@ -884,107 +912,118 @@ export default function FeedbackReport({
         )}
       </header>
 
-      {/* Overall score */}
-      <section className="fb-score-card">
-        <div className="fb-score-top">
-          <ScoreRing value={overall} />
-          <div className="fb-score-copy">
-            <p className="fb-score-kicker">Overall speaking score</p>
-            <p className="fb-score-verdict">{verdictFor(overall)}</p>
-            {analysis.summary && (
-              <p className="fb-score-summary">{analysis.summary}</p>
+      {/* Big screens: score + recording on the left, feedback on the right */}
+      <div className="fb-layout">
+        <div className="fb-col-side">
+          {/* Overall score */}
+          <section className="fb-score-card">
+            <div className="fb-score-top">
+              <ScoreRing value={overall} />
+              <div className="fb-score-copy">
+                <p className="fb-score-kicker">Overall speaking score</p>
+                <p className="fb-score-verdict">{verdictFor(overall)}</p>
+                {analysis.summary && (
+                  <p className="fb-score-summary">{analysis.summary}</p>
+                )}
+              </div>
+            </div>
+            <div className="fb-score-stats">
+              <div className="fb-score-stat">
+                <span className="fb-score-stat-label">Recording</span>
+                <span className="fb-score-stat-value">
+                  {recordingSeconds ? longDuration(recordingSeconds) : "–"}
+                </span>
+              </div>
+              <div className="fb-score-stat">
+                <span className="fb-score-stat-label">Words spoken</span>
+                <span className="fb-score-stat-value">
+                  {metrics.wordCount > 0 ? `${metrics.wordCount} words` : "–"}
+                </span>
+              </div>
+              <button
+                type="button"
+                className="fb-share-btn"
+                onClick={() => setShowShare(true)}
+              >
+                <Share2 size={16} strokeWidth={2} aria-hidden="true" />
+                Share
+              </button>
+            </div>
+          </section>
+
+          {/* Recording playback */}
+          <section className="fb-section">
+            <h2 className="fb-heading">Listen to your recording</h2>
+            <p className="fb-subheading">
+              Hear how you sounded before you explore the feedback.
+            </p>
+            <RecordingPlayer
+              src={playbackUrl}
+              fallbackSeconds={recordingSeconds}
+            />
+          </section>
+        </div>
+
+        <div className="fb-col-main">
+          {/* Tabs */}
+          <section className="fb-section" id="fb-explore">
+            <h2 className="fb-heading">Explore your feedback</h2>
+            <p className="fb-subheading">
+              Choose an area to see specific observations from your response.
+            </p>
+            <div className="fb-tabs" role="tablist" aria-label="Feedback areas">
+              {TABS.map((t) => (
+                <button
+                  key={t.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={tab === t.id}
+                  className={`fb-tab ${tab === t.id ? "fb-tab-active" : ""}`}
+                  onClick={() => openTab(t.id, false)}
+                >
+                  {t.label}
+                </button>
+              ))}
+            </div>
+            <div className="fb-tab-panel" role="tabpanel" key={tab}>
+              {tab === "overview" && renderOverview()}
+              {tab === "clarity" && renderClarity()}
+              {tab === "delivery" && renderDelivery()}
+              {tab === "fillers" && renderFillers()}
+              {tab === "grammar" && renderGrammar()}
+              {tab === "vocabulary" && renderVocabulary()}
+            </div>
+          </section>
+
+          {/* Next step */}
+          <section className="fb-practice-card">
+            <h2 className="fb-practice-title">
+              Put your feedback into practice
+            </h2>
+            <p className="fb-practice-text">
+              Answer the same question again. {practiceText}
+            </p>
+            {onTryAgain && (
+              <button type="button" className="fb-try-btn" onClick={onTryAgain}>
+                Try again
+              </button>
             )}
-          </div>
-        </div>
-        <div className="fb-score-stats">
-          <div className="fb-score-stat">
-            <span className="fb-score-stat-label">Recording</span>
-            <span className="fb-score-stat-value">
-              {recordingSeconds ? longDuration(recordingSeconds) : "–"}
-            </span>
-          </div>
-          <div className="fb-score-stat">
-            <span className="fb-score-stat-label">Words spoken</span>
-            <span className="fb-score-stat-value">
-              {metrics.wordCount > 0 ? `${metrics.wordCount} words` : "–"}
-            </span>
-          </div>
-          <button
-            type="button"
-            className="fb-share-btn"
-            onClick={() => setShowShare(true)}
-          >
-            <Share2 size={16} strokeWidth={2} aria-hidden="true" />
-            Share
-          </button>
-        </div>
-      </section>
+          </section>
 
-      {/* Recording playback */}
-      <section className="fb-section">
-        <h2 className="fb-heading">Listen to your recording</h2>
-        <p className="fb-subheading">
-          Hear how you sounded before you explore the feedback.
-        </p>
-        <RecordingPlayer src={playbackUrl} fallbackSeconds={recordingSeconds} />
-      </section>
-
-      {/* Tabs */}
-      <section className="fb-section" id="fb-explore">
-        <h2 className="fb-heading">Explore your feedback</h2>
-        <p className="fb-subheading">
-          Choose an area to see specific observations from your response.
-        </p>
-        <div className="fb-tabs" role="tablist" aria-label="Feedback areas">
-          {TABS.map((t) => (
-            <button
-              key={t.id}
-              type="button"
-              role="tab"
-              aria-selected={tab === t.id}
-              className={`fb-tab ${tab === t.id ? "fb-tab-active" : ""}`}
-              onClick={() => openTab(t.id, false)}
-            >
-              {t.label}
+          {onDone && (
+            <button type="button" className="fb-secondary-btn" onClick={onDone}>
+              {doneLabel}
             </button>
-          ))}
+          )}
         </div>
-        <div className="fb-tab-panel" role="tabpanel" key={tab}>
-          {tab === "overview" && renderOverview()}
-          {tab === "clarity" && renderClarity()}
-          {tab === "delivery" && renderDelivery()}
-          {tab === "fillers" && renderFillers()}
-          {tab === "grammar" && renderGrammar()}
-          {tab === "vocabulary" && renderVocabulary()}
-        </div>
-      </section>
-
-      {/* Next step */}
-      <section className="fb-practice-card">
-        <h2 className="fb-practice-title">Put your feedback into practice</h2>
-        <p className="fb-practice-text">
-          Answer the same question again. {practiceText}
-        </p>
-        {onTryAgain && (
-          <button type="button" className="fb-try-btn" onClick={onTryAgain}>
-            Try again
-          </button>
-        )}
-      </section>
-
-      {onDone && (
-        <button type="button" className="fb-secondary-btn" onClick={onDone}>
-          {doneLabel}
-        </button>
-      )}
+      </div>
 
       {showShare && (
         <ShareSheet
           score={overall}
-          verdict={verdictFor(overall)}
-          topic={topic}
           seconds={recordingSeconds}
-          words={metrics.wordCount}
+          strength={shareStrength}
+          focus={shareFocus}
           onClose={() => setShowShare(false)}
         />
       )}

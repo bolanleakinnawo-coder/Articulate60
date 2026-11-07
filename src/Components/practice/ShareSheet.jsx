@@ -1,19 +1,21 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Check, Copy, Download, Share2, X } from "lucide-react";
-import { renderShareImage, SHARE_CAPTION } from "./shareImage";
+import {
+  getShareCaption,
+  getStoredUser,
+  renderShareImage,
+} from "./shareImage";
 import "./FeedbackReport.css";
 
-// Bottom sheet with the branded share image: download it, share it straight
-// to TikTok / Instagram / WhatsApp from the phone's share sheet, and copy the
-// caption.
-export default function ShareSheet({
-  score,
-  verdict,
-  topic,
-  seconds,
-  words,
-  onClose,
-}) {
+// Bottom sheet with the branded share image built from the member's real
+// practice: download it, share it from the phone's share sheet, and copy the
+// caption (which carries the member's own invite link).
+//   score    0-100 overall score, or null to show time spent speaking
+//   seconds  speaking time
+//   strength / focus  "A quick look at my progress" lines (score version)
+export default function ShareSheet({ score = null, seconds, strength, focus, onClose }) {
+  const user = useMemo(() => getStoredUser(), []);
+  const caption = useMemo(() => getShareCaption(user), [user]);
   const [blob, setBlob] = useState(null);
   const [previewUrl, setPreviewUrl] = useState("");
   const [copied, setCopied] = useState(false);
@@ -22,21 +24,19 @@ export default function ShareSheet({
   useEffect(() => {
     let url = "";
     let cancelled = false;
-    renderShareImage({ score, verdict, topic, seconds, words })
+    renderShareImage({ score, seconds, strength, focus, user })
       .then((image) => {
         if (cancelled || !image) return;
         url = URL.createObjectURL(image);
         setBlob(image);
         setPreviewUrl(url);
       })
-      .catch(() =>
-        setError("We couldn't create your image. Please try again."),
-      );
+      .catch(() => setError("We couldn't create your image. Please try again."));
     return () => {
       cancelled = true;
       if (url) URL.revokeObjectURL(url);
     };
-  }, [score, verdict, topic, seconds, words]);
+  }, [score, seconds, strength, focus, user]);
 
   useEffect(() => {
     const onKey = (e) => e.key === "Escape" && onClose();
@@ -63,9 +63,9 @@ export default function ShareSheet({
   const share = async () => {
     try {
       if (canShareFile) {
-        await navigator.share({ files: [file], text: SHARE_CAPTION });
+        await navigator.share({ files: [file], text: caption });
       } else if (navigator.share) {
-        await navigator.share({ text: SHARE_CAPTION });
+        await navigator.share({ text: caption });
       } else {
         download();
       }
@@ -76,7 +76,7 @@ export default function ShareSheet({
 
   const copyCaption = async () => {
     try {
-      await navigator.clipboard.writeText(SHARE_CAPTION);
+      await navigator.clipboard.writeText(caption);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
@@ -110,7 +110,7 @@ export default function ShareSheet({
 
         <div className="sh-preview">
           {previewUrl ? (
-            <img src={previewUrl} alt="Your Loquiex practice card" />
+            <img src={previewUrl} alt="Your Loquiex practice result" />
           ) : (
             <div className="fb-spinner" aria-label="Creating your image" />
           )}
@@ -118,7 +118,7 @@ export default function ShareSheet({
 
         <div className="sh-caption">
           <p className="sh-caption-label">Caption</p>
-          <p className="sh-caption-text">{SHARE_CAPTION}</p>
+          <p className="sh-caption-text">{caption}</p>
           <button type="button" className="sh-copy" onClick={copyCaption}>
             {copied ? <Check size={15} /> : <Copy size={15} />}
             {copied ? "Copied" : "Copy caption"}
@@ -130,7 +130,7 @@ export default function ShareSheet({
         <div className="sh-actions">
           <button
             type="button"
-            className="fb-try-btn sh-btn"
+            className="sh-primary sh-btn"
             onClick={share}
             disabled={!blob}
           >

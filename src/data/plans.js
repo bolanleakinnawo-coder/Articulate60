@@ -18,13 +18,14 @@ export const PLANS = [
     name: "Loquiex Free",
     tagline: "Start practising on your own.",
     priceNaira: 0,
+    // No AI feedback after the 3-day free trial (see AI_TRIAL below).
     limits: {
       aiFeedbackPerMonth: null,
-      aiFeedbackPerDay: 3,
+      aiFeedbackPerDay: 0,
       groupMinutesPerMonth: 0,
     },
     features: [
-      "3 AI feedback sessions a day",
+      "3-day free trial of AI feedback (up to 3 a day)",
       "Unlimited personal practice",
       "Your recordings and streaks",
     ],
@@ -88,6 +89,47 @@ export const PLANS = [
 
 export const PAID_PLANS = PLANS.filter((p) => p.id !== "free");
 
+// Free members get AI feedback for their first 3 days (up to 3 a day). The
+// server enforces this (utils/plans.js); these numbers are for display.
+export const AI_TRIAL = { days: 3, perDay: 3 };
+
+// When the free AI trial ends, from the server's subscription, else from the
+// sign-up date. null when unknown.
+export function aiTrialEndsAt(user = getStoredUser()) {
+  const raw = user?.subscription?.aiTrialEndsAt;
+  if (raw) return new Date(raw);
+  if (!user?.createdAt) return null;
+  const created = new Date(user.createdAt);
+  if (Number.isNaN(created.getTime())) return null;
+  return new Date(created.getTime() + AI_TRIAL.days * 24 * 60 * 60 * 1000);
+}
+
+export function isOnAiTrial(user = getStoredUser()) {
+  if (getPlanId(user) !== "free") return false;
+  const ends = aiTrialEndsAt(user);
+  return Boolean(ends && ends > new Date());
+}
+
+// Days of the free AI trial left, counting today (0 when over).
+export function aiTrialDaysLeft(user = getStoredUser()) {
+  if (!isOnAiTrial(user)) return 0;
+  const ms = aiTrialEndsAt(user).getTime() - Date.now();
+  return Math.max(1, Math.ceil(ms / (24 * 60 * 60 * 1000)));
+}
+
+// Plan allowances right now: Free gets the trial's AI feedback while it lasts.
+export function effectiveLimits(user = getStoredUser()) {
+  const plan = getPlan(user);
+  if (plan.id === "free" && isOnAiTrial(user)) {
+    return { ...plan.limits, aiFeedbackPerDay: AI_TRIAL.perDay };
+  }
+  return plan.limits;
+}
+
+export function canUseAiFeedback(user = getStoredUser()) {
+  return getPlanId(user) !== "free" || isOnAiTrial(user);
+}
+
 export const BILLING_PERIODS = [
   { id: "monthly", months: 1, label: "Monthly", discount: 0 },
   { id: "quarterly", months: 3, label: "3 months", discount: 5 },
@@ -126,15 +168,24 @@ export function formatMoney(amount, currency = "NGN") {
 
 // Monthly price of a plan in a currency.
 export function monthlyPrice(plan, currency = "NGN", prices = PRICES) {
-  return prices[currency]?.[plan.id] ?? (currency === "NGN" ? plan.priceNaira : 0);
+  return (
+    prices[currency]?.[plan.id] ?? (currency === "NGN" ? plan.priceNaira : 0)
+  );
 }
 
 // Total for a plan over a billing period, after its discount.
-export function priceFor(plan, periodId = "monthly", currency = "NGN", prices = PRICES) {
+export function priceFor(
+  plan,
+  periodId = "monthly",
+  currency = "NGN",
+  prices = PRICES,
+) {
   const period =
     BILLING_PERIODS.find((p) => p.id === periodId) || BILLING_PERIODS[0];
   const total =
-    monthlyPrice(plan, currency, prices) * period.months * (1 - period.discount / 100);
+    monthlyPrice(plan, currency, prices) *
+    period.months *
+    (1 - period.discount / 100);
   return Math.round(total * 100) / 100;
 }
 
@@ -192,7 +243,10 @@ export async function refreshPlanFromServer() {
   if (!getStoredUser()) return null;
   try {
     const { data } = await api.get("/api/billing/me");
-    saveStoredUser({ plan: data.subscription.planId, subscription: data.subscription });
+    saveStoredUser({
+      plan: data.subscription.planId,
+      subscription: data.subscription,
+    });
     return data;
   } catch {
     return null; // Offline: keep showing the last known plan.
@@ -215,8 +269,8 @@ export function hasGroupPractice(user) {
 
 // Plans that include group practice, for "included with ..." copy.
 export function groupPracticePlanNames() {
-  return PLANS.filter((p) => p.limits.groupMinutesPerMonth !== 0).map(
-    (p) => p.name.replace(/^Loquiex\s+/, ""),
+  return PLANS.filter((p) => p.limits.groupMinutesPerMonth !== 0).map((p) =>
+    p.name.replace(/^Loquiex\s+/, ""),
   );
 }
 
@@ -247,7 +301,10 @@ export async function startCheckout(planId, periodId, currency = "NGN") {
     currency,
   });
   const url = new URL(data.authorizationUrl);
-  if (url.protocol !== "https:" || !/(^|\.)paystack\.(co|com)$/.test(url.hostname)) {
+  if (
+    url.protocol !== "https:" ||
+    !/(^|\.)paystack\.(co|com)$/.test(url.hostname)
+  ) {
     throw new Error("Unexpected payment page.");
   }
   writeStorage(PENDING_KEY, data.reference);
@@ -264,7 +321,10 @@ export function pendingPaymentReference() {
 export async function verifyPayment(reference) {
   const { data } = await api.post("/api/billing/verify", { reference });
   if (data.payment.status !== "pending") writeStorage(PENDING_KEY, null);
-  saveStoredUser({ plan: data.subscription.planId, subscription: data.subscription });
+  saveStoredUser({
+    plan: data.subscription.planId,
+    subscription: data.subscription,
+  });
   return data;
 }
 
@@ -365,14 +425,15 @@ export function addGroupMinutes(minutes) {
 //   groupMinutes: what's left of this month's minutes.
 export function getUsage(recordings, user) {
   const plan = getPlan(user);
-  const { aiFeedbackPerDay, aiFeedbackPerMonth, groupMinutesPerMonth } =
-    plan.limits;
+  const limits = effectiveLimits(user);
+  const { aiFeedbackPerDay, aiFeedbackPerMonth, groupMinutesPerMonth } = limits;
   const aiToday = aiFeedbackUsedToday(recordings);
   const aiMonth = aiFeedbackUsedThisMonth(recordings);
   const groupMonth = groupMinutesUsedThisMonth();
 
   let aiLeft = null;
-  if (aiFeedbackPerDay !== null) aiLeft = Math.max(0, aiFeedbackPerDay - aiToday);
+  if (aiFeedbackPerDay !== null)
+    aiLeft = Math.max(0, aiFeedbackPerDay - aiToday);
   if (aiFeedbackPerMonth !== null) {
     const monthLeft = Math.max(0, aiFeedbackPerMonth - aiMonth);
     aiLeft = aiLeft === null ? monthLeft : Math.min(aiLeft, monthLeft);
@@ -380,6 +441,9 @@ export function getUsage(recordings, user) {
 
   return {
     plan,
+    limits,
+    onAiTrial: plan.id === "free" && isOnAiTrial(user),
+    aiTrialDaysLeft: aiTrialDaysLeft(user),
     aiFeedback: {
       total: aiFeedbackPerDay,
       left: aiLeft,

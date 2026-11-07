@@ -30,6 +30,40 @@
   text-align: center;
 }
 
+/* Close (X): top-right corner, card colours, no white */
+.sp-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition:
+    color 0.2s ease,
+    border-color 0.2s ease,
+    background 0.2s ease;
+}
+
+.sp-close:hover {
+  border-color: var(--olive-bright);
+  background: var(--olive-primary);
+  color: var(--text-primary);
+}
+
+/* Keep the first line clear of the close button */
+.sp-card > .sp-eyebrow:first-of-type,
+.sp-streak > .sp-eyebrow {
+  padding-right: 44px;
+}
+
 .sp-streak {
   text-align: left;
 }
@@ -166,6 +200,7 @@
 }
 
 .sp-action:focus-visible,
+.sp-close:focus-visible,
 .sp-later:focus-visible,
 .sp-push button:focus-visible {
   outline: 2px solid var(--olive-bright);

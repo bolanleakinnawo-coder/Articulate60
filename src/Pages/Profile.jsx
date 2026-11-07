@@ -10,12 +10,10 @@ import {
   CreditCard,
   Eye,
   EyeOff,
-  KeyRound,
   LifeBuoy,
   LogOut,
   Mic,
   Share2,
-  ShieldCheck,
   TrendingUp,
   Trophy,
   User,
@@ -45,7 +43,7 @@ export default function Profile({ user }) {
   const location = useLocation();
   const storedUser = user || getStoredUser();
   const [profileUser, setProfileUser] = useState(storedUser);
-  // main | stats | win | practices | usage | invite | notifications | account | privacy
+  // main | stats | win | practices | usage | invite | notifications | account
   const [view, setView] = useState(location.state?.open || "main");
   const [inviteCopied, setInviteCopied] = useState(false);
   const [saveMessage, setSaveMessage] = useState("");
@@ -591,48 +589,6 @@ export default function Profile({ user }) {
     );
   }
 
-  // ---------- PRIVACY & SECURITY ----------
-  if (view === "privacy") {
-    return (
-      <div className="profile-content">
-        <button
-          className="pf-back pf-back-link"
-          onClick={() => setView("main")}
-        >
-          <ArrowLeft size={18} /> Your Profile
-        </button>
-        <header className="pf-page-header">
-          <h1>Privacy &amp; security</h1>
-          <p>Manage your privacy and account security.</p>
-        </header>
-        <div className="pf-list">
-          <NavRow
-            icon={KeyRound}
-            title="Password"
-            text="Change it in Personal information"
-            onClick={() => openForm("account")}
-          />
-        </div>
-        <section className="pf-panel">
-          <p className="pf-panel-title">Your recordings and data</p>
-          <p className="pf-panel-text">
-            Your practice recordings are private to your account. To download or
-            delete your data, or to close your account, contact our team.
-          </p>
-          <button
-            type="button"
-            className="pf-inline-link"
-            onClick={() =>
-              navigate("/app/help", { state: { from: "profile" } })
-            }
-          >
-            Contact Help &amp; support
-          </button>
-        </section>
-      </div>
-    );
-  }
-
   // ---------- PROFILE HOME ----------
   const planShortName = plan.name.replace(/^Loquiex\s+/i, "");
   const sections = [
@@ -697,12 +653,6 @@ export default function Profile({ user }) {
           title: "Notifications",
           text: "Check your latest Loquiex updates",
           onClick: () => setView("notifications"),
-        },
-        {
-          icon: ShieldCheck,
-          title: "Privacy & security",
-          text: "Manage your privacy and account security",
-          onClick: () => openForm("privacy"),
         },
         {
           icon: LifeBuoy,

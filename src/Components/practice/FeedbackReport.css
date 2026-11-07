@@ -1514,3 +1514,135 @@
     width: min(78%, 280px);
   }
 }
+
+/* AI analysis pages ("Analysing your response" and "You did it!"):
+   Home tab brand colours only (olive, card, cream), no sage greens. */
+.an-page .an-wave span {
+  background: var(--olive-bright);
+}
+
+.an-page .an-kicker,
+.an-page .an-plain-icon {
+  color: var(--olive-bright);
+}
+
+.an-page .an-icon {
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-secondary);
+  color: var(--olive-bright);
+}
+
+.an-page .an-done-icon {
+  border: 1px solid var(--border);
+  background: var(--olive-primary);
+  color: var(--text-primary);
+}
+
+/* Short list: one line per point, smaller type */
+.an-list-compact {
+  gap: 12px;
+}
+
+.an-list-compact li {
+  align-items: center;
+  gap: 14px;
+}
+
+.an-list-compact strong {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.an-page .an-unlock-btn {
+  border-radius: 10px;
+  background: var(--olive-primary);
+  color: var(--text-primary);
+  font-weight: 600;
+  transition: background 0.2s ease;
+}
+
+.an-page .an-unlock-btn:hover {
+  background: var(--olive-bright);
+}
+
+.an-page .fb-secondary-btn {
+  border-radius: 10px;
+}
+
+/* Same page: player and any leftover sage accents in the olive palette */
+.fb-page.an-page {
+  --fb-sage: var(--olive-bright);
+  --fb-sage-ink: var(--text-primary);
+}
+
+.an-page .fb-player.fb-player-titled {
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+}
+
+.an-page .fb-player-titled .fb-play-btn {
+  background: var(--olive-primary);
+  color: var(--text-primary);
+}
+
+.an-page .an-note {
+  margin: 0 0 18px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* =====================================================
+   BIG SCREENS: the feedback page uses the full width
+   (score + recording on the left, feedback on the right)
+   ===================================================== */
+.fb-layout,
+.fb-col-side,
+.fb-col-main {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-width: 0;
+}
+
+@media (min-width: 761px) {
+  .session-page.fb-page:not(.an-page) {
+    width: 100%;
+    max-width: 760px;
+  }
+}
+
+@media (min-width: 1180px) {
+  .session-page.fb-page:not(.an-page) {
+    width: 100%;
+    max-width: 1200px;
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+
+  .fb-layout {
+    display: grid;
+    grid-template-columns: minmax(320px, 0.85fr) minmax(0, 1.4fr);
+    align-items: start;
+    gap: 32px;
+  }
+
+  .fb-col-side {
+    position: sticky;
+    top: 24px;
+  }
+}
+
+@media (min-width: 1400px) {
+  .session-page.fb-page:not(.an-page) {
+    max-width: 1320px;
+  }
+}

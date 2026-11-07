@@ -2,13 +2,10 @@ import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { HELP_LAYER_1 } from "../data/help";
 import {
-  getUsage,
   fetchGroupUsage,
   refreshPlanFromServer,
-  groupPracticePlanNames,
   hasGroupPractice,
 } from "../data/plans";
-import api from "../api/axios";
 import DurationPicker from "../Components/practice/DurationPicker";
 import {
   ResearchIntro,
@@ -107,21 +104,16 @@ export default function Practice() {
   const [currentPrompt, setCurrentPrompt] = useState(wordOfTheDayPrompt);
   const [promptError, setPromptError] = useState("");
   const [speakSeconds, setSpeakSeconds] = useState(DEFAULT_SPEAK_SECONDS);
-  const [usage, setUsage] = useState(() => getUsage([]));
   const spinAudio = useRef(null);
 
   const levelInfo = LEVEL_META.find((l) => l.id === selectedLevel);
   const hasPrep = (levelInfo?.prepareSeconds ?? 0) > 0;
 
   useEffect(() => {
-    // Recordings give AI feedback usage; group minutes come from the server.
-    Promise.all([
-      api.get("/api/practice/recordings").catch(() => null),
-      refreshPlanFromServer().then(fetchGroupUsage),
-    ]).then(([response]) => {
-      if (response) setUsage(getUsage(response.data));
-      else setUsage(getUsage([]));
-    });
+    // Keep the plan and group minutes fresh (used by the Group Practice card).
+    refreshPlanFromServer()
+      .then(fetchGroupUsage)
+      .catch(() => {});
   }, []);
 
   if (!spinAudio.current) {
@@ -613,13 +605,6 @@ export default function Practice() {
             </p>
           </div>
           <GroupEntryCard onClick={handleGroupPractice} />
-          <LimitsCard
-            usage={usage}
-            onAiClick={() =>
-              navigate("/app/profile", { state: { open: "usage" } })
-            }
-            onGroupClick={handleGroupPractice}
-          />
         </div>
       ) : (
         <>
@@ -866,78 +851,6 @@ function GroupEntryCard({ onClick }) {
           className="limit-row-chev"
           aria-label="Members only"
         />
-      )}
-    </button>
-  );
-}
-
-function LimitsCard({ usage, onAiClick, onGroupClick }) {
-  return (
-    <div className="daily-limits-card">
-      <div className="daily-limits-head">
-        <h3>Your limits</h3>
-        <span>AI feedback resets at midnight</span>
-      </div>
-      <LimitRow
-        icon={MessageCircle}
-        title="AI Feedback"
-        left={usage.aiFeedback.left}
-        total={usage.aiFeedback.total}
-        unit="sessions"
-        period="today"
-        onClick={onAiClick}
-      />
-      <LimitRow
-        icon={Users}
-        title="Group Practice"
-        left={usage.groupMinutes.left}
-        total={usage.groupMinutes.total}
-        unit="minutes"
-        period="this month"
-        locked={usage.groupMinutes.total === 0}
-        onClick={onGroupClick}
-      />
-    </div>
-  );
-}
-
-// `total` null = unlimited, 0 = not on this plan (locked).
-function LimitRow({
-  icon: Icon,
-  title,
-  left,
-  total,
-  unit,
-  period,
-  locked,
-  onClick,
-}) {
-  const unlimited = total === null;
-  const pct = total > 0 ? Math.round((left / total) * 100) : 0;
-  return (
-    <button type="button" className="limit-row" onClick={onClick}>
-      <span className="limit-row-icon" aria-hidden="true">
-        <Icon size={18} strokeWidth={1.8} />
-      </span>
-      <span className="limit-row-text">
-        <span className="limit-row-title">{title}</span>
-        <span className="limit-row-sub">
-          {locked
-            ? `Included with ${groupPracticePlanNames().join(" and ")}`
-            : unlimited
-              ? "Unlimited"
-              : `${left.toLocaleString()} of ${total.toLocaleString()} ${unit} left ${period}`}
-        </span>
-        {!locked && !unlimited && (
-          <span className="limit-row-bar">
-            <span style={{ width: `${pct}%` }} />
-          </span>
-        )}
-      </span>
-      {locked ? (
-        <LockKeyhole size={16} className="limit-row-chev" aria-hidden="true" />
-      ) : (
-        <ChevronRight size={18} className="limit-row-chev" aria-hidden="true" />
       )}
     </button>
   );

@@ -265,7 +265,7 @@ export default function Home() {
                       <th scope="col">Rank</th>
                       <th scope="col">Username</th>
                       <th scope="col">Streak</th>
-                      <th scope="col">Speaking Time (sec)</th>
+                      <th scope="col">Speaking Time</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -483,10 +483,16 @@ function LeaderboardRow({ rank, entry }) {
   );
 }
 
-// Speaking time on the leaderboard is shown in seconds.
+// Speaking time on the leaderboard: hours, minutes and seconds, highest first.
 function formatLeaderboardSeconds(entry) {
-  if (Number.isFinite(entry.speakingTimeSeconds)) {
-    return `${entry.speakingTimeSeconds.toLocaleString()} sec`;
-  }
-  return entry.speakingTimeDisplay;
+  const raw = Number(entry.speakingTimeSeconds);
+  if (!Number.isFinite(raw)) return entry.speakingTimeDisplay || "0s";
+  const total = Math.max(0, Math.round(raw));
+  const hours = Math.floor(total / 3600);
+  const minutes = Math.floor((total % 3600) / 60);
+  const seconds = total % 60;
+  const pad = (n) => String(n).padStart(2, "0");
+  if (hours > 0) return `${hours}h ${pad(minutes)}m ${pad(seconds)}s`;
+  if (minutes > 0) return `${minutes}m ${pad(seconds)}s`;
+  return `${seconds}s`;
 }

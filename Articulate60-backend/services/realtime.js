@@ -3,8 +3,10 @@
 // as the REST API. The server emits:
 //   streak:status    the member's latest streak status (after a practice,
 //                    or when a reminder time arrives)
+//   group:*          group practice rooms (see services/groupRooms.js)
 const { Server } = require("socket.io");
 const jwt = require("jsonwebtoken");
+const { initGroupRooms, registerGroupHandlers } = require("./groupRooms");
 
 let io = null;
 
@@ -31,7 +33,11 @@ function initRealtime(httpServer) {
 
   io.on("connection", (socket) => {
     socket.join(`user:${socket.data.userId}`);
+    // Group practice rooms and call signalling (services/groupRooms.js).
+    registerGroupHandlers(socket);
   });
+
+  initGroupRooms(io);
 
   return io;
 }

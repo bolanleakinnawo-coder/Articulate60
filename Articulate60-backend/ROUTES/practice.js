@@ -4,13 +4,24 @@ const { PutObjectCommand, GetObjectCommand } = require("@aws-sdk/client-s3");
 const mongoose = require("mongoose");
 const rateLimit = require("express-rate-limit");
 const { randomUUID } = require("crypto");
+const {
+  isPaid,
+  isOnAiTrial,
+  canUseAiFeedback,
+  AI_TRIAL_PER_DAY,
+} = require("../utils/plans");
 const router = express.Router();
 
 const authMiddleware = require("../middleware/auth");
 const r2 = require("../config/r2");
 const Recording = require("../MODELS/Recording");
 const User = require("../MODELS/User");
-const { calculateStreak, getStreakStatus } = require("../utils/streak");
+const {
+  calculateStreak,
+  getStreakStatus,
+  localDayNumber,
+  localDayStart,
+} = require("../utils/streak");
 const { resolveTimeZone } = require("../utils/timeZone");
 const { emitToUser } = require("../services/realtime");
 const { transcribeAudio } = require("../services/deepgram");
@@ -118,7 +129,7 @@ router.post(
 
 // GET /api/practice/leaderboard
 // Ranks all users with saved recordings by current streak, sessions, and
-// total recorded speaking time.
+// total recorded speaking time (highest first; shown as hours, minutes, seconds).
 router.get("/leaderboard", authMiddleware, async (_req, res) => {
   try {
     const statsByUser = await Recording.aggregate([
@@ -205,7 +216,7 @@ router.get("/leaderboard", authMiddleware, async (_req, res) => {
               ? `${entry.currentStreak} day${entry.currentStreak === 1 ? "" : "s"}`
               : metric === "sessions"
                 ? `${entry.sessions} session${entry.sessions === 1 ? "" : "s"}`
-                : `${entry.speakingTimeSeconds} sec`,
+                : formatSpeakingTime(entry.speakingTimeSeconds),
         }));
 
     res.json({
@@ -271,7 +282,8 @@ router.get("/streak", authMiddleware, async (req, res) => {
 
 // POST /api/practice/recordings/:id/analyze
 // Runs Deepgram (transcript + timings) then Gemini (feedback) on a saved
-// recording. Paid ("pro") users only, unless ANALYZER_FOR_ALL=true (testing).
+// recording. Paid plans (a verified payment covering today), or Free members
+// in their first 3 days (up to 3 a day), unless ANALYZER_FOR_ALL=true (testing).
 // Safe to call twice: finished results are returned without re-running.
 const analyzeLimiter = rateLimit({
   windowMs: 60 * 60 * 1000,
@@ -309,22 +321,46 @@ router.post(
         return res.status(404).json({ message: "Recording not found." });
       }
 
-      const user = await User.findById(req.userId).select("plan");
-      const allowed =
-        process.env.ANALYZER_FOR_ALL === "true" || user?.plan === "pro";
-      if (!allowed) {
-        return res.status(403).json({
-          code: "UPGRADE_REQUIRED",
-          message: "AI feedback is available on the paid plan.",
-        });
-      }
+      const user = await User.findById(req.userId).select(
+        "plan planExpiresAt createdAt timeZone",
+      );
 
+      // Finished results can always be read again.
       if (recording.analysisStatus === "done" && recording.analysis) {
         return res.json({
           transcript: recording.transcript,
           metrics: recording.metrics,
           analysis: recording.analysis,
         });
+      }
+
+      const testingForAll = process.env.ANALYZER_FOR_ALL === "true";
+      if (!testingForAll && !(user && canUseAiFeedback(user))) {
+        return res.status(403).json({
+          code: "UPGRADE_REQUIRED",
+          message:
+            "Your free AI feedback trial has ended. Upgrade to Loquiex Bloom or higher to get AI feedback.",
+        });
+      }
+
+      // Free trial: a few analyses a day (the member's own calendar day).
+      if (!testingForAll && !isPaid(user) && isOnAiTrial(user)) {
+        const zone = await resolveTimeZone(req, user);
+        const dayStart = new Date(
+          localDayStart(localDayNumber(new Date(), zone), zone),
+        );
+        const usedToday = await Recording.countDocuments({
+          user: req.userId,
+          analysisStatus: "done",
+          analyzedAt: { $gte: dayStart },
+        });
+        if (usedToday >= AI_TRIAL_PER_DAY) {
+          return res.status(403).json({
+            code: "UPGRADE_REQUIRED",
+            reason: "TRIAL_DAILY_LIMIT",
+            message: `You've used today's ${AI_TRIAL_PER_DAY} free AI feedback sessions. Come back tomorrow, or upgrade for more.`,
+          });
+        }
       }
 
       const STALE_MS = 3 * 60 * 1000;
@@ -410,13 +446,16 @@ router.post(
   },
 );
 
+// Hours, minutes and seconds, e.g. "1h 04m 09s", "12m 30s", "45s".
 function formatSpeakingTime(totalSeconds) {
-  const hours = Math.floor(totalSeconds / 3600);
-  const minutes = Math.floor((totalSeconds % 3600) / 60);
-  const seconds = totalSeconds % 60;
+  const total = Math.max(0, Math.round(Number(totalSeconds) || 0));
+  const hours = Math.floor(total / 3600);
+  const minutes = Math.floor((total % 3600) / 60);
+  const seconds = total % 60;
+  const pad = (n) => String(n).padStart(2, "0");
 
-  if (hours > 0) return `${hours}h ${minutes}m`;
-  if (minutes > 0) return `${minutes}m`;
+  if (hours > 0) return `${hours}h ${pad(minutes)}m ${pad(seconds)}s`;
+  if (minutes > 0) return `${minutes}m ${pad(seconds)}s`;
   return `${seconds}s`;
 }
 
