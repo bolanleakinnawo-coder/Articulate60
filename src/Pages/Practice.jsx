@@ -110,6 +110,11 @@ export default function Practice() {
   const [promptError, setPromptError] = useState("");
   const [speakSeconds, setSpeakSeconds] = useState(DEFAULT_SPEAK_SECONDS);
   const spinAudio = useRef(null);
+  // How the jar was spun ("random" = Surprise me, "category" = picked one),
+  // plus what this run has already shown, so respins behave as expected.
+  const spinMode = useRef("random");
+  const visitedCategories = useRef([]);
+  const shownPrompts = useRef([]);
 
   const levelInfo = LEVEL_META.find((l) => l.id === selectedLevel);
   const hasPrep = (levelInfo?.prepareSeconds ?? 0) > 0;
@@ -176,18 +181,57 @@ export default function Practice() {
       return;
     }
 
-    const randomTopic = getRandomCategoryPrompt();
+    // Surprise me: start a fresh tour of the categories.
+    spinMode.current = "random";
+    visitedCategories.current = [];
+    shownPrompts.current = [];
+    spinRandom();
+  };
+
+  // Random spins move to a category not visited yet in this run. Once every
+  // category has had a turn, start again, but never the one just shown.
+  const spinRandom = () => {
+    const lastId = visitedCategories.current[visitedCategories.current.length - 1];
+    let randomTopic = getRandomCategoryPrompt(
+      visitedCategories.current,
+      shownPrompts.current,
+    );
+    if (!randomTopic) {
+      visitedCategories.current = lastId ? [lastId] : [];
+      randomTopic = getRandomCategoryPrompt(
+        visitedCategories.current,
+        shownPrompts.current,
+      );
+    }
     if (!randomTopic) {
       setPromptError("No practice topics are available right now.");
       return;
     }
 
+    visitedCategories.current = [
+      ...visitedCategories.current,
+      randomTopic.categoryId,
+    ];
+    shownPrompts.current = [...shownPrompts.current, randomTopic.prompt];
     setPromptError("");
     runSpin(
       randomTopic.categoryId,
       randomTopic.categoryTitle,
       randomTopic.prompt,
     );
+  };
+
+  // A chosen category keeps every prompt, first spin and respins, inside it.
+  const spinCategory = (categoryId, categoryTitle) => {
+    const prompt = getRandomPrompt(categoryId, shownPrompts.current);
+    if (!prompt) {
+      setPromptError(`${categoryTitle} doesn't have any topics available yet.`);
+      return;
+    }
+
+    shownPrompts.current = [...shownPrompts.current, prompt];
+    setPromptError("");
+    runSpin(categoryId, categoryTitle, prompt);
   };
 
   const handleChooseCategory = (categoryId, categoryTitle) => {
@@ -197,30 +241,18 @@ export default function Practice() {
       return;
     }
 
-    const prompt = getRandomPrompt(categoryId);
-    if (!prompt) {
-      setPromptError(`${categoryTitle} doesn't have any topics available yet.`);
-      return;
-    }
-
-    setPromptError("");
-    runSpin(categoryId, categoryTitle, prompt);
+    spinMode.current = "category";
+    shownPrompts.current = [];
+    spinCategory(categoryId, categoryTitle);
   };
 
   const handleChangeTopic = () => {
     if (!activeCategory) return;
-    const randomTopic = getRandomCategoryPrompt(activeCategory.id);
-    if (!randomTopic) {
-      setPromptError("No topics are available in other categories right now.");
-      return;
+    if (spinMode.current === "category") {
+      spinCategory(activeCategory.id, activeCategory.title);
+    } else {
+      spinRandom();
     }
-
-    setPromptError("");
-    runSpin(
-      randomTopic.categoryId,
-      randomTopic.categoryTitle,
-      randomTopic.prompt,
-    );
   };
 
   const handleStartPreparing = () => {
@@ -464,7 +496,9 @@ export default function Practice() {
         <p className="spin-status-subtitle">
           {activeCategory?.id === "word-of-the-day"
             ? "Read your prompt below."
-            : "Read your topic below."}
+            : activeCategory?.title
+              ? `From ${activeCategory.title}. Read your topic below.`
+              : "Read your topic below."}
         </p>
 
         <div className="result-layout">

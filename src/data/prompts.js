@@ -52,19 +52,25 @@ export function describeSpeakTime(seconds) {
   return `${words[minutes] || minutes} minute${minutes === 1 ? "" : "s"}`;
 }
 
-export function getRandomPrompt(categoryId) {
+// Pick a prompt from one category. `avoid` is a list of prompts already shown,
+// so a respin doesn't repeat one until the category has been used up.
+export function getRandomPrompt(categoryId, avoid = []) {
   const pool = PROMPTS[categoryId];
   if (!Array.isArray(pool) || pool.length === 0) return null;
-  return pool[Math.floor(Math.random() * pool.length)];
+  const fresh = pool.filter((p) => !avoid.includes(p));
+  const from = fresh.length > 0 ? fresh : pool.filter((p) => p !== avoid[avoid.length - 1]);
+  const list = from.length > 0 ? from : pool;
+  return list[Math.floor(Math.random() * list.length)];
 }
 
-export function getRandomCategoryPrompt(excludedCategoryId) {
-  const availableCategories = CATEGORIES.filter(
-    ({ id }) =>
-      id !== excludedCategoryId &&
-      Array.isArray(PROMPTS[id]) &&
-      PROMPTS[id].length > 0,
+// Pick a prompt from a random category. `excluded` is a category id or a list
+// of ids to skip (e.g. the categories a random respin has already visited).
+export function getRandomCategoryPrompt(excluded = [], avoid = []) {
+  const skip = Array.isArray(excluded) ? excluded : [excluded];
+  const withPrompts = CATEGORIES.filter(
+    ({ id }) => Array.isArray(PROMPTS[id]) && PROMPTS[id].length > 0,
   );
+  const availableCategories = withPrompts.filter(({ id }) => !skip.includes(id));
   if (availableCategories.length === 0) return null;
 
   const randomCategory =
@@ -72,6 +78,6 @@ export function getRandomCategoryPrompt(excludedCategoryId) {
   return {
     categoryId: randomCategory.id,
     categoryTitle: randomCategory.title,
-    prompt: getRandomPrompt(randomCategory.id),
+    prompt: getRandomPrompt(randomCategory.id, avoid),
   };
 }
