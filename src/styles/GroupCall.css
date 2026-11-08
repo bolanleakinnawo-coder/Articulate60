@@ -1558,3 +1558,807 @@
 .practice-group-panel .gpt-intro {
   margin-bottom: 18px;
 }
+
+/* ======================================================================
+   Group call setup + room rework (2026-11-07)
+   Same palette and type scale as above.
+   ====================================================================== */
+
+/* ---------- Lobby room cards (Example 1 / Example 2) ---------- */
+.gpt-room {
+  gap: 10px;
+}
+
+.gpt-room-top {
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.gpt-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: rgba(100, 103, 66, 0.28);
+  color: var(--text-primary);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.gpt-badge .gpc-live-dot {
+  width: 7px;
+  height: 7px;
+}
+
+.gpt-badge-soon {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+}
+
+.gpt-badge-soon svg {
+  color: var(--olive-bright);
+}
+
+.gpt-seats {
+  color: var(--text-secondary);
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.gpt-room-title {
+  margin: 4px 0 0;
+  color: var(--text-primary);
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.gpt-room .gpt-room-meta {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 14px;
+  font-weight: 400;
+}
+
+.gpt-room-foot {
+  flex-wrap: wrap;
+  padding-top: 4px;
+}
+
+.gpt-room-join {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.gpt-room-join svg {
+  color: var(--olive-bright);
+}
+
+.gpt-room-join:hover:not(:disabled) {
+  color: var(--olive-bright);
+}
+
+.gpt-room-join:disabled {
+  color: var(--text-muted);
+  cursor: not-allowed;
+}
+
+.gpt-room-join[aria-pressed="true"] svg {
+  color: var(--text-primary);
+}
+
+.gpt-planned-code {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.gpt-planned-code strong {
+  color: var(--text-primary);
+  letter-spacing: 0.08em;
+}
+
+.gpt-planned-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-top: 4px;
+}
+
+.gpt-text-button,
+.gpc-text-button {
+  padding: 8px 4px;
+  border: none;
+  background: none;
+  color: var(--text-secondary);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.gpt-text-button:hover:not(:disabled),
+.gpc-text-button:hover:not(:disabled) {
+  color: var(--text-primary);
+}
+
+.gpt-section-spaced {
+  margin-top: 28px;
+}
+
+/* ---------- Start a practice ---------- */
+.gpc-modes {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.gpc-mode {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--bg-secondary);
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.gpc-mode[data-selected="true"] {
+  border-color: var(--olive-bright);
+  background: rgba(100, 103, 66, 0.2);
+}
+
+.gpc-mode-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  width: 100%;
+  padding: 16px;
+  border: none;
+  background: none;
+  color: var(--text-primary);
+  text-align: left;
+}
+
+.gpc-mode-head > svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: var(--olive-bright);
+}
+
+.gpc-mode-head > span:not(.gpc-radio) {
+  flex: 1;
+  min-width: 0;
+}
+
+.gpc-mode-head strong {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.gpc-mode-head span span {
+  display: block;
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.gpc-radio {
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  margin-top: 2px;
+  border: 2px solid var(--text-muted);
+  border-radius: 50%;
+}
+
+.gpc-mode-head[aria-checked="true"] .gpc-radio {
+  border-color: var(--text-primary);
+  box-shadow: inset 0 0 0 4px var(--bg-card), inset 0 0 0 10px var(--text-primary);
+}
+
+.gpc-mode-body {
+  padding: 0 16px 16px;
+}
+
+.gpc-input {
+  width: 100%;
+  min-width: 0;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg-card);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 16px;
+  line-height: 1.4;
+}
+
+.gpc-input::placeholder {
+  color: var(--text-muted);
+}
+
+.gpc-input:focus {
+  outline: none;
+  border-color: var(--olive-bright);
+}
+
+.gpc-input[aria-invalid="true"] {
+  border-color: #b5675f;
+}
+
+.gpc-input-hint {
+  display: block;
+  margin-top: 8px;
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+.gpc-guided {
+  margin: 0 0 20px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--border);
+}
+
+.gpc-prompt-preview[data-muted="true"] {
+  opacity: 0.5;
+}
+
+.gpc-own-prompt {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 18px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-secondary);
+}
+
+.gpc-own-prompt > svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: var(--olive-bright);
+}
+
+.gpc-own-prompt > div {
+  flex: 1;
+  min-width: 0;
+}
+
+.gpc-own-prompt label strong {
+  display: block;
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.gpc-own-prompt label span {
+  display: block;
+  margin: 2px 0 10px;
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.gpc-when {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.gpc-when-option {
+  padding: 14px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.gpc-when-option[aria-checked="true"] {
+  border-color: var(--olive-bright);
+  background: rgba(100, 103, 66, 0.28);
+}
+
+.gpc-schedule {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.gpc-schedule-field {
+  display: block;
+}
+
+.gpc-input-icon {
+  position: relative;
+  display: block;
+}
+
+.gpc-input-icon svg {
+  position: absolute;
+  top: 50%;
+  left: 14px;
+  color: var(--olive-bright);
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.gpc-input-icon .gpc-input {
+  padding-left: 42px;
+  color-scheme: dark;
+  min-height: 48px;
+}
+
+.gpc-form-error {
+  margin: 0 0 14px;
+  color: #f0b4ad;
+  font-size: 14px;
+}
+
+.gpc-planned-summary {
+  display: grid;
+  gap: 6px;
+  text-align: left;
+}
+
+.gpc-planned-summary strong {
+  color: var(--text-primary);
+  font-size: 15px;
+}
+
+.gpc-planned-summary span {
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.gpc-planned-code strong {
+  letter-spacing: 0.1em;
+}
+
+@media (min-width: 640px) {
+  .gpc-schedule {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* ---------- Live room ---------- */
+.gpc-call-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.gpc-call-top .gpc-back {
+  margin-bottom: 0;
+}
+
+.gpc-code-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.gpc-code-pill strong {
+  color: var(--text-primary);
+  font-size: 13px;
+  letter-spacing: 0.08em;
+}
+
+.gpc-code-pill:hover {
+  border-color: var(--olive-bright);
+}
+
+.gpc-limit {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 18px;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-card);
+}
+
+.gpc-limit-warn {
+  border-color: #8a6a3a;
+}
+
+.gpc-limit-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+
+.gpc-limit-row > svg {
+  color: var(--olive-bright);
+}
+
+.gpc-limit-label {
+  color: var(--text-secondary);
+}
+
+.gpc-limit-row strong {
+  color: var(--text-primary);
+  font-weight: 700;
+}
+
+.gpc-limit-timer {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.gpc-limit .gpc-bar {
+  margin: 0;
+}
+
+.gpc-limit small {
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.gpc-call .gpc-call-head {
+  display: block;
+  margin-bottom: 18px;
+}
+
+.gpc-title-call,
+.gpc-call .gpc-call-head .gpc-title {
+  margin: 0 0 6px;
+  font-size: clamp(24px, 3vw, 32px);
+  overflow-wrap: anywhere;
+}
+
+.gpc-call-meta {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.gpc-cat-switch {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 100%;
+  cursor: pointer;
+}
+
+.gpc-cat-switch > svg {
+  flex-shrink: 0;
+  color: var(--olive-bright);
+}
+
+.gpc-cat-switch .gpc-title {
+  margin-bottom: 6px;
+}
+
+.gpc-cat-switch select {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.gpc-cat-switch:focus-within {
+  outline: 2px solid var(--olive-bright);
+  outline-offset: 4px;
+  border-radius: 8px;
+}
+
+.gpc-cat-pill {
+  margin-top: 10px;
+  padding: 6px 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.gpc-cat-pill strong {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+/* Host alone on the first row, everyone else two by two. */
+.gpc-people {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.gpc-person {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  padding: 16px 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-card);
+  text-align: center;
+}
+
+.gpc-person-host {
+  grid-column: 1 / -1;
+}
+
+.gpc-person .gpc-avatar {
+  width: 52px;
+  height: 52px;
+  font-size: 16px;
+}
+
+.gpc-person-host .gpc-avatar {
+  width: 64px;
+  height: 64px;
+  font-size: 20px;
+}
+
+.gpc-person .gpc-member-icons {
+  top: 8px;
+  right: 8px;
+}
+
+.gpc-person .gpc-member-name {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.gpc-person .gpc-member-tag {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.gpc-host-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(100, 103, 66, 0.3);
+  color: var(--text-primary);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.gpc-person.gpc-speaking {
+  border-color: var(--olive-bright);
+}
+
+.gpc-person.gpc-speaking .gpc-avatar {
+  box-shadow:
+    0 0 0 3px var(--bg-card),
+    0 0 0 6px var(--olive-bright);
+}
+
+/* Discussion prompt: small card. */
+.gpc-discuss {
+  margin-bottom: 8px;
+}
+
+.gpc-discuss-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.gpc-discuss-head h2 {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.gpc-discuss-actions {
+  display: flex;
+  gap: 14px;
+}
+
+.gpc-discuss-actions button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 0;
+  border: none;
+  background: none;
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.gpc-discuss-actions button svg {
+  color: var(--olive-bright);
+}
+
+.gpc-discuss-actions button:hover {
+  color: var(--olive-bright);
+}
+
+.gpc-discuss-box {
+  padding: 14px 16px;
+  border: 1px solid var(--olive-primary);
+  border-radius: var(--radius-md);
+  background: rgba(100, 103, 66, 0.2);
+}
+
+.gpc-discuss-box p {
+  margin: 0 0 6px;
+  color: var(--text-primary);
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.gpc-discuss-box span {
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.gpc-discuss-form {
+  display: grid;
+  gap: 10px;
+}
+
+.gpc-discuss-form-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.gpc-ios-note {
+  margin-top: 12px;
+}
+
+@media (max-width: 380px) {
+  .gpc-call-top .gpc-back {
+    font-size: 12px;
+  }
+
+  .gpc-code-pill > span {
+    display: none;
+  }
+}
+
+/* ---------- Call bar (every app page while on a call) ---------- */
+.callbar {
+  position: sticky;
+  top: 8px;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 760px;
+  margin: 0 auto 18px;
+  padding: 10px 10px 10px 14px;
+  border: 1px solid var(--olive-bright);
+  border-radius: var(--radius-md);
+  background: #1d1f17;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  color: var(--text-primary);
+}
+
+.callbar > svg {
+  flex-shrink: 0;
+  color: var(--olive-bright);
+}
+
+.callbar-text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  color: inherit;
+  text-align: left;
+}
+
+.callbar-text strong {
+  overflow: hidden;
+  font-size: 14px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.callbar-text span {
+  overflow: hidden;
+  color: var(--text-secondary);
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.callbar-return {
+  flex-shrink: 0;
+  padding: 8px 14px;
+  border: none;
+  border-radius: 999px;
+  background: var(--olive-primary);
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.callbar-return:hover {
+  background: var(--olive-bright);
+}
+
+.callbar-icon {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text-primary);
+}
+
+.callbar-icon[aria-pressed="true"] {
+  background: var(--olive-primary);
+}
+
+.callbar-leave {
+  border-color: #5c2f2b;
+  background: #3a1f1d;
+  color: #f0b4ad;
+}
+
+.callbar-ended {
+  border-color: var(--border);
+}
+
+@media (max-width: 760px) {
+  .callbar {
+    top: calc(8px + env(safe-area-inset-top));
+  }
+}
+
+.gpc-topic-input {
+  resize: none;
+}

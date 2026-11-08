@@ -12,6 +12,9 @@ const server = http.createServer(app);
 const { initRealtime } = require("./services/realtime");
 const { setupPush } = require("./services/push");
 const { startReminderJob } = require("./services/reminderJob");
+const {
+  startScheduledPracticeJob,
+} = require("./services/scheduledPractice");
 
 const connectDB = require("./DB_CONFIG/db");
 const userRoutes = require("./ROUTES/user");
@@ -51,6 +54,8 @@ connectDB();
 initRealtime(server);
 // Phone notifications (Web Push) and the streak reminder job.
 if (setupPush()) startReminderJob();
+// Reminders for planned group practices (in-app always, phone when push is on).
+startScheduledPracticeJob();
 
 server.listen(port, () => {
   console.log(`Server is running on port ${port}`);

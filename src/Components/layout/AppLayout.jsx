@@ -1,6 +1,7 @@
 import { Outlet } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import MobileNav from "./MobileNav";
+import CallBar from "./CallBar";
 
 export default function AppLayout() {
   return (
@@ -8,6 +9,7 @@ export default function AppLayout() {
       <Sidebar />
 
       <main className="main-content">
+        <CallBar />
         <Outlet />
       </main>
 

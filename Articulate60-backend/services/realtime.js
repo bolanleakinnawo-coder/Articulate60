@@ -15,6 +15,11 @@ function initRealtime(httpServer) {
     cors: { origin: "*" },
     // Polling first keeps it working behind proxies that block upgrades.
     transports: ["polling", "websocket"],
+    // Phones pause apps in the background; give them longer before the
+    // connection is treated as gone (group calls also keep the seat, see
+    // AWAY_GRACE_MS in groupRooms.js).
+    pingInterval: 25000,
+    pingTimeout: 60000,
   });
 
   io.use(async (socket, next) => {

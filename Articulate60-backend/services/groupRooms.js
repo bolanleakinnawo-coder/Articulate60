@@ -15,9 +15,12 @@
 //
 // Socket events, app -> server (each takes an ack callback):
 //   group:lobby      { watch: true|false }   follow the open-rooms list
-//   group:create     { categoryId, categoryTitle, prompt, private?, code?, max? }
+//   group:create     { mode?, topic?, categoryId, categoryTitle, prompt, private?, code?, max? }
+//                    or { scheduledId }  start a practice planned for later
 //   group:join       { roomId } or { code }
 //   group:lookup     { code }                preview a call before joining
+//                    (a planned practice that hasn't started replies
+//                    { ok: false, error: "not-started", scheduled })
 //   group:leave
 //   group:signal     { to, data }            WebRTC offer/answer/candidate
 //   group:state      { muted?, hand? }
@@ -35,11 +38,18 @@
 //   group:ended            { reason }
 const crypto = require("crypto");
 const User = require("../MODELS/User");
+const ScheduledPractice = require("../MODELS/ScheduledPractice");
 const { hasGroupPractice } = require("../utils/plans");
 const { summarise, addMinutes, pruneOld } = require("../utils/groupUsage");
 
 const MAX_MEMBERS = Math.max(2, Number(process.env.GROUP_ROOM_MAX) || 6);
 const MINUTE_MS = 60 * 1000;
+// A member whose connection drops (phone locked, app sent to the background,
+// network blip) keeps their seat this long, so they can come straight back.
+const AWAY_GRACE_MS = Math.max(
+  10000,
+  Number(process.env.GROUP_AWAY_GRACE_MS) || 2 * 60 * 1000,
+);
 const LOBBY = "group:lobby";
 
 const rooms = new Map(); // roomId -> room
@@ -77,6 +87,40 @@ function seatCount(value) {
   const n = Math.floor(Number(value));
   if (!Number.isFinite(n)) return MAX_MEMBERS;
   return Math.min(MAX_MEMBERS, Math.max(2, n));
+}
+
+// What the app shows for a planned practice.
+function publicScheduled(doc, viewerId) {
+  const live = doc.roomId ? rooms.get(doc.roomId) : null;
+  return {
+    id: String(doc._id),
+    mode: doc.mode,
+    topic: doc.topic,
+    categoryId: doc.categoryId,
+    categoryTitle: doc.categoryTitle,
+    prompt: doc.prompt,
+    private: doc.private,
+    max: doc.max,
+    startsAt: new Date(doc.startsAt).toISOString(),
+    hostId: String(doc.host),
+    hostName: doc.hostName,
+    isHost: String(doc.host) === String(viewerId),
+    code: String(doc.host) === String(viewerId) || doc.private ? doc.code : "",
+    reminded: (doc.reminders || []).some(
+      (id) => String(id) === String(viewerId),
+    ),
+    reminderCount: (doc.reminders || []).length,
+    liveRoomId: live ? live.id : "",
+    seatsTaken: live ? live.members.size : 0,
+  };
+}
+
+function roomById(id) {
+  return rooms.get(String(id || "")) || null;
+}
+
+function isCodeLive(code) {
+  return codes.has(code);
 }
 
 function deleteRoom(room) {
@@ -131,6 +175,7 @@ function publicMember(m) {
     avatar: m.avatar,
     muted: m.muted,
     hand: m.hand,
+    away: Boolean(m.away),
     joinedAt: m.joinedAt,
   };
 }
@@ -138,6 +183,11 @@ function publicMember(m) {
 function publicRoom(room) {
   return {
     id: room.id,
+    // "host" = the host's own topic (shown as the title), "guided" = a
+    // Loquiex category and prompt.
+    mode: room.mode || "guided",
+    topic: room.topic || "",
+    scheduledId: room.scheduledId || "",
     categoryId: room.categoryId,
     categoryTitle: room.categoryTitle,
     prompt: room.prompt,
@@ -230,8 +280,11 @@ async function checkAccess(userId) {
 
 function addToRoom(socket, room, user, summary) {
   const userId = socket.data.userId;
-  // One room at a time: joining again (new tab/device) replaces the old seat.
+  // Coming back to the same room after a dropped connection keeps hosting.
   const existing = memberships.get(userId);
+  const keepHost =
+    existing && existing.roomId === room.id && room.hostId === userId;
+  // One room at a time: joining again (new tab/device) replaces the old seat.
   if (existing) {
     removeMember(userId, {
       notifySelf: existing.socketId === socket.id ? null : "joined-elsewhere",
@@ -259,6 +312,10 @@ function addToRoom(socket, room, user, summary) {
   const others = [...room.members.values()].map(publicMember);
   room.members.set(userId, member);
   memberships.set(userId, { roomId: room.id, socketId: socket.id });
+  if (keepHost && room.hostId !== userId) {
+    room.hostId = userId;
+    io.to(`group-room:${room.id}`).emit("group:host", { hostId: userId });
+  }
   socket.join(`group-room:${room.id}`);
   socket
     .to(`group-room:${room.id}`)
@@ -284,6 +341,10 @@ function errorMessage(code) {
       return "No live call has that code. It may have ended, or the code has a typo.";
     case "slow-down":
       return "Too many wrong codes. Please wait a few minutes and try again.";
+    case "no-topic":
+      return "Type the topic you'd like to discuss.";
+    case "not-started":
+      return "This practice hasn't started yet.";
     default:
       return "Something went wrong. Please try again.";
   }
@@ -313,20 +374,67 @@ function registerGroupHandlers(socket) {
           access.error,
           access.summary ? { usage: usagePayload(access.summary) } : {},
         );
+      // Starting a practice the host planned for later: its saved settings
+      // and invite code are used.
+      let settings = payload || {};
+      let planned = null;
+      if (payload?.scheduledId) {
+        planned = await ScheduledPractice.findById(
+          String(payload.scheduledId),
+        ).catch(() => null);
+        if (
+          !planned ||
+          String(planned.host) !== String(userId) ||
+          planned.status === "cancelled"
+        )
+          return fail(ack, "gone");
+        const live = planned.roomId && rooms.get(planned.roomId);
+        if (live) {
+          const joined = addToRoom(socket, live, access.user, access.summary);
+          return ack?.({
+            ok: true,
+            ...joined,
+            usage: usagePayload(access.summary),
+          });
+        }
+        settings = {
+          mode: planned.mode,
+          topic: planned.topic,
+          categoryId: planned.categoryId,
+          categoryTitle: planned.categoryTitle,
+          prompt: planned.prompt,
+          private: planned.private,
+          max: planned.max,
+          code: planned.code,
+        };
+      }
+      const mode = settings.mode === "host" ? "host" : "guided";
+      const topic = mode === "host" ? clean(settings.topic, 200) : "";
+      if (mode === "host" && !topic) return fail(ack, "no-topic");
       const room = {
         id: crypto.randomBytes(6).toString("hex"),
         // Reconnecting hosts get their old code back if it's still free.
-        code: newCode(payload?.code),
-        private: payload?.private === true,
+        code: newCode(settings.code),
+        private: settings.private === true,
         // The host picks how many seats (2 up to the server limit).
-        max: seatCount(payload?.max),
-        categoryId: clean(payload?.categoryId, 60),
-        categoryTitle: clean(payload?.categoryTitle, 80) || "Open conversation",
-        prompt: clean(payload?.prompt, 500),
+        max: seatCount(settings.max),
+        mode,
+        topic,
+        scheduledId: planned ? String(planned._id) : "",
+        categoryId: clean(settings.categoryId, 60),
+        categoryTitle:
+          clean(settings.categoryTitle, 80) || "Open conversation",
+        prompt: clean(settings.prompt, 500),
         hostId: userId,
         createdAt: Date.now(),
         members: new Map(),
       };
+      if (planned) {
+        planned.status = "started";
+        planned.roomId = room.id;
+        planned.code = room.code;
+        await planned.save();
+      }
       rooms.set(room.id, room);
       codes.set(room.code, room.id);
       const joined = addToRoom(socket, room, access.user, access.summary);
@@ -340,6 +448,23 @@ function registerGroupHandlers(socket) {
   // Preview a call from its code (topic, host, who's in) before joining.
   socket.on("group:lookup", async (payload, ack) => {
     const found = roomForCode(userId, payload?.code);
+    if (found.error === "no-code") {
+      // Not live yet? It may be a practice planned for later.
+      const planned = await ScheduledPractice.findOne({
+        code: normaliseCode(payload?.code),
+        status: { $in: ["scheduled", "started"] },
+        startsAt: { $gt: new Date(Date.now() - 3 * 60 * 60 * 1000) },
+      })
+        .lean()
+        .catch(() => null);
+      if (planned) {
+        // A real code: don't count it as a wrong guess.
+        wrongCodes.get(userId)?.pop();
+        return fail(ack, "not-started", {
+          scheduled: publicScheduled(planned, userId),
+        });
+      }
+    }
     if (found.error) return fail(ack, found.error);
     ack?.({ ok: true, room: publicRoom(found.room) });
   });
@@ -423,9 +548,22 @@ function registerGroupHandlers(socket) {
     if (!room.private) broadcastLobby();
   });
 
+  // Connection dropped: keep the seat for a while (see AWAY_GRACE_MS). The
+  // app rejoins the same room when it's back; otherwise the seat is freed.
   socket.on("disconnect", () => {
     const m = memberships.get(userId);
-    if (m && m.socketId === socket.id) removeMember(userId);
+    if (!m || m.socketId !== socket.id) return;
+    const room = rooms.get(m.roomId);
+    const member = room?.members.get(userId);
+    if (!member) return removeMember(userId);
+    member.away = true;
+    io.to(`group-room:${room.id}`).emit("group:member-updated", {
+      member: publicMember(member),
+    });
+    setTimeout(() => {
+      const still = memberships.get(userId);
+      if (still && still.socketId === socket.id) removeMember(userId);
+    }, AWAY_GRACE_MS).unref?.();
   });
 }
 
@@ -435,9 +573,11 @@ function registerGroupHandlers(socket) {
 async function chargeMinutes() {
   const now = Date.now();
   for (const room of rooms.values()) {
-    const together = room.members.size >= 2;
+    // Members whose connection dropped aren't counted or charged.
+    const present = [...room.members.values()].filter((m) => !m.away);
+    const together = present.length >= 2;
     for (const member of [...room.members.values()]) {
-      if (!together) {
+      if (!together || member.away) {
         member.nextChargeAt = now + MINUTE_MS;
         continue;
       }
@@ -475,6 +615,12 @@ function initGroupRooms(server) {
 
 module.exports = {
   initGroupRooms,
+  publicScheduled,
+  roomById,
+  isCodeLive,
+  normaliseCode,
+  CODE_ALPHABET,
+  CODE_LENGTH,
   registerGroupHandlers,
   openRooms,
   MAX_MEMBERS,

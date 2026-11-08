@@ -18,6 +18,7 @@ const Payment = require("../MODELS/Payment");
 const PasswordReset = require("../MODELS/PasswordReset");
 const WaitlistSignup = require("../MODELS/WaitlistSignup");
 const LearnNotification = require("../MODELS/LearnNotification");
+const ScheduledPractice = require("../MODELS/ScheduledPractice");
 const { disconnectUser } = require("./realtime");
 
 function r2KeyFromUrl(url) {
@@ -93,6 +94,11 @@ async function deleteAccount(user) {
     PasswordReset.deleteMany({ user: userId }),
     WaitlistSignup.deleteMany({ email: user.email }),
     LearnNotification.deleteMany({ email: user.email }),
+    ScheduledPractice.deleteMany({ host: userId }),
+    ScheduledPractice.updateMany(
+      { reminders: userId },
+      { $pull: { reminders: userId } },
+    ),
   ]);
   // The user row goes last, so a failure above can simply be retried.
   await User.deleteOne({ _id: userId });

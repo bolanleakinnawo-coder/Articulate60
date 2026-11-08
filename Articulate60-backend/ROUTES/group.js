@@ -6,6 +6,15 @@ const authMiddleware = require("../middleware/auth");
 const User = require("../MODELS/User");
 const { resolveTimeZone } = require("../utils/timeZone");
 const { summarise } = require("../utils/groupUsage");
+const crypto = require("crypto");
+const ScheduledPractice = require("../MODELS/ScheduledPractice");
+const { hasGroupPractice } = require("../utils/plans");
+const {
+  publicScheduled,
+  isCodeLive,
+  CODE_ALPHABET,
+  CODE_LENGTH,
+} = require("../services/groupRooms");
 
 const PUBLIC_STUN = [
   { urls: ["stun:stun.cloudflare.com:3478", "stun:stun.l.google.com:19302"] },
@@ -91,6 +100,166 @@ router.get("/usage", authMiddleware, async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Could not load group minutes." });
+  }
+});
+
+// ---- Practices planned for later ------------------------------------------
+const MAX_PLANNED_PER_HOST = 10;
+const MAX_DAYS_AHEAD = 30;
+// A planned practice stays listed until 3 hours after its start time.
+const LISTED_FOR_MS = 3 * 60 * 60 * 1000;
+
+function clean(text, max) {
+  return typeof text === "string" ? text.trim().slice(0, max) : "";
+}
+
+async function freeCode() {
+  for (let tries = 0; tries < 20; tries += 1) {
+    let code = "";
+    for (const b of crypto.randomBytes(CODE_LENGTH))
+      code += CODE_ALPHABET[b % CODE_ALPHABET.length];
+    if (isCodeLive(code)) continue;
+    const taken = await ScheduledPractice.exists({
+      code,
+      status: { $ne: "cancelled" },
+    });
+    if (!taken) return code;
+  }
+  throw new Error("Could not find a free code.");
+}
+
+function stillListed() {
+  return {
+    status: { $in: ["scheduled", "started"] },
+    startsAt: { $gt: new Date(Date.now() - LISTED_FOR_MS) },
+  };
+}
+
+// GET /api/group/scheduled — public upcoming practices + the member's own.
+router.get("/scheduled", authMiddleware, async (req, res) => {
+  try {
+    const [publicDocs, mine] = await Promise.all([
+      ScheduledPractice.find({ ...stillListed(), private: false })
+        .sort({ startsAt: 1 })
+        .limit(50)
+        .lean(),
+      ScheduledPractice.find({ ...stillListed(), host: req.userId })
+        .sort({ startsAt: 1 })
+        .lean(),
+    ]);
+    const toApp = (d) => publicScheduled(d, req.userId);
+    res.json({
+      upcoming: publicDocs.map(toApp),
+      mine: mine.map(toApp),
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Could not load planned practices." });
+  }
+});
+
+// POST /api/group/scheduled — plan a practice for later.
+router.post("/scheduled", authMiddleware, async (req, res) => {
+  try {
+    const user = await User.findById(req.userId, {
+      fullName: 1,
+      username: 1,
+      plan: 1,
+      planExpiresAt: 1,
+    });
+    if (!user) return res.status(404).json({ message: "User not found." });
+    if (!hasGroupPractice(user))
+      return res.status(403).json({
+        message: "Group practice comes with Loquiex Flourish and Infinity.",
+        code: "no-plan",
+      });
+
+    const body = req.body || {};
+    const startsAt = new Date(body.startsAt);
+    const now = Date.now();
+    if (Number.isNaN(startsAt.getTime()) || startsAt.getTime() < now + 60000)
+      return res
+        .status(400)
+        .json({ message: "Pick a date and time in the future." });
+    if (startsAt.getTime() > now + MAX_DAYS_AHEAD * 24 * 60 * 60 * 1000)
+      return res.status(400).json({
+        message: `You can plan up to ${MAX_DAYS_AHEAD} days ahead.`,
+      });
+
+    const mode = body.mode === "host" ? "host" : "guided";
+    const topic = mode === "host" ? clean(body.topic, 200) : "";
+    if (mode === "host" && !topic)
+      return res
+        .status(400)
+        .json({ message: "Type the topic you'd like to discuss." });
+
+    const planned = await ScheduledPractice.countDocuments({
+      host: req.userId,
+      status: "scheduled",
+      startsAt: { $gt: new Date() },
+    });
+    if (planned >= MAX_PLANNED_PER_HOST)
+      return res.status(400).json({
+        message: `You already have ${MAX_PLANNED_PER_HOST} practices planned.`,
+      });
+
+    const max = Math.min(6, Math.max(2, Math.floor(Number(body.max)) || 4));
+    const doc = await ScheduledPractice.create({
+      host: req.userId,
+      hostName: user.fullName || user.username || "Member",
+      mode,
+      topic,
+      categoryId: clean(body.categoryId, 60),
+      categoryTitle: clean(body.categoryTitle, 80),
+      prompt: clean(body.prompt, 500),
+      private: body.private === true,
+      max,
+      code: await freeCode(),
+      startsAt,
+    });
+    res.status(201).json({ scheduled: publicScheduled(doc, req.userId) });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Could not plan the practice." });
+  }
+});
+
+// POST /api/group/scheduled/:id/remind  { on: true|false }
+router.post("/scheduled/:id/remind", authMiddleware, async (req, res) => {
+  try {
+    const on = req.body?.on !== false;
+    const doc = await ScheduledPractice.findOneAndUpdate(
+      { _id: req.params.id, ...stillListed() },
+      on
+        ? { $addToSet: { reminders: req.userId } }
+        : { $pull: { reminders: req.userId } },
+      { new: true },
+    ).lean();
+    if (!doc)
+      return res.status(404).json({ message: "This practice has ended." });
+    res.json({ scheduled: publicScheduled(doc, req.userId) });
+  } catch (err) {
+    if (err.name === "CastError")
+      return res.status(404).json({ message: "Practice not found." });
+    console.error(err);
+    res.status(500).json({ message: "Could not save your reminder." });
+  }
+});
+
+// DELETE /api/group/scheduled/:id — the host cancels a planned practice.
+router.delete("/scheduled/:id", authMiddleware, async (req, res) => {
+  try {
+    const doc = await ScheduledPractice.findOneAndUpdate(
+      { _id: req.params.id, host: req.userId, status: { $ne: "cancelled" } },
+      { $set: { status: "cancelled" } },
+    );
+    if (!doc) return res.status(404).json({ message: "Practice not found." });
+    res.json({ ok: true });
+  } catch (err) {
+    if (err.name === "CastError")
+      return res.status(404).json({ message: "Practice not found." });
+    console.error(err);
+    res.status(500).json({ message: "Could not cancel the practice." });
   }
 });
 

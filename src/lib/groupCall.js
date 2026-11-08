@@ -203,7 +203,8 @@ export class GroupCall {
     return this.selfId || "__self";
   }
 
-  // `action` is { create: {categoryId, categoryTitle, prompt, private, max} },
+  // `action` is { create: {mode, topic, categoryId, categoryTitle, prompt,
+  // private, max} } or { create: { scheduledId } },
   // { roomId } or { code }. `stream` is the microphone the member allowed
   // (none = join to listen only).
   async join(action, { stream = null } = {}) {
@@ -266,6 +267,7 @@ export class GroupCall {
     this.status = "live";
     this.joinedAt = this.joinedAt || Date.now();
     this.emit();
+    this.keepAwake();
 
     if (this.muted) this.sendState({ muted: true });
     // We joined last, so we start a connection to everyone already here.
@@ -304,26 +306,124 @@ export class GroupCall {
     this.on("group:time-up", () => this.end("time-up"));
     this.on("group:ended", ({ reason }) => this.end(reason));
     this.on("group:signal", ({ from, data }) => this.handleSignal(from, data));
-    // After a network drop the server has removed us: rejoin the same room.
-    const rejoin = () => {
-      if (this.status !== "live" || !this.room) return;
-      for (const id of [...this.peers.keys()]) this.dropPeer(id);
-      const { id, categoryId, categoryTitle, prompt, code } = this.room;
-      this.enterRoom({
-        roomId: id,
-        // Same topic, privacy and (if still free) the same invite code.
-        recreate: {
-          categoryId,
-          categoryTitle,
-          prompt,
-          code,
-          max: this.room.max,
-          private: Boolean(this.room.private),
-        },
-      });
-    };
+    // After a network drop: take our seat back in the same room.
+    const rejoin = () => this.rejoin();
     this.socket.io.on("reconnect", rejoin);
     this.handlers.push(["__reconnect", rejoin]);
+    this.watchBackground();
+  }
+
+  // Back in the same room after the connection dropped (phone locked, app
+  // in the background). The server keeps our seat for a couple of minutes;
+  // after that the room is opened again with the same topic and code.
+  rejoin() {
+    if (this.status !== "live" || !this.room || this.rejoining) return;
+    this.rejoining = true;
+    for (const id of [...this.peers.keys()]) this.dropPeer(id);
+    const { id, mode, topic, categoryId, categoryTitle, prompt, code } =
+      this.room;
+    this.enterRoom({
+      roomId: id,
+      // Same topic, privacy and (if still free) the same invite code.
+      recreate: {
+        mode,
+        topic,
+        categoryId,
+        categoryTitle,
+        prompt,
+        code,
+        max: this.room.max,
+        private: Boolean(this.room.private),
+      },
+    }).finally(() => {
+      this.rejoining = false;
+    });
+  }
+
+  // Phones pause web apps in the background (iPhone always does, Android
+  // sometimes). When the member comes back: reconnect, get the microphone
+  // back if the phone stopped it, and rebuild any audio links that broke.
+  watchBackground() {
+    if (typeof document === "undefined") return;
+    const onVisible = async () => {
+      if (document.visibilityState === "hidden") {
+        this.hiddenAt = Date.now();
+        return;
+      }
+      if (this.status !== "live") return;
+      const hiddenFor = this.hiddenAt ? Date.now() - this.hiddenAt : 0;
+      this.hiddenAt = null;
+      this.keepAwake();
+      this.audioCtx?.resume?.().catch(() => {});
+      await this.restoreMic();
+      if (!this.socket.connected) {
+        // The "reconnect" event then rejoins the room.
+        this.socket.connect();
+        return;
+      }
+      const broken = [...this.peers.values()].some(
+        (p) => p.state !== "connected",
+      );
+      const missing = [...this.members.keys()].some(
+        (id) => id !== this.selfId && !this.peers.has(id),
+      );
+      if (broken || missing || hiddenFor > 20000) this.rejoin();
+      else this.resumeAudio();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    window.addEventListener("pageshow", onVisible);
+    window.addEventListener("online", onVisible);
+    this.cleanups = [
+      () => document.removeEventListener("visibilitychange", onVisible),
+      () => window.removeEventListener("pageshow", onVisible),
+      () => window.removeEventListener("online", onVisible),
+    ];
+  }
+
+  // iPhone ends the microphone when the app is in the background. Ask for
+  // it again (no prompt once allowed) and put it back on every link.
+  async restoreMic() {
+    const track = this.localStream?.getAudioTracks()[0];
+    if (!track || track.readyState !== "ended") return;
+    const result = await requestMic();
+    if (!result.stream || this.status !== "live") {
+      result.stream?.getTracks().forEach((t) => t.stop());
+      return;
+    }
+    this.localStream = result.stream;
+    const fresh = result.stream.getAudioTracks()[0];
+    fresh.enabled = !this.muted;
+    for (const peer of this.peers.values()) {
+      peer.transceiver?.sender?.replaceTrack(fresh).catch(() => {});
+    }
+    this.meter(this.selfIdOrLocal(), result.stream);
+    this.emit();
+  }
+
+  // Keeps the screen on during a call (locking it would pause the app on
+  // iPhone) and tells the phone a call is playing.
+  async keepAwake() {
+    try {
+      if ("wakeLock" in navigator && !this.wakeLock) {
+        this.wakeLock = await navigator.wakeLock.request("screen");
+        this.wakeLock.addEventListener?.("release", () => {
+          this.wakeLock = null;
+        });
+      }
+    } catch {
+      this.wakeLock = null;
+    }
+    try {
+      if ("mediaSession" in navigator) {
+        navigator.mediaSession.metadata = new window.MediaMetadata({
+          title: this.room?.topic || this.room?.categoryTitle || "Group practice",
+          artist: "Loquiex group practice",
+        });
+        navigator.mediaSession.playbackState = "playing";
+      }
+    } catch {
+      // Optional.
+    }
   }
 
   newPeer(userId, offerer) {
@@ -563,6 +663,16 @@ export class GroupCall {
   }
 
   teardown() {
+    (this.cleanups || []).forEach((fn) => fn());
+    this.cleanups = [];
+    this.wakeLock?.release?.().catch(() => {});
+    this.wakeLock = null;
+    try {
+      if ("mediaSession" in navigator)
+        navigator.mediaSession.playbackState = "none";
+    } catch {
+      // Optional.
+    }
     for (const id of [...this.peers.keys()]) this.dropPeer(id);
     for (const m of this.meters.values()) m.stop();
     this.meters.clear();
