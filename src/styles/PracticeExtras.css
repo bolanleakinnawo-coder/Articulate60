@@ -477,3 +477,204 @@
     max-width: none;
   }
 }
+
+/* ---------- Solo: "Choose your level" + AI feedback left today ---------- */
+/* Home tab palette: olive CTA (--olive-primary), cards --bg-card/--border,
+   off-white text. Numbers come from GET /api/practice/ai-allowance. */
+.practice-level-row {
+  display: flex;
+  align-items: stretch;
+  gap: 14px;
+  width: 100%;
+}
+
+.practice-level-col {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.ai-meter {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  padding-left: 14px;
+  border-left: 1px solid var(--border);
+  text-align: right;
+}
+
+.ai-meter-label {
+  margin-bottom: 12px;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.ai-meter-box {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 6px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--text-primary);
+  font: inherit;
+  cursor: pointer;
+}
+
+.ai-meter-value {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.ai-meter-info-icon {
+  color: var(--text-secondary);
+}
+
+.ai-meter.is-empty .ai-meter-value,
+.ai-meter.is-locked .ai-meter-value {
+  color: var(--text-secondary);
+}
+
+.ai-meter-note {
+  color: var(--text-muted);
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.ai-meter-pips {
+  display: flex;
+  gap: 4px;
+}
+
+.ai-meter-pips span {
+  width: 12px;
+  height: 4px;
+  border-radius: 4px;
+  background: var(--border);
+}
+
+.ai-meter-pips span.on {
+  background: var(--olive-bright);
+}
+
+.ai-meter-bar {
+  display: block;
+  width: 72px;
+  height: 4px;
+  border-radius: 4px;
+  background: var(--border);
+  overflow: hidden;
+}
+
+.ai-meter-bar span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--olive-bright);
+}
+
+.ai-meter-box:focus-visible {
+  outline: 2px solid var(--olive-bright);
+  outline-offset: 4px;
+  border-radius: 6px;
+}
+
+.ai-meter-info {
+  margin: 10px 0 0;
+  color: var(--text-secondary);
+  font-size: 13px;
+  line-height: 1.5;
+  text-align: left;
+}
+
+.ai-nudge {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  margin-top: 14px;
+  padding: 12px 12px 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--bg-card);
+  text-align: left;
+}
+
+.ai-nudge-icon {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  background: var(--bg-secondary);
+  color: var(--olive-bright);
+}
+
+.ai-nudge-text {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.ai-nudge-text strong {
+  color: var(--text-primary);
+  font-weight: 700;
+}
+
+.ai-nudge-btn {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 14px;
+  border: none;
+  border-radius: 10px;
+  background: var(--olive-primary);
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.ai-nudge-btn:hover {
+  background: var(--olive-bright);
+}
+
+@media (max-width: 360px) {
+  .practice-level-row {
+    gap: 10px;
+  }
+
+  .ai-meter {
+    padding-left: 10px;
+  }
+
+  .ai-nudge {
+    flex-wrap: wrap;
+  }
+
+  .ai-nudge-icon {
+    display: none;
+  }
+
+  .ai-nudge-text {
+    flex-basis: 100%;
+  }
+}

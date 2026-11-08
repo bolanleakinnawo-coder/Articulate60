@@ -157,6 +157,7 @@ function PracticeSessionAttempt() {
   const [report, setReport] = useState(null);
   const [analysisError, setAnalysisError] = useState("");
   const [unlockNote, setUnlockNote] = useState("");
+  const [analysisErrorCode, setAnalysisErrorCode] = useState("");
   // Share image for practices without a feedback score (time spent speaking).
   const [showShare, setShowShare] = useState(false);
 
@@ -491,6 +492,7 @@ function PracticeSessionAttempt() {
         err.response?.data?.message ||
           "We couldn't analyse this recording right now.",
       );
+      setAnalysisErrorCode(err.response?.data?.code || "");
 
       setPhase("analysis-error");
     } finally {
@@ -1074,14 +1076,20 @@ function PracticeSessionAttempt() {
   if (phase === "analysis-error") {
     return (
       <div className="page session-page fb-wait">
-        <h1 className="fb-wait-title">Feedback isn't ready</h1>
+        <h1 className="fb-wait-title">
+          {analysisErrorCode === "DAILY_LIMIT"
+            ? "That's today's AI feedback"
+            : "Feedback isn't ready"}
+        </h1>
         <p className="fb-wait-text">{analysisError}</p>
-        <button
-          className="spin-jar-btn"
-          onClick={() => runAnalysis(savedRecordingId)}
-        >
-          Try again
-        </button>
+        {analysisErrorCode !== "DAILY_LIMIT" && (
+          <button
+            className="spin-jar-btn"
+            onClick={() => runAnalysis(savedRecordingId)}
+          >
+            Try again
+          </button>
+        )}
         <button
           className="fb-link-btn"
           onClick={() =>
@@ -1089,7 +1097,7 @@ function PracticeSessionAttempt() {
             setPhase(isPaidPlan(currentUser) ? "complete" : "unlock")
           }
         >
-          Skip for now
+          {analysisErrorCode === "DAILY_LIMIT" ? "Continue" : "Skip for now"}
         </button>
       </div>
     );

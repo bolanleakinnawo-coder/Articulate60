@@ -2,10 +2,16 @@ import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { HELP_LAYER_1 } from "../data/help";
 import {
+  fetchAiAllowance,
   fetchGroupUsage,
   refreshPlanFromServer,
 } from "../data/plans";
 import DurationPicker from "../Components/practice/DurationPicker";
+import {
+  AiFeedbackMeter,
+  AiFeedbackInfo,
+  AiFeedbackNudge,
+} from "../Components/practice/AiFeedbackMeter";
 import {
   ResearchIntro,
   ResearchSubjectSheet,
@@ -108,11 +114,20 @@ export default function Practice() {
   const levelInfo = LEVEL_META.find((l) => l.id === selectedLevel);
   const hasPrep = (levelInfo?.prepareSeconds ?? 0) > 0;
 
+  // Today's AI feedback left (server count), shown beside the level picker.
+  const [aiAllowance, setAiAllowance] = useState(null);
+  const [aiInfoOpen, setAiInfoOpen] = useState(false);
+
   useEffect(() => {
     // Keep the plan and group minutes fresh (used by the Group Practice card).
     refreshPlanFromServer()
       .then(fetchGroupUsage)
       .catch(() => {});
+    let alive = true;
+    fetchAiAllowance().then((data) => alive && setAiAllowance(data));
+    return () => {
+      alive = false;
+    };
   }, []);
 
   if (!spinAudio.current) {
@@ -610,6 +625,10 @@ export default function Practice() {
 
           <div className="practice-select-layout">
             <div className="practice-select-controls">
+              <div
+                className={`practice-level-row ${aiAllowance ? "has-ai" : ""}`}
+              >
+              <div className="practice-level-col">
               <p className="eyebrow practice-level-label">CHOOSE YOUR LEVEL</p>
 
               <div className="level-dropdown">
@@ -672,6 +691,17 @@ export default function Practice() {
                   </div>
                 )}
               </div>
+              </div>
+
+              <AiFeedbackMeter
+                allowance={aiAllowance}
+                infoOpen={aiInfoOpen}
+                onToggleInfo={() => setAiInfoOpen((open) => !open)}
+              />
+              </div>
+
+              {aiInfoOpen && <AiFeedbackInfo allowance={aiAllowance} />}
+              <AiFeedbackNudge allowance={aiAllowance} />
             </div>
 
             <div className="jar-wrapper practice-main-jar">

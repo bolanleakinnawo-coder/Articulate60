@@ -1,20 +1,25 @@
 /* Feedback screen ("Here's how you did.").
    Layout follows the practice-review design; colours are the app's dark theme.
    The light design's palette is translated like this:
-   - dark green score / practice cards  -> deep olive card with a sage border
-   - pale sage pills and buttons         -> --challenge-sage (#c4d1a8) on dark ink
+   - dark green score / practice cards  -> --bg-card with --border (Home cards)
+   - pale sage pills and buttons         -> Home CTA olive (--olive-primary) with off-white text
    - white cards                         -> --bg-card with --border
    - mint "did well" / "how to improve"  -> translucent green (#7c9c6f, the app's complete check)
    - beige "focus next"                  -> translucent gold (#e8a93d, the app's spinner gold)
    - beige inner boxes                   -> --bg-secondary */
 
 .fb-page {
-  --fb-deep: #1a2216;
-  --fb-deep-line: rgba(196, 209, 168, 0.18);
-  --fb-sage: var(--challenge-sage);
-  --fb-sage-ink: #1a2216;
+  /* Home tab CTA colour (.primary-button): olive #646742, hover #79774e,
+     off-white text. Used for the active tab, score ring, progress bars,
+     share and other buttons on this page. */
+  --fb-deep: var(--bg-card);
+  --fb-deep-line: var(--border);
+  --fb-sage: var(--olive-primary);
+  --fb-sage-hover: var(--olive-bright);
+  --fb-sage-ink: var(--text-primary);
+  --fb-accent-text: var(--olive-bright);
   --fb-good: #9cb88b;
-  --fb-good-bar: #7c9c6f;
+  --fb-good-bar: var(--olive-primary);
   --fb-good-bg: rgba(124, 156, 111, 0.12);
   --fb-good-line: rgba(124, 156, 111, 0.3);
   --fb-warn: #e3ae5c;
@@ -116,7 +121,7 @@
 }
 
 .fb-ring-track {
-  stroke: rgba(196, 209, 168, 0.16);
+  stroke: rgba(100, 103, 66, 0.22);
 }
 
 .fb-ring-fill {
@@ -153,7 +158,7 @@
 
 .fb-score-kicker {
   margin: 0 0 6px;
-  color: var(--fb-sage);
+  color: var(--fb-accent-text);
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -220,7 +225,7 @@
 }
 
 .fb-share-btn:hover {
-  filter: brightness(1.06);
+  background: var(--fb-sage-hover);
 }
 
 /* =====================================================
@@ -288,7 +293,7 @@
 .fb-player-titled .fb-play-btn {
   width: 58px;
   height: 58px;
-  background: #4f5a33;
+  background: var(--olive-primary);
   color: var(--fb-cream);
 }
 
@@ -398,15 +403,14 @@
   margin-bottom: 14px;
 }
 
-/* Every tab you can switch to wears the sage highlight. The tab you are on
-   takes the quiet dark style, with an off-white outline so it still reads
-   as selected. */
+/* The tab you are on wears the Home CTA colour (olive, off-white text).
+   The other tabs are quiet dark pills with the card border. */
 .fb-tab {
   padding: 8px 14px;
-  border: 1px solid var(--fb-sage);
+  border: 1px solid var(--border);
   border-radius: 999px;
-  background: var(--fb-sage);
-  color: var(--fb-sage-ink);
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
   font: inherit;
   font-size: 13px;
   font-weight: 600;
@@ -419,14 +423,15 @@
 }
 
 .fb-tab:hover {
-  filter: brightness(1.06);
+  border-color: var(--olive-muted);
+  color: var(--text-primary);
 }
 
 .fb-tab-active,
 .fb-tab-active:hover {
-  border-color: var(--text-primary);
-  background: var(--bg-secondary);
-  color: var(--text-primary);
+  border-color: var(--fb-sage);
+  background: var(--fb-sage);
+  color: var(--fb-sage-ink);
   filter: none;
   cursor: default;
 }
@@ -924,7 +929,7 @@
 }
 
 .fb-mark-active {
-  background: rgba(196, 209, 168, 0.2);
+  background: rgba(121, 119, 78, 0.28);
   box-shadow: inset 0 -2px 0 var(--fb-sage);
 }
 
@@ -967,7 +972,7 @@
 }
 
 .fb-try-btn:hover {
-  filter: brightness(1.06);
+  background: var(--fb-sage-hover);
   transform: translateY(-1px);
 }
 
@@ -991,7 +996,7 @@
 
 .fb-page button:focus-visible,
 .fb-page input:focus-visible {
-  outline: 2px solid var(--fb-sage);
+  outline: 2px solid var(--fb-accent-text);
   outline-offset: 2px;
 }
 
@@ -1216,7 +1221,7 @@
 
 .an-kicker {
   margin: 0 0 10px;
-  color: var(--fb-sage);
+  color: var(--fb-accent-text);
   font-size: 13px;
   font-weight: 600;
   letter-spacing: 0.06em;
@@ -1264,7 +1269,7 @@
   height: 48px;
   border-radius: 14px;
   background: #22241f;
-  color: var(--fb-sage);
+  color: var(--fb-accent-text);
 }
 
 .an-list-plain {
@@ -1275,7 +1280,7 @@
 .an-plain-icon {
   flex: 0 0 auto;
   margin-top: 2px;
-  color: var(--fb-sage);
+  color: var(--fb-accent-text);
 }
 
 .an-done-icon {
@@ -1285,8 +1290,8 @@
   height: 64px;
   margin: 18px auto 16px;
   border-radius: 50%;
-  background: #2c3322;
-  color: var(--fb-sage);
+  background: rgba(100, 103, 66, 0.22);
+  color: var(--fb-accent-text);
 }
 
 .an-page .fb-player-titled {

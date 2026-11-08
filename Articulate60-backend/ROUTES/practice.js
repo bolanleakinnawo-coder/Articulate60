@@ -8,7 +8,9 @@ const {
   isPaid,
   isOnAiTrial,
   canUseAiFeedback,
-  AI_TRIAL_PER_DAY,
+  aiDailyLimit,
+  aiTrialEndsAt,
+  planIdOf,
 } = require("../utils/plans");
 const router = express.Router();
 
@@ -303,6 +305,58 @@ function r2KeyFromUrl(audioUrl) {
   return decodeURIComponent(new URL(audioUrl).pathname.replace(/^\//, ""));
 }
 
+// AI feedback sessions finished today, in the member's own calendar day.
+async function aiUsedToday(req, user) {
+  const zone = await resolveTimeZone(req, user);
+  const today = localDayNumber(new Date(), zone);
+  const dayStart = new Date(localDayStart(today, zone));
+  const used = await Recording.countDocuments({
+    user: user._id,
+    analysisStatus: "done",
+    analyzedAt: { $gte: dayStart },
+  });
+  return { used, resetsAt: new Date(localDayStart(today + 1, zone)) };
+}
+
+// GET /api/practice/ai-allowance
+// What the Solo tab shows next to "Your level":
+//   state "paid"   -> a paid plan (limit null = unlimited)
+//   state "trial"  -> free member inside the 3-day trial
+//   state "locked" -> free member whose trial has ended (no AI feedback)
+router.get("/ai-allowance", authMiddleware, async (req, res) => {
+  try {
+    const user = await User.findById(req.userId).select(
+      "plan planExpiresAt createdAt timeZone",
+    );
+    if (!user) return res.status(404).json({ message: "User not found." });
+
+    const now = new Date();
+    const planId = planIdOf(user, now);
+    const paid = planId !== "free";
+    const onTrial = !paid && isOnAiTrial(user, now);
+    const limit = aiDailyLimit(user, now);
+    const { used, resetsAt } =
+      paid || onTrial ? await aiUsedToday(req, user) : { used: 0, resetsAt: null };
+    const trialEnds = paid ? null : aiTrialEndsAt(user);
+
+    res.json({
+      state: paid ? "paid" : onTrial ? "trial" : "locked",
+      planId,
+      limit,
+      used,
+      left: limit === null ? null : Math.max(0, limit - used),
+      resetsAt,
+      trialEndsAt: trialEnds,
+      trialDaysLeft: onTrial
+        ? Math.max(1, Math.ceil((trialEnds.getTime() - now.getTime()) / 86400000))
+        : 0,
+    });
+  } catch (err) {
+    console.error("AI allowance failed:", err.message);
+    res.status(500).json({ message: "Couldn't load your AI feedback allowance." });
+  }
+});
+
 router.post(
   "/recordings/:id/analyze",
   authMiddleware,
@@ -343,22 +397,22 @@ router.post(
         });
       }
 
-      // Free trial: a few analyses a day (the member's own calendar day).
-      if (!testingForAll && !isPaid(user) && isOnAiTrial(user)) {
-        const zone = await resolveTimeZone(req, user);
-        const dayStart = new Date(
-          localDayStart(localDayNumber(new Date(), zone), zone),
-        );
-        const usedToday = await Recording.countDocuments({
-          user: req.userId,
-          analysisStatus: "done",
-          analyzedAt: { $gte: dayStart },
-        });
-        if (usedToday >= AI_TRIAL_PER_DAY) {
-          return res.status(403).json({
-            code: "UPGRADE_REQUIRED",
-            reason: "TRIAL_DAILY_LIMIT",
-            message: `You've used today's ${AI_TRIAL_PER_DAY} free AI feedback sessions. Come back tomorrow, or upgrade for more.`,
+      // Daily allowance (the member's own calendar day): the free trial's
+      // 3 a day, or the paid plan's cap (Bloom 5, Flourish 12, Infinity none).
+      const dailyLimit = aiDailyLimit(user);
+      if (!testingForAll && dailyLimit !== null) {
+        const { used } = await aiUsedToday(req, user);
+        if (used >= dailyLimit) {
+          if (!isPaid(user)) {
+            return res.status(403).json({
+              code: "UPGRADE_REQUIRED",
+              reason: "TRIAL_DAILY_LIMIT",
+              message: `You've used today's ${dailyLimit} free AI feedback sessions. Come back tomorrow, or get Bloom for 5 a day.`,
+            });
+          }
+          return res.status(429).json({
+            code: "DAILY_LIMIT",
+            message: `You've used today's ${dailyLimit} AI feedback sessions. Your recording is saved, and you can get feedback on it tomorrow from Profile.`,
           });
         }
       }

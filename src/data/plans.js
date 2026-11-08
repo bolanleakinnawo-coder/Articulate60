@@ -3,8 +3,9 @@
 // Prices here are for display only. The server (Articulate60-backend/
 // utils/plans.js) sets the amount charged and gives a plan only after
 // Paystack confirms the payment. Keep both files in step. The server enforces
-// paid access to AI feedback and group practice (plan and monthly minutes);
-// the AI feedback daily/monthly counts here are not enforced by the server yet.
+// paid access to AI feedback and group practice (plan and monthly minutes),
+// and the AI feedback daily caps (aiFeedbackPerDay). The monthly AI feedback
+// counts here are not enforced by the server yet.
 //
 // Allowances: `null` means unlimited, 0 means not included.
 //   aiFeedbackPerMonth / aiFeedbackPerDay  AI feedback sessions
@@ -394,6 +395,18 @@ export function groupMinutesUsedThisMonth() {
 export function applyServerGroupDays(days) {
   if (!days || typeof days !== "object") return;
   writeStorage(GROUP_USAGE_KEY, JSON.stringify({ days }));
+}
+
+// Today's AI feedback allowance, counted by the server (Solo tab meter).
+// { state: "paid" | "trial" | "locked", planId, limit (null = unlimited),
+//   used, left, resetsAt, trialEndsAt, trialDaysLeft }, or null when offline.
+export async function fetchAiAllowance() {
+  try {
+    const { data } = await api.get("/api/practice/ai-allowance");
+    return data && data.state ? data : null;
+  } catch {
+    return null;
+  }
 }
 
 // Loads this month's group minutes from the server (and the plan the server

@@ -100,6 +100,19 @@ function canUseAiFeedback(user, now = new Date()) {
   return isPaid(user) || isOnAiTrial(user, now);
 }
 
+// ---- AI FEEDBACK PER DAY (Sheriff, 2026-11-05) ----------------------------
+// Each member's own calendar day. null = unlimited. Keep in step with
+// aiFeedbackPerDay in src/data/plans.js.
+const AI_FEEDBACK_PER_DAY = { free: 0, bloom: 5, flourish: 12, infinity: null };
+
+// How many AI feedback sessions this member may have today:
+// a paid plan's daily cap, the trial's AI_TRIAL_PER_DAY, or 0.
+function aiDailyLimit(user, now = new Date()) {
+  const planId = planIdOf(user, now);
+  if (planId !== "free") return AI_FEEDBACK_PER_DAY[planId] ?? null;
+  return isOnAiTrial(user, now) ? AI_TRIAL_PER_DAY : 0;
+}
+
 // What the app shows on Manage Membership.
 function subscriptionOf(user, now = new Date()) {
   const planId = planIdOf(user, now);
@@ -158,6 +171,8 @@ module.exports = {
   aiTrialEndsAt,
   isOnAiTrial,
   canUseAiFeedback,
+  AI_FEEDBACK_PER_DAY,
+  aiDailyLimit,
   subscriptionOf,
   addMonths,
 };
