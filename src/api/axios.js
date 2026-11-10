@@ -8,7 +8,7 @@ api.interceptors.request.use((config) => {
   const isAdminRequest =
     config.url?.startsWith("/api/testimonials/admin") ||
     config.url?.startsWith("/api/admin/");
-  const token = isAdminRequest ? null : sessionStorage.getItem("token");
+  const token = isAdminRequest ? null : localStorage.getItem("token");
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -37,10 +37,10 @@ api.interceptors.response.use(
     if (
       error.response?.status === 401 &&
       SESSION_ENDED_CODES[code] &&
-      sessionStorage.getItem("token")
+      localStorage.getItem("token")
     ) {
-      sessionStorage.removeItem("token");
-      sessionStorage.removeItem("user");
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
       window.location.assign(`/login?session=${SESSION_ENDED_CODES[code]}`);
     }
     return Promise.reject(error);

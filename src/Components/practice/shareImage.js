@@ -31,7 +31,7 @@ const LOGO_CROP = { x: 716, y: 886, w: 493, h: 305, canvas: 2000 };
 // ---------- the member's own invite link ----------
 
 export function getStoredUser() {
-  for (const store of [sessionStorage, localStorage]) {
+  for (const store of [localStorage, sessionStorage]) {
     try {
       const user = JSON.parse(store.getItem("user"));
       if (user) return user;

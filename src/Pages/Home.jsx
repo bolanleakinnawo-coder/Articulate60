@@ -330,7 +330,7 @@ function capitalizeFirstLetter(value = "") {
 }
 
 function getStoredUser() {
-  const storedUser = sessionStorage.getItem("user");
+  const storedUser = localStorage.getItem("user");
 
   if (!storedUser) {
     return null;

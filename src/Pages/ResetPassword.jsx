@@ -85,8 +85,8 @@ function ResetPassword() {
       });
       forgetToken();
       // Any old sign-in on this device is no longer valid.
-      sessionStorage.removeItem("token");
-      sessionStorage.removeItem("user");
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
       navigate("/login", {
         replace: true,
         state: { notice: "Your password has been reset. Log in with your new password." },

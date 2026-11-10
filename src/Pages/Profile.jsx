@@ -94,11 +94,11 @@ export default function Profile({ user }) {
       // A new password signs out every other device; this one gets a new
       // sign-in token so it stays signed in.
       if (response.data.token) {
-        sessionStorage.setItem("token", response.data.token);
+        localStorage.setItem("token", response.data.token);
         disconnectRealtime();
       }
       setProfileUser(updatedUser);
-      sessionStorage.setItem("user", JSON.stringify(updatedUser));
+      localStorage.setItem("user", JSON.stringify(updatedUser));
       setProfilePhoto(null);
       setRemoveProfilePhoto(false);
       setFormData((data) => ({
@@ -143,8 +143,8 @@ export default function Profile({ user }) {
     // Stop this device's streak reminders and live updates for this member.
     await disablePush().catch(() => {});
     disconnectRealtime();
-    sessionStorage.removeItem("token");
-    sessionStorage.removeItem("user");
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
     navigate("/login", { replace: true });
   };
 
@@ -900,7 +900,7 @@ function daysUntil(date) {
 
 function getStoredUser() {
   try {
-    return JSON.parse(sessionStorage.getItem("user")) || null;
+    return JSON.parse(localStorage.getItem("user")) || null;
   } catch {
     return null;
   }

@@ -4,18 +4,11 @@ import {
   ArrowLeft,
   X,
   Mic,
-  Play,
-  Pause,
-  Lightbulb,
-  Pencil,
   Check,
   CheckCircle2,
+  AudioLines,
   Flame,
-  Search,
-  TrendingUp,
-  CircleCheck,
-  ScanSearch,
-  MessagesSquare,
+  LoaderCircle,
   Share2,
 } from "lucide-react";
 import {
@@ -23,23 +16,35 @@ import {
   DEFAULT_SPEAK_SECONDS,
   describeSpeakTime,
 } from "../data/prompts";
-import { canUseAiFeedback, isPaidPlan } from "../data/plans";
+import { canUseAiFeedback, fetchAiAllowance } from "../data/plans";
 import api from "../api/axios";
 import FeedbackReport from "../Components/practice/FeedbackReport";
+import WrapUp from "../Components/practice/WrapUp";
+import { describeSeconds } from "../Components/practice/wrapUpText";
 import RecordingPlayer from "../Components/practice/RecordingPlayer";
 import DurationPicker from "../Components/practice/DurationPicker";
 import ShareSheet from "../Components/practice/ShareSheet";
 import "./PracticeSession.css";
 
-// ---- AI FEEDBACK SWITCHES ----
-// false (live): paid members, and Free members in their 3-day trial, get AI
-// feedback; everyone else sees "You did it!" with "Unlock my AI feedback".
-// TESTING: true = everyone gets the AI feedback screen after saving.
-// (The server also checks the plan, so this is only for the screen flow.)
-const ANALYZER_FOR_ALL = false;
-// true  = after the feedback screen, continue to the "Amazing!" page.
-// false = the feedback screen's button goes straight back home.
-const SHOW_COMPLETE_AFTER_FEEDBACK = false;
+// Flow after speaking (Reflect and "Amazing!" pages removed, 2026-11-09):
+//   speak -> saving (practice saved automatically, streak counted)
+//         -> wrap ("That's a wrap!": choose feedback or not, live allowance)
+//              Get my feedback  -> analyzing ("Let's unpack your response")
+//                               -> feedback report
+//              Save without feedback -> complete ("Amazing!") for members
+//                with AI feedback (paid or trial); saved ("You did it!" +
+//                unlock + share) for Free members without AI feedback
+// Any saved practice can still get feedback later from Profile > Your
+// practices. The server decides who can use AI feedback; the allowance shown
+// comes from GET /api/practice/ai-allowance.
+
+// Steps shown under the loading bar while the analysis runs.
+const ANALYSIS_STEPS = [
+  "Listening to your recording",
+  "Transcribing what you said",
+  "Analysing your response",
+  "Preparing your feedback",
+];
 
 const formatTime = (totalSeconds) => {
   const m = Math.floor(totalSeconds / 60)
@@ -75,7 +80,7 @@ function capitalizeFirstLetter(value = "") {
 
 function getStoredUser() {
   try {
-    return JSON.parse(sessionStorage.getItem("user")) || null;
+    return JSON.parse(localStorage.getItem("user")) || null;
   } catch {
     return null;
   }
@@ -140,17 +145,15 @@ function PracticeSessionAttempt() {
     Array(24).fill(0.08),
   );
 
-  // ---- reflect phase state ----
-  const audioElRef = useRef(null);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [playedSeconds, setPlayedSeconds] = useState(0);
-  const [answer1, setAnswer1] = useState("");
-  const [answer2, setAnswer2] = useState("");
-
-  // ---- submit / streak state ----
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  // ---- save / streak state ----
+  const saveStarted = useRef(false);
   const [submitError, setSubmitError] = useState("");
   const [streak, setStreak] = useState(null);
+  // Today's AI feedback allowance from the server (null while loading or
+  // offline), and whether it has finished loading.
+  const [allowance, setAllowance] = useState(null);
+  const [allowanceLoaded, setAllowanceLoaded] = useState(false);
+  const [analysisProgress, setAnalysisProgress] = useState(0);
 
   // ---- AI feedback state ----
   const [savedRecordingId, setSavedRecordingId] = useState(null);
@@ -338,18 +341,16 @@ function PracticeSessionAttempt() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Speaking finished: stop the recorder and save the practice straight away
+  // (the save runs once the recorder hands over the audio).
   const goToReflect = useCallback(() => {
     stopRecording();
-    setPhase("reflect");
+    setPhase("saving");
   }, [stopRecording]);
 
   const handleExit = () => {
     stopRecording();
     navigate("/app/practice");
-  };
-
-  const handleBackToHome = () => {
-    navigate("/app/home");
   };
 
   // Practise the same prompt again from the start.
@@ -420,50 +421,12 @@ function PracticeSessionAttempt() {
     };
   }, [stopAudioAnalysis]);
 
-  // real playback progress, driven by the actual <audio> element
-  useEffect(() => {
-    const el = audioElRef.current;
-    if (!el) return;
-
-    const onTimeUpdate = () => setPlayedSeconds(Math.floor(el.currentTime));
-    const onEnded = () => {
-      setIsPlaying(false);
-      setPlayedSeconds(0);
-    };
-
-    el.addEventListener("timeupdate", onTimeUpdate);
-    el.addEventListener("ended", onEnded);
-    return () => {
-      el.removeEventListener("timeupdate", onTimeUpdate);
-      el.removeEventListener("ended", onEnded);
-    };
-  }, [audioUrl]);
-
-  const togglePlayback = () => {
-    const el = audioElRef.current;
-    if (!el) return;
-
-    if (isPlaying) {
-      el.pause();
-      setIsPlaying(false);
-    } else {
-      if (playedSeconds >= (actualDurationSeconds || speakTotal)) {
-        el.currentTime = 0;
-      }
-      el.play()
-        .then(() => setIsPlaying(true))
-        .catch((err) => {
-          console.error("Playback failed:", err);
-          setIsPlaying(false);
-        });
-    }
-  };
-
   const runAnalysis = async (recordingId) => {
     if (!recordingId || analysisInProgress.current) return;
 
     analysisInProgress.current = true;
     setAnalysisError("");
+    setAnalysisProgress(4);
     setPhase("analyzing");
 
     try {
@@ -477,8 +440,11 @@ function PracticeSessionAttempt() {
       setPhase("feedback");
     } catch (err) {
       if (err.response?.data?.code === "UPGRADE_REQUIRED") {
+        // Trial ended or today's trial reviews used: back to the wrap-up
+        // page, refreshed, with the server's reason.
         setUnlockNote(err.response.data.message || "");
-        setPhase("unlock");
+        loadAllowance();
+        setPhase("wrap");
         return;
       }
 
@@ -500,9 +466,14 @@ function PracticeSessionAttempt() {
     }
   };
 
-  const handleCompletePractice = async () => {
+  const loadAllowance = async () => {
+    const data = await fetchAiAllowance();
+    setAllowance(data);
+    setAllowanceLoaded(true);
+  };
+
+  const savePractice = async () => {
     setSubmitError("");
-    setIsSubmitting(true);
 
     try {
       const formData = new FormData();
@@ -516,45 +487,55 @@ function PracticeSessionAttempt() {
       formData.append("level", level);
       formData.append("durationSeconds", String(actualDurationSeconds));
       formData.append("isWordOfTheDay", String(isWordOfTheDay));
-      formData.append("wentWell", answer1);
-      formData.append("improveNextTime", answer2);
 
       const res = await api.post("/api/practice/complete", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
       setStreak(res.data.streak);
-
-      const recordingId = res.data.recording?._id;
-      setSavedRecordingId(recordingId || null);
-      const showAnalyzer = ANALYZER_FOR_ALL || canUseAiFeedback(currentUser);
-
-      if (recordingId && showAnalyzer) {
-        runAnalysis(recordingId);
-      } else {
-        setPhase("unlock");
-      }
+      setSavedRecordingId(res.data.recording?._id || null);
+      setPhase("wrap");
     } catch (err) {
       console.error("Failed to save practice session:", err);
+      saveStarted.current = false;
       setSubmitError(
         err.response?.data?.message ||
           "Couldn't save your recording. Check your connection and try again.",
       );
-    } finally {
-      setIsSubmitting(false);
     }
   };
+
+  // Save as soon as the recorder has handed over the audio, and load the
+  // allowance at the same time so the wrap-up page opens with real numbers.
+  useEffect(() => {
+    if (phase !== "saving" || !audioBlob || saveStarted.current) return;
+    saveStarted.current = true;
+    savePractice();
+    loadAllowance();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase, audioBlob]);
+
+  const retrySave = () => {
+    if (saveStarted.current) return;
+    saveStarted.current = true;
+    savePractice();
+  };
+
+  // Loading bar on "Let's unpack your response": eases towards 92% while the
+  // server works (about 30 seconds), then the feedback page replaces it.
+  useEffect(() => {
+    if (phase !== "analyzing") return;
+    const timer = setInterval(() => {
+      setAnalysisProgress((p) => p + (92 - p) * 0.035);
+    }, 300);
+    return () => clearInterval(timer);
+  }, [phase]);
 
   const circumference = 2 * Math.PI * 70;
   const totalForPhase = phase === "prepare" ? prepareTotal : speakTotal;
   const progress = totalForPhase > 0 ? timeLeft / totalForPhase : 0;
   const dashOffset = circumference * (1 - progress);
 
-  const playbackTotal = actualDurationSeconds || speakTotal;
-  const playbackProgress =
-    playbackTotal > 0 ? (playedSeconds / playbackTotal) * 100 : 0;
-  const reflectionCompleted =
-    answer1.trim().length > 0 || answer2.trim().length > 0;
 
   if (!prompt) {
     return (
@@ -804,160 +785,100 @@ function PracticeSessionAttempt() {
     );
   }
 
-  // ---------- REFLECT PHASE ----------
-  if (phase === "reflect") {
+  // ---------- SAVING (right after speaking) ----------
+  if (phase === "saving") {
     return (
-      <div className="page session-page session-complete-page">
-        <div className="session-topbar">
-          <button
-            className="session-icon-btn"
-            onClick={handleExit}
-            aria-label="Back"
-          >
-            <ArrowLeft size={18} />
-          </button>
-          <p className="session-phase-label session-phase-label-inline">
-            Reflect
-          </p>
-          <span className="session-icon-btn" />
-        </div>
-
-        <p className="session-reflect-subtitle">Answer 2 quick questions</p>
-
-        {audioUrl && <audio ref={audioElRef} src={audioUrl} preload="auto" />}
-
-        <div className="listen-card">
-          <p className="listen-label">Listen</p>
-          <p className="listen-desc">Review your recording</p>
-
-          <button
-            className="listen-play-btn"
-            onClick={togglePlayback}
-            aria-label="Play recording"
-            disabled={!audioUrl}
-          >
-            {isPlaying ? (
-              <Pause size={26} fill="currentColor" />
-            ) : (
-              <Play size={26} fill="currentColor" />
-            )}
-          </button>
-
-          <div className="listen-progress-track">
-            <div
-              className="listen-progress-fill"
-              style={{ width: `${playbackProgress}%` }}
-            />
-          </div>
-          <div className="listen-progress-times">
-            <span>{formatTime(playedSeconds)}</span>
-            <span>{formatTime(playbackTotal)}</span>
-          </div>
-
-          <div className="listen-tip">
-            <p className="listen-tip-label">TIP</p>
-            <p className="listen-tip-text">
-              Listen with a learner's mindset. Notice what you did well and what
-              you can say better next time.
-            </p>
-          </div>
-        </div>
-
-        <div className="reflect-question">
-          <div className="reflect-question-header">
-            <Lightbulb size={16} strokeWidth={1.8} />
-            <span>What did I do well in this response?</span>
-          </div>
-          <textarea
-            className="reflect-textarea"
-            placeholder="Write your answer... (optional)"
-            value={answer1}
-            onChange={(e) => setAnswer1(e.target.value)}
-          />
-        </div>
-
-        <div className="reflect-question">
-          <div className="reflect-question-header">
-            <Pencil size={16} strokeWidth={1.8} />
-            <span>What can I say better next time?</span>
-          </div>
-          <textarea
-            className="reflect-textarea"
-            placeholder="Write your answer... (optional)"
-            value={answer2}
-            onChange={(e) => setAnswer2(e.target.value)}
-          />
-        </div>
-
-        {submitError && <p className="session-mic-error">{submitError}</p>}
-
-        <button
-          className="spin-jar-btn reflect-complete-btn"
-          onClick={handleCompletePractice}
-          disabled={isSubmitting}
-        >
-          {isSubmitting ? "Saving..." : "Complete practice"}
-        </button>
+      <div className="page session-page wrap-page wrap-saving">
+        {submitError ? (
+          <>
+            <h1 className="an-title">Your practice isn&apos;t saved yet</h1>
+            <p className="an-sub">{submitError}</p>
+            <button
+              type="button"
+              className="an-unlock-btn"
+              onClick={retrySave}
+            >
+              Try again
+            </button>
+            <button
+              type="button"
+              className="fb-secondary-btn"
+              onClick={handleExit}
+            >
+              Leave without saving
+            </button>
+          </>
+        ) : (
+          <>
+            <LoaderCircle size={34} className="wrap-spin" aria-hidden="true" />
+            <p className="an-sub">Saving your practice...</p>
+          </>
+        )}
       </div>
     );
   }
 
-  // ---------- ANALYSING PHASE ----------
-  if (phase === "analyzing") {
+  // Free members whose trial has ended (or offline with no AI on the plan).
+  const aiLocked = allowance
+    ? allowance.state === "locked"
+    : !canUseAiFeedback(currentUser);
+
+  // ---------- THAT'S A WRAP! (choose feedback) ----------
+  if (phase === "wrap") {
     return (
-      <div className="page session-page fb-page an-page">
-        <div className="an-wave" aria-hidden="true">
-          {Array.from({ length: 15 }, (_, i) => (
-            <span key={i} style={{ animationDelay: `${(i % 8) * 0.09}s` }} />
-          ))}
+      <WrapUp
+        audioUrl={audioUrl}
+        seconds={actualDurationSeconds}
+        allowance={allowance}
+        allowanceLoaded={allowanceLoaded}
+        locked={aiLocked}
+        note={unlockNote}
+        canAnalyse={Boolean(savedRecordingId)}
+        onBack={handleBackToPractice}
+        onGetFeedback={() => runAnalysis(savedRecordingId)}
+        onSkip={() => setPhase(aiLocked ? "saved" : "complete")}
+        onExplorePlans={() =>
+          navigate("/app/membership", {
+            state: { reason: "feedback", recordingId: savedRecordingId },
+          })
+        }
+      />
+    );
+  }
+
+  // ---------- LET'S UNPACK YOUR RESPONSE (analysing) ----------
+  if (phase === "analyzing") {
+    const stepIndex = Math.min(
+      ANALYSIS_STEPS.length - 1,
+      Math.floor((analysisProgress / 92) * ANALYSIS_STEPS.length),
+    );
+    return (
+      <div className="page session-page unpack-page">
+        <div className="unpack-body">
+          <div className="unpack-icon" aria-hidden="true">
+            <AudioLines size={34} strokeWidth={1.8} />
+          </div>
+          <h1 className="unpack-title">Let&apos;s unpack your response.</h1>
+          <p className="unpack-sub">
+            Your communication feedback is being prepared.
+          </p>
+
+          <div
+            className="unpack-bar"
+            role="progressbar"
+            aria-label="Preparing your feedback"
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-valuenow={Math.round(analysisProgress)}
+          >
+            <span style={{ width: `${analysisProgress}%` }} />
+          </div>
+          <p className="unpack-step" aria-live="polite">
+            <span className="unpack-dot" aria-hidden="true" />
+            {ANALYSIS_STEPS[stepIndex]}
+          </p>
         </div>
-        <h1 className="an-title">Analysing your response</h1>
-        <p className="an-sub">
-          Let's see how you communicated and how you can improve.
-        </p>
-
-        <hr className="an-rule" />
-
-        <h2 className="an-heading">Your feedback will help you...</h2>
-        <ul className="an-list an-list-compact">
-          <li>
-            <span className="an-icon" aria-hidden="true">
-              <Check size={18} />
-            </span>
-            <span>
-              <strong>Recognise what you're doing well</strong>
-            </span>
-          </li>
-          <li>
-            <span className="an-icon" aria-hidden="true">
-              <Search size={18} />
-            </span>
-            <span>
-              <strong>Spot what you can improve</strong>
-            </span>
-          </li>
-          <li>
-            <span className="an-icon" aria-hidden="true">
-              <TrendingUp size={18} />
-            </span>
-            <span>
-              <strong>Learn how to express yourself better</strong>
-            </span>
-          </li>
-        </ul>
-
-        <hr className="an-rule" />
-
-        <h2 className="an-heading">While you wait...</h2>
-        <p className="an-sub an-sub-left">
-          You can listen back to your response if you'd like.
-        </p>
-        <RecordingPlayer
-          src={audioUrl}
-          fallbackSeconds={actualDurationSeconds}
-          title="Your recording"
-          subtitle="Listen to your response"
-        />
+        <p className="unpack-foot">Your feedback will be ready shortly.</p>
       </div>
     );
   }
@@ -965,7 +886,7 @@ function PracticeSessionAttempt() {
   const shareButton = actualDurationSeconds > 0 && (
     <button
       type="button"
-      className="fb-secondary-btn sh-btn sh-open-btn"
+      className="an-unlock-btn sh-btn saved-share-btn"
       onClick={() => setShowShare(true)}
     >
       <Share2 size={17} aria-hidden="true" /> Share my practice
@@ -979,87 +900,50 @@ function PracticeSessionAttempt() {
     />
   );
 
-  // ---------- UNLOCK PHASE (free plan) ----------
-  if (phase === "unlock") {
+  // ---------- YOU DID IT! (saved without feedback) ----------
+  if (phase === "saved") {
     return (
-      <div className="page session-page fb-page an-page">
+      <div className="page session-page fb-page an-page saved-page">
         <div className="an-done-icon" aria-hidden="true">
           <Check size={28} />
         </div>
         <h1 className="an-title">You did it!</h1>
-        <p className="an-sub">Every time you practise, you get better.</p>
+        <p className="an-sub">
+          Your practice is saved. Every time you practise, you get better.
+        </p>
 
-        <h2 className="an-heading">Your recording</h2>
-        <p className="an-sub an-sub-left">Listen back to what you said.</p>
+        <div className="saved-stats">
+          <div className="saved-stat">
+            <span className="saved-stat-label">You practised for</span>
+            <strong>{describeSeconds(actualDurationSeconds)}</strong>
+          </div>
+          <div className="saved-stat">
+            <span className="saved-stat-label">
+              <Flame size={14} aria-hidden="true" /> Day streak
+            </span>
+            <strong>{streak?.current ?? "—"}</strong>
+          </div>
+        </div>
+
         <RecordingPlayer
           src={audioUrl}
           fallbackSeconds={actualDurationSeconds}
-          title="Your speaking practice"
-          subtitle="Tap play to listen"
+          title="Your recording"
+          subtitle="Listen to your response"
         />
 
-        <hr className="an-rule" />
-
-        <p className="an-kicker">Your next step</p>
-        <h2 className="an-heading an-heading-lg">
-          Now, let's see how you did.
-        </h2>
-        <p className="an-sub an-sub-left">
-          Unlock AI feedback to understand how you communicated and what you can
-          do to improve.
+        <p className="saved-share-text">
+          Share an image of your practice with friends, or post it to your
+          status.
         </p>
-        {unlockNote && <p className="an-note">{unlockNote}</p>}
-        <ul className="an-list an-list-plain">
-          <li>
-            <CircleCheck
-              size={20}
-              className="an-plain-icon"
-              aria-hidden="true"
-            />
-            <span>
-              <strong>What you did well</strong>
-              <span>Recognise your communication strengths.</span>
-            </span>
-          </li>
-          <li>
-            <ScanSearch
-              size={20}
-              className="an-plain-icon"
-              aria-hidden="true"
-            />
-            <span>
-              <strong>What you can improve</strong>
-              <span>Identify where your message could be clearer.</span>
-            </span>
-          </li>
-          <li>
-            <MessagesSquare
-              size={20}
-              className="an-plain-icon"
-              aria-hidden="true"
-            />
-            <span>
-              <strong>How to say it better</strong>
-              <span>
-                Get practical corrections and a stronger version of your
-                response.
-              </span>
-            </span>
-          </li>
-        </ul>
-
+        {shareButton}
         <button
           type="button"
-          className="an-unlock-btn"
-          onClick={() =>
-            navigate("/app/membership", {
-              state: { reason: "feedback", recordingId: savedRecordingId },
-            })
-          }
+          className="fb-secondary-btn"
+          onClick={handleTryAgain}
         >
-          Unlock my AI feedback
+          Practise this topic again
         </button>
-        {shareButton}
         <button
           type="button"
           className="fb-secondary-btn"
@@ -1067,60 +951,37 @@ function PracticeSessionAttempt() {
         >
           Back to practice
         </button>
+
+        {aiLocked ? (
+          <p className="saved-later">
+            Want to know how you did?{" "}
+            <button
+              type="button"
+              onClick={() =>
+                navigate("/app/membership", {
+                  state: { reason: "feedback", recordingId: savedRecordingId },
+                })
+              }
+            >
+              Unlock detailed feedback
+            </button>
+          </p>
+        ) : (
+          <p className="saved-later">
+            Changed your mind? Get feedback on this practice any time from{" "}
+            <button
+              type="button"
+              onClick={() =>
+                navigate("/app/profile", { state: { open: "practices" } })
+              }
+            >
+              Your practices
+            </button>
+            .
+          </p>
+        )}
         {shareSheet}
       </div>
-    );
-  }
-
-  // ---------- ANALYSIS ERROR PHASE ----------
-  if (phase === "analysis-error") {
-    return (
-      <div className="page session-page fb-wait">
-        <h1 className="fb-wait-title">
-          {analysisErrorCode === "DAILY_LIMIT"
-            ? "That's today's AI feedback"
-            : "Feedback isn't ready"}
-        </h1>
-        <p className="fb-wait-text">{analysisError}</p>
-        {analysisErrorCode !== "DAILY_LIMIT" && (
-          <button
-            className="spin-jar-btn"
-            onClick={() => runAnalysis(savedRecordingId)}
-          >
-            Try again
-          </button>
-        )}
-        <button
-          className="fb-link-btn"
-          onClick={() =>
-            // Members without a paid plan always end on "You did it!".
-            setPhase(isPaidPlan(currentUser) ? "complete" : "unlock")
-          }
-        >
-          {analysisErrorCode === "DAILY_LIMIT" ? "Continue" : "Skip for now"}
-        </button>
-      </div>
-    );
-  }
-
-  // ---------- FEEDBACK PHASE ----------
-  if (phase === "feedback" && report) {
-    return (
-      <FeedbackReport
-        report={report}
-        topic={prompt}
-        audioUrl={audioUrl}
-        durationSeconds={actualDurationSeconds}
-        onTryAgain={handleTryAgain}
-        onDone={
-          SHOW_COMPLETE_AFTER_FEEDBACK
-            ? () => setPhase("complete")
-            : handleBackToPractice
-        }
-        doneLabel={
-          SHOW_COMPLETE_AFTER_FEEDBACK ? "Continue" : "Back to practice"
-        }
-      />
     );
   }
 
@@ -1178,18 +1039,6 @@ function PracticeSessionAttempt() {
             />
           </div>
 
-          <div className="complete-stat-row">
-            <span className="complete-stat-label">Reflection completed</span>
-            {reflectionCompleted ? (
-              <CheckCircle2
-                size={14}
-                strokeWidth={2}
-                className="complete-check"
-              />
-            ) : (
-              <span className="complete-skipped">Skipped</span>
-            )}
-          </div>
         </div>
 
         <div className="complete-streak-card">
@@ -1202,13 +1051,76 @@ function PracticeSessionAttempt() {
 
         <button
           className="spin-jar-btn complete-home-btn"
-          onClick={handleBackToHome}
+          onClick={() => navigate("/app/home")}
         >
           Back to home
         </button>
-        {shareButton}
+        {shareButton && (
+          <button
+            type="button"
+            className="fb-secondary-btn sh-btn sh-open-btn"
+            onClick={() => setShowShare(true)}
+          >
+            <Share2 size={17} aria-hidden="true" /> Share my practice
+          </button>
+        )}
+        <p className="saved-later">
+          Want feedback on this one later? Find it in{" "}
+          <button
+            type="button"
+            onClick={() =>
+              navigate("/app/profile", { state: { open: "practices" } })
+            }
+          >
+            Your practices
+          </button>
+          .
+        </p>
         {shareSheet}
       </div>
+    );
+  }
+
+  // ---------- ANALYSIS ERROR PHASE ----------
+  if (phase === "analysis-error") {
+    return (
+      <div className="page session-page fb-wait">
+        <h1 className="fb-wait-title">
+          {analysisErrorCode === "DAILY_LIMIT"
+            ? "That's today's AI feedback"
+            : "Feedback isn't ready"}
+        </h1>
+        <p className="fb-wait-text">{analysisError}</p>
+        {analysisErrorCode !== "DAILY_LIMIT" && (
+          <button
+            className="spin-jar-btn"
+            onClick={() => runAnalysis(savedRecordingId)}
+          >
+            Try again
+          </button>
+        )}
+        <button
+          className="fb-link-btn"
+          onClick={() => setPhase(aiLocked ? "saved" : "complete")}
+        >
+          {analysisErrorCode === "DAILY_LIMIT" ? "Continue" : "Skip for now"}
+        </button>
+      </div>
+    );
+  }
+
+  // ---------- FEEDBACK PHASE ----------
+  if (phase === "feedback" && report) {
+    return (
+      <FeedbackReport
+        report={report}
+        topic={prompt}
+        audioUrl={audioUrl}
+        durationSeconds={actualDurationSeconds}
+        onTryAgain={handleTryAgain}
+        onDone={handleBackToPractice}
+        doneLabel="Back to practice"
+      />
     );
   }
 

@@ -36,8 +36,8 @@ export default function Sidebar() {
     // Stop this device's streak reminders and live updates for this member.
     await disablePush().catch(() => {});
     disconnectRealtime();
-    sessionStorage.removeItem("token");
-    sessionStorage.removeItem("user");
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
     navigate("/login", { replace: true });
   };
 

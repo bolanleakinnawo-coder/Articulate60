@@ -42,8 +42,8 @@ function Login() {
         password,
       });
 
-      sessionStorage.setItem("token", response.data.token);
-      sessionStorage.setItem("user", JSON.stringify(response.data.user));
+      localStorage.setItem("token", response.data.token);
+      localStorage.setItem("user", JSON.stringify(response.data.user));
 
       const destination = location.state?.from?.pathname || "/app/home";
       navigate(destination, { replace: true, state: { user: response.data.user } });

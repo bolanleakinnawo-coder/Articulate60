@@ -10,7 +10,7 @@ let socket = null;
 let socketToken = null;
 
 export function getSocket() {
-  const token = sessionStorage.getItem("token");
+  const token = localStorage.getItem("token");
   const url = import.meta.env.VITE_API_URL;
   if (!token || !url) return null;
   if (socket && socketToken === token) return socket;

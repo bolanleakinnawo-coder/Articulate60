@@ -132,8 +132,38 @@ router.post(
 // GET /api/practice/leaderboard
 // Ranks all users with saved recordings by current streak, sessions, and
 // total recorded speaking time (highest first; shown as hours, minutes, seconds).
+// The leaderboard reads every recording, so it is worked out at most once
+// every LEADERBOARD_TTL_MS and shared by everyone in between (it is loaded on
+// every Home visit). Same answer for every member.
+const LEADERBOARD_TTL_MS = 5 * 60 * 1000;
+let leaderboardCache = { at: 0, data: null, pending: null };
+
 router.get("/leaderboard", authMiddleware, async (_req, res) => {
   try {
+    if (leaderboardCache.data && Date.now() - leaderboardCache.at < LEADERBOARD_TTL_MS) {
+      return res.json(leaderboardCache.data);
+    }
+    if (!leaderboardCache.pending) {
+      leaderboardCache.pending = buildLeaderboard()
+        .then((data) => {
+          leaderboardCache = { at: Date.now(), data, pending: null };
+          return data;
+        })
+        .catch((err) => {
+          leaderboardCache.pending = null;
+          throw err;
+        });
+    }
+    res.json(await leaderboardCache.pending);
+  } catch (err) {
+    console.error("Failed to fetch leaderboard:", err);
+    if (leaderboardCache.data) return res.json(leaderboardCache.data);
+    res.status(500).json({ message: "Failed to fetch leaderboard." });
+  }
+});
+
+async function buildLeaderboard() {
+  {
     const statsByUser = await Recording.aggregate([
       {
         $group: {
@@ -221,16 +251,13 @@ router.get("/leaderboard", authMiddleware, async (_req, res) => {
                 : formatSpeakingTime(entry.speakingTimeSeconds),
         }));
 
-    res.json({
+    return {
       streak: rankBy("currentStreak"),
       sessions: rankBy("sessions"),
       speakingTime: rankBy("speakingTimeSeconds"),
-    });
-  } catch (err) {
-    console.error("Failed to fetch leaderboard:", err);
-    res.status(500).json({ message: "Failed to fetch leaderboard." });
+    };
   }
-});
+}
 
 // GET /api/practice/recent?limit=1
 // Powers the "Your Recent Activity" section on Home.
@@ -306,15 +333,26 @@ function r2KeyFromUrl(audioUrl) {
 }
 
 // AI feedback sessions finished today, in the member's own calendar day.
-async function aiUsedToday(req, user) {
+// With `excludeId`, analyses still running on other recordings count too, so
+// tapping "Get feedback" on several recordings at once can't pass the cap.
+async function aiUsedToday(req, user, excludeId = null) {
   const zone = await resolveTimeZone(req, user);
   const today = localDayNumber(new Date(), zone);
   const dayStart = new Date(localDayStart(today, zone));
-  const used = await Recording.countDocuments({
+  const done = await Recording.countDocuments({
     user: user._id,
     analysisStatus: "done",
     analyzedAt: { $gte: dayStart },
   });
+  const running = excludeId
+    ? await Recording.countDocuments({
+        user: user._id,
+        _id: { $ne: excludeId },
+        analysisStatus: "processing",
+        updatedAt: { $gte: new Date(Date.now() - 3 * 60 * 1000) },
+      })
+    : 0;
+  const used = done + running;
   return { used, resetsAt: new Date(localDayStart(today + 1, zone)) };
 }
 
@@ -401,7 +439,7 @@ router.post(
       // 3 a day, or the paid plan's cap (Bloom 5, Flourish 12, Infinity none).
       const dailyLimit = aiDailyLimit(user);
       if (!testingForAll && dailyLimit !== null) {
-        const { used } = await aiUsedToday(req, user);
+        const { used } = await aiUsedToday(req, user, recording._id);
         if (used >= dailyLimit) {
           if (!isPaid(user)) {
             return res.status(403).json({

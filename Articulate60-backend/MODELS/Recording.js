@@ -34,4 +34,9 @@ const recordingSchema = new mongoose.Schema(
   { timestamps: true }, // gives us createdAt for "Recent Activity" and streak dating
 );
 
+// Every "my recordings" list and streak check filters by user and sorts by
+// date; the AI allowance counts today's finished analyses per user.
+recordingSchema.index({ user: 1, createdAt: -1 });
+recordingSchema.index({ user: 1, analysisStatus: 1, analyzedAt: 1 });
+
 module.exports = mongoose.model("Recording", recordingSchema);

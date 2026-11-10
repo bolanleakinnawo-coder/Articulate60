@@ -4,6 +4,36 @@ dns.setServers(["8.8.8.8", "8.8.4.4"]);
 
 require("dotenv").config();
 
+// Settings the server cannot work without. Missing any of these on Render
+// would break sign-in for everyone, so stop with a clear message instead.
+const REQUIRED_ENV = ["MONGO_URL", "JWT_SECRET"];
+const missingEnv = REQUIRED_ENV.filter((name) => !(process.env[name] || "").trim());
+if (missingEnv.length) {
+  console.error(`Missing required environment variables: ${missingEnv.join(", ")}`);
+  process.exit(1);
+}
+// Not fatal, but these features stay off until they are set.
+[
+  ["R2_BUCKET_NAME", "saving recordings and profile photos"],
+  ["R2_PUBLIC_URL", "saving recordings and profile photos"],
+  ["DEEPGRAM_API_KEY", "AI feedback"],
+  ["GEMINI_API_KEY", "AI feedback"],
+  ["APP_URL", "password reset links and Paystack return"],
+  ["PAYSTACK_SECRET_KEY", "payments"],
+].forEach(([name, feature]) => {
+  if (!(process.env[name] || "").trim()) console.warn(`${name} is not set: ${feature} will not work.`);
+});
+
+// Log anything unexpected instead of failing silently. An uncaught exception
+// leaves the app in an unknown state, so exit and let Render restart it.
+process.on("unhandledRejection", (reason) => {
+  console.error("Unhandled promise rejection:", reason);
+});
+process.on("uncaughtException", (err) => {
+  console.error("Uncaught exception, restarting:", err);
+  process.exit(1);
+});
+
 const http = require("http");
 const express = require("express");
 const cors = require("cors");
@@ -38,6 +68,13 @@ app.post(
 
 app.use(express.json());
 
+// Health check for Render and uptime monitors (UptimeRobot, etc.).
+app.get("/health", (_req, res) => {
+  const mongoose = require("mongoose");
+  const dbUp = mongoose.connection.readyState === 1;
+  res.status(dbUp ? 200 : 503).json({ ok: dbUp });
+});
+
 app.use("/user", userRoutes);
 app.use("/api/admin", require("./ROUTES/admin"));
 app.use("/api/waitlist", require("./ROUTES/waitlist"));
@@ -48,7 +85,10 @@ app.use("/api/testimonials", require("./ROUTES/testimonials"));
 app.use("/api/push", require("./ROUTES/push"));
 app.use("/api/group", require("./ROUTES/group"));
 app.use("/api/billing", require("./ROUTES/billing"));
-connectDB();
+connectDB().then(() => {
+  // Moves older mixed-case usernames to lowercase (fast indexed sign-in).
+  require("./utils/usernames").lowercaseLegacyUsernames();
+});
 
 // Live in-app updates (Socket.IO) share the same port as the API.
 initRealtime(server);
@@ -59,4 +99,17 @@ startScheduledPracticeJob();
 
 server.listen(port, () => {
   console.log(`Server is running on port ${port}`);
+});
+
+// Bad JSON or anything a route didn't catch: answer cleanly, never crash.
+app.use((err, _req, res, _next) => {
+  if (err.type === "entity.parse.failed") {
+    return res.status(400).json({ message: "Invalid request." });
+  }
+  if (err.type === "entity.too.large") {
+    return res.status(413).json({ message: "Request is too large." });
+  }
+  console.error("Unhandled route error:", err);
+  if (res.headersSent) return;
+  res.status(500).json({ message: "Something went wrong. Please try again." });
 });

@@ -215,7 +215,7 @@ OLD_DEMO_KEYS.forEach((key) => writeStorage(key, null));
 
 export function getStoredUser() {
   try {
-    return JSON.parse(sessionStorage.getItem("user")) || null;
+    return JSON.parse(localStorage.getItem("user")) || null;
   } catch {
     return null;
   }
@@ -224,7 +224,7 @@ export function getStoredUser() {
 function saveStoredUser(patch) {
   const user = getStoredUser();
   if (!user) return;
-  sessionStorage.setItem("user", JSON.stringify({ ...user, ...patch }));
+  localStorage.setItem("user", JSON.stringify({ ...user, ...patch }));
 }
 
 // The plan comes from the server only (it is set there after Paystack

@@ -22,9 +22,10 @@ const router = express.Router();
 
 const EMAIL_REGEX = /^\S+@\S+\.\S+$/;
 const USERNAME_REGEX = /^[a-zA-Z0-9_]{3,20}$/;
-const normalizeUsername = (username) => username.trim().toLowerCase();
-const usernameLookup = (username) =>
-  new RegExp(`^${username.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, "i");
+const { normalizeUsername, usernameQuery } = require("../utils/usernames");
+// Indexed lookup (usernames are stored lowercase), not a full-collection scan.
+const usernameLookup = (username) => usernameQuery(username);
+const clientIpOf = (req) => rateLimit.ipKeyGenerator(req.ip || "");
 const PHONE_REGEX = /^\+?[0-9]{10,15}$/;
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -62,6 +63,17 @@ const loginLimiter = rateLimit({
   message: { message: "Too many sign-in attempts. Please wait 15 minutes and try again." },
 });
 
+// Stops scripted mass sign-ups. Generous, because many members on the same
+// mobile network can share one IP address.
+const signupLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  limit: 30,
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: (req) => `signup|${clientIpOf(req)}`,
+  message: { message: "Too many sign-ups from this network. Please try again in an hour." },
+});
+
 const generateToken = (user) => signToken(user);
 
 const authenticate = async (req, res, next) => {
@@ -95,11 +107,11 @@ const RESET_MINUTES = 30;
 const RESET_TOKEN_RE = /^[A-Za-z0-9_-]{43}$/;
 const clientIp = (req) => rateLimit.ipKeyGenerator(req.ip || "");
 
-// Forgot password: 5 requests per 15 minutes per IP, and 3 per hour for one
+// Forgot password: 15 requests per 15 minutes per IP, and 3 per hour for one
 // email/username, so nobody can flood someone's inbox.
 const forgotIpLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  limit: 5,
+  limit: 15,
   standardHeaders: true,
   legacyHeaders: false,
   keyGenerator: (req) => clientIp(req),
@@ -132,7 +144,7 @@ const deleteLimiter = rateLimit({
 });
 
 // ---------- SIGNUP ----------
-router.post("/signup", handleProfilePhotoUpload, async (req, res) => {
+router.post("/signup", signupLimiter, handleProfilePhotoUpload, async (req, res) => {
   try {
     const {
       fullName,
@@ -148,8 +160,14 @@ router.post("/signup", handleProfilePhotoUpload, async (req, res) => {
       improvementOther,
       practiceFrequency,
     } = req.body;
-    const selectedImprovements =
-      typeof improvements === "string" ? JSON.parse(improvements) : improvements;
+    let selectedImprovements = improvements;
+    if (typeof improvements === "string") {
+      try {
+        selectedImprovements = JSON.parse(improvements);
+      } catch {
+        selectedImprovements = [];
+      }
+    }
 
     const errors = {};
 
@@ -244,7 +262,7 @@ router.post("/signup", handleProfilePhotoUpload, async (req, res) => {
       fullName: fullName.trim(),
       username: normalizedUsername,
       email: email.trim().toLowerCase(),
-      phoneNumber: phoneNumber.trim(),
+      phoneNumber: typeof phoneNumber === "string" ? phoneNumber.trim() : "",
       password: hashedPassword,
       role,
       roleOther: role === "Other" ? roleOther.trim() : "",
@@ -306,7 +324,12 @@ router.post("/login", loginLimiter, async (req, res) => {
   try {
     const { identifier, password } = req.body; // identifier = email or username
 
-    if (!identifier || !password) {
+    if (
+      typeof identifier !== "string" ||
+      typeof password !== "string" ||
+      !identifier.trim() ||
+      !password
+    ) {
       return res
         .status(400)
         .json({ message: "Email/username and password are required." });
