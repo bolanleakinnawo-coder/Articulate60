@@ -1,13 +1,15 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   BookOpen,
   Check,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
-  CircleCheck,
   LoaderCircle,
+  MessageSquareText,
   Mic,
+  Pause,
+  Play,
   Plus,
   Sparkles,
 } from "lucide-react";
@@ -25,6 +27,19 @@ const FILTERS = [
   ["vocabulary", "Vocabulary"],
 ];
 
+// Practice-count milestones (the first three match Your Stats).
+const MILESTONES = [10, 50, 100, 250, 500, 1000];
+
+function nextMilestone(total) {
+  const goal =
+    MILESTONES.find((m) => m > total) ?? (Math.floor(total / 500) + 1) * 500;
+  const prev =
+    goal > 1000
+      ? goal - 500
+      : ([...MILESTONES].reverse().find((m) => m < goal) ?? 0);
+  return { goal, prev, left: goal - total };
+}
+
 // "Your Practices" page: the user's real recordings, newest first by default.
 // Vocabulary = Word of the Day practices; Speaking = every other prompt.
 // Profile keeps `recordings` fresh (on open and whenever the app regains focus).
@@ -41,9 +56,29 @@ export default function ProfilePractices({
   const [sort, setSort] = useState("recent");
   const [sortOpen, setSortOpen] = useState(false);
   const [visible, setVisible] = useState(PAGE_SIZE);
+  const [playingId, setPlayingId] = useState(null);
+  const audioRef = useRef(null);
 
+  // Stop playback when leaving the page.
+  useEffect(
+    () => () => {
+      audioRef.current?.pause();
+    },
+    [],
+  );
+
+  const total = recordings.length;
+  const yapCount = recordings.filter((r) => r.category === "Yap Mode").length;
   const vocabCount = recordings.filter((r) => r.isWordOfTheDay).length;
-  const promptCount = recordings.length - vocabCount;
+  const promptCount = Math.max(0, total - yapCount - vocabCount);
+  const milestone = nextMilestone(total);
+  const ringPct = Math.max(
+    0,
+    Math.min(
+      100,
+      ((total - milestone.prev) / (milestone.goal - milestone.prev)) * 100,
+    ),
+  );
 
   const filtered = recordings
     .filter((r) =>
@@ -59,6 +94,40 @@ export default function ProfilePractices({
     });
   const shown = filtered.slice(0, visible);
 
+  const togglePlay = (r) => {
+    if (!r.audioUrl) return;
+    if (playingId === r._id) {
+      audioRef.current?.pause();
+      setPlayingId(null);
+      return;
+    }
+    audioRef.current?.pause();
+    const audio = new Audio(r.audioUrl);
+    audio.onended = () => setPlayingId(null);
+    audio.onerror = () => setPlayingId(null);
+    audioRef.current = audio;
+    audio.play().then(
+      () => setPlayingId(r._id),
+      () => setPlayingId(null),
+    );
+  };
+
+  const smallCards = [
+    { key: "yap", icon: Mic, value: yapCount, label: "Yap mode" },
+    {
+      key: "vocab",
+      icon: BookOpen,
+      value: vocabCount,
+      label: "Vocabulary",
+    },
+    {
+      key: "prompts",
+      icon: MessageSquareText,
+      value: promptCount,
+      label: "Prompts & research",
+    },
+  ];
+
   return (
     <div className="profile-content pf-practices-page">
       <button className="pf-back pf-back-link" onClick={onBack}>
@@ -67,35 +136,37 @@ export default function ProfilePractices({
 
       <header className="pf-page-header">
         <h1>Your Practices</h1>
-        <p>Your previous sessions and feedback.</p>
+        <p>Revisit your speaking sessions and your feedback.</p>
       </header>
 
-      <section className="pf-panel pf-journey">
-        <p className="pf-stats-kicker">Your journey</p>
-        <div className="pf-journey-grid">
-          <div className="pf-journey-item">
-            <span className="pf-row-icon">
-              <Mic size={18} />
-            </span>
-            <span>
-              <strong>{promptCount}</strong>
-              <span>
-                {promptCount === 1 ? "Prompt practised" : "Prompts practised"}
-              </span>
-            </span>
-          </div>
-          <div className="pf-journey-item">
-            <span className="pf-row-icon">
-              <BookOpen size={18} />
-            </span>
-            <span>
-              <strong>{vocabCount}</strong>
-              <span>
-                {vocabCount === 1 ? "Word practised" : "Words practised"}
-              </span>
+      <section className="pf-bento" aria-label="Your practice counts">
+        <div className="pf-bento-big">
+          <p className="pf-bento-kicker">Next milestone</p>
+          <p className="pf-bento-goal">{milestone.goal} practices</p>
+          <div
+            className="pf-ring"
+            style={{ "--pct": ringPct }}
+            role="img"
+            aria-label={`${milestone.left} recordings left to reach ${milestone.goal} practices`}
+          >
+            <span className="pf-ring-inner">
+              <strong>{milestone.left}</strong>
+              <span>{milestone.left === 1 ? "recording left" : "recordings left"}</span>
             </span>
           </div>
+          <p className="pf-bento-foot">
+            {total.toLocaleString()} of {milestone.goal.toLocaleString()} done
+          </p>
         </div>
+        {smallCards.map(({ key, icon: Icon, value, label }) => (
+          <div className="pf-bento-small" key={key}>
+            <Icon size={20} className="pf-bento-icon" aria-hidden="true" />
+            <span className="pf-bento-small-text">
+              <strong>{value.toLocaleString()}</strong>
+              <span>{label}</span>
+            </span>
+          </div>
+        ))}
       </section>
 
       <div className="pf-stats-head">
@@ -106,7 +177,7 @@ export default function ProfilePractices({
         </span>
       </div>
 
-      <div className="pf-chips" role="tablist">
+      <div className="pf-chips pf-chips-sm" role="tablist">
         {FILTERS.map(([key, label]) => (
           <button
             key={key}
@@ -187,46 +258,63 @@ export default function ProfilePractices({
           </p>
         </div>
       ) : (
-        <div className="pf-list pf-history">
+        <div className="pf-practice-cards">
           {shown.map((r) => {
             const hasFeedback = r.analysisStatus === "done" && r.analysis;
             const isAnalysing = analysingId === r._id;
+            const isPlaying = playingId === r._id;
+            const meta = [
+              r.category || (r.isWordOfTheDay ? "Word of the Day" : ""),
+              r.level ? `Level ${r.level}` : "",
+              r.durationSeconds ? formatDuration(r.durationSeconds) : "",
+            ].filter(Boolean);
             return (
-              <button
-                key={r._id}
-                className="pf-history-row"
-                disabled={isAnalysing}
-                onClick={() =>
-                  hasFeedback ? onOpenFeedback(r) : onGetFeedback(r)
-                }
-              >
-                <span className="pf-history-text">
-                  <strong>{r.topic || "Practice session"}</strong>
-                  <span className="pf-history-meta">
-                    {[
-                      formatWhen(r.createdAt),
-                      r.durationSeconds ? formatDuration(r.durationSeconds) : null,
-                    ]
-                      .filter(Boolean)
-                      .join(" · ")}
-                  </span>
-                  {hasFeedback ? (
-                    <span className="pf-history-status is-ready">
-                      <CircleCheck size={15} /> Feedback available
-                    </span>
-                  ) : isAnalysing ? (
-                    <span className="pf-history-status">
-                      <LoaderCircle size={15} className="pf-spin" /> Getting
-                      your feedback…
-                    </span>
-                  ) : (
-                    <span className="pf-history-status">
-                      <Sparkles size={15} /> Get AI feedback
-                    </span>
+              <article className="pf-practice-card" key={r._id}>
+                <div className="pf-practice-card-text">
+                  <p className="pf-practice-card-date">{formatWhen(r.createdAt)}</p>
+                  <h3 className="pf-practice-card-title">
+                    {r.topic || "Practice session"}
+                  </h3>
+                  {meta.length > 0 && (
+                    <p className="pf-practice-card-meta">{meta.join(" · ")}</p>
                   )}
-                </span>
-                <ChevronRight size={18} className="pf-row-chev" />
-              </button>
+                  <button
+                    type="button"
+                    className="pf-feedback-cta"
+                    disabled={isAnalysing}
+                    onClick={() =>
+                      hasFeedback ? onOpenFeedback(r) : onGetFeedback(r)
+                    }
+                  >
+                    {isAnalysing ? (
+                      <>
+                        <LoaderCircle size={16} className="pf-spin" /> Getting
+                        your feedback…
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles size={16} />
+                        {hasFeedback ? "See your feedback" : "Get your feedback"}
+                        <ChevronRight size={16} />
+                      </>
+                    )}
+                  </button>
+                </div>
+                {r.audioUrl && (
+                  <button
+                    type="button"
+                    className={`pf-play ${isPlaying ? "is-playing" : ""}`}
+                    onClick={() => togglePlay(r)}
+                    aria-label={isPlaying ? "Pause recording" : "Play recording"}
+                  >
+                    {isPlaying ? (
+                      <Pause size={16} fill="currentColor" />
+                    ) : (
+                      <Play size={16} fill="currentColor" />
+                    )}
+                  </button>
+                )}
+              </article>
             );
           })}
         </div>
@@ -249,31 +337,28 @@ export default function ProfilePractices({
 }
 
 function formatDuration(seconds) {
-  if (seconds < 60) return `${seconds} sec`;
+  if (seconds < 60) return `${seconds}s`;
   const m = Math.floor(seconds / 60);
   const s = seconds % 60;
-  return s ? `${m} min ${s} sec` : `${m} min`;
+  return s ? `${m} min ${s}s` : `${m} min`;
 }
 
-// "Today · 10:42 AM", "Yesterday · 2:30 PM", "Oct 23 · 6:15 PM"
+// "Thu, 29 Oct 2026 · 3:47 pm" (12-hour clock)
 function formatWhen(date) {
   if (!date) return "";
   const d = new Date(date);
-  const today = new Date();
-  const yesterday = new Date();
-  yesterday.setDate(today.getDate() - 1);
-  const time = d.toLocaleTimeString(undefined, {
-    hour: "numeric",
-    minute: "2-digit",
+  const weekday = d.toLocaleDateString("en-GB", { weekday: "short" });
+  const day = d.toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
   });
-  let day;
-  if (d.toDateString() === today.toDateString()) day = "Today";
-  else if (d.toDateString() === yesterday.toDateString()) day = "Yesterday";
-  else
-    day = d.toLocaleDateString(undefined, {
-      month: "short",
-      day: "numeric",
-      ...(d.getFullYear() !== today.getFullYear() && { year: "numeric" }),
-    });
-  return `${day} · ${time}`;
+  const time = d
+    .toLocaleTimeString("en-US", {
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    })
+    .toLowerCase();
+  return `${weekday}, ${day} · ${time}`;
 }

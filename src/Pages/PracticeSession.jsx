@@ -20,8 +20,6 @@ import { canUseAiFeedback, fetchAiAllowance } from "../data/plans";
 import api from "../api/axios";
 import FeedbackReport from "../Components/practice/FeedbackReport";
 import WrapUp from "../Components/practice/WrapUp";
-import { describeSeconds } from "../Components/practice/wrapUpText";
-import RecordingPlayer from "../Components/practice/RecordingPlayer";
 import DurationPicker from "../Components/practice/DurationPicker";
 import ShareSheet from "../Components/practice/ShareSheet";
 import "./PracticeSession.css";
@@ -31,9 +29,8 @@ import "./PracticeSession.css";
 //         -> wrap ("That's a wrap!": choose feedback or not, live allowance)
 //              Get my feedback  -> analyzing ("Let's unpack your response")
 //                               -> feedback report
-//              Save without feedback -> complete ("Amazing!") for members
-//                with AI feedback (paid or trial); saved ("You did it!" +
-//                unlock + share) for Free members without AI feedback
+//              Save without feedback -> complete ("Amazing!") for everyone
+//                (Free members without AI see an "Unlock detailed feedback" link)
 // Any saved practice can still get feedback later from Profile > Your
 // practices. The server decides who can use AI feedback; the allowance shown
 // comes from GET /api/practice/ai-allowance.
@@ -627,7 +624,7 @@ function PracticeSessionAttempt() {
               className="spin-jar-btn session-ready-btn"
               onClick={goToSpeak}
             >
-              I'M READY
+              I'm ready
             </button>
           </div>
         </div>
@@ -690,7 +687,7 @@ function PracticeSessionAttempt() {
               className="spin-jar-btn session-ready-btn"
               onClick={goToSpeak}
             >
-              I&apos;M READY
+              I&apos;m ready
             </button>
           </div>
         </div>
@@ -836,7 +833,7 @@ function PracticeSessionAttempt() {
         canAnalyse={Boolean(savedRecordingId)}
         onBack={handleBackToPractice}
         onGetFeedback={() => runAnalysis(savedRecordingId)}
-        onSkip={() => setPhase(aiLocked ? "saved" : "complete")}
+        onSkip={() => setPhase("complete")}
         onExplorePlans={() =>
           navigate("/app/membership", {
             state: { reason: "feedback", recordingId: savedRecordingId },
@@ -883,15 +880,6 @@ function PracticeSessionAttempt() {
     );
   }
 
-  const shareButton = actualDurationSeconds > 0 && (
-    <button
-      type="button"
-      className="an-unlock-btn sh-btn saved-share-btn"
-      onClick={() => setShowShare(true)}
-    >
-      <Share2 size={17} aria-hidden="true" /> Share my practice
-    </button>
-  );
   const shareSheet = showShare && (
     <ShareSheet
       score={null}
@@ -899,91 +887,6 @@ function PracticeSessionAttempt() {
       onClose={() => setShowShare(false)}
     />
   );
-
-  // ---------- YOU DID IT! (saved without feedback) ----------
-  if (phase === "saved") {
-    return (
-      <div className="page session-page fb-page an-page saved-page">
-        <div className="an-done-icon" aria-hidden="true">
-          <Check size={28} />
-        </div>
-        <h1 className="an-title">You did it!</h1>
-        <p className="an-sub">
-          Your practice is saved. Every time you practise, you get better.
-        </p>
-
-        <div className="saved-stats">
-          <div className="saved-stat">
-            <span className="saved-stat-label">You practised for</span>
-            <strong>{describeSeconds(actualDurationSeconds)}</strong>
-          </div>
-          <div className="saved-stat">
-            <span className="saved-stat-label">
-              <Flame size={14} aria-hidden="true" /> Day streak
-            </span>
-            <strong>{streak?.current ?? "—"}</strong>
-          </div>
-        </div>
-
-        <RecordingPlayer
-          src={audioUrl}
-          fallbackSeconds={actualDurationSeconds}
-          title="Your recording"
-          subtitle="Listen to your response"
-        />
-
-        <p className="saved-share-text">
-          Share an image of your practice with friends, or post it to your
-          status.
-        </p>
-        {shareButton}
-        <button
-          type="button"
-          className="fb-secondary-btn"
-          onClick={handleTryAgain}
-        >
-          Practise this topic again
-        </button>
-        <button
-          type="button"
-          className="fb-secondary-btn"
-          onClick={handleBackToPractice}
-        >
-          Back to practice
-        </button>
-
-        {aiLocked ? (
-          <p className="saved-later">
-            Want to know how you did?{" "}
-            <button
-              type="button"
-              onClick={() =>
-                navigate("/app/membership", {
-                  state: { reason: "feedback", recordingId: savedRecordingId },
-                })
-              }
-            >
-              Unlock detailed feedback
-            </button>
-          </p>
-        ) : (
-          <p className="saved-later">
-            Changed your mind? Get feedback on this practice any time from{" "}
-            <button
-              type="button"
-              onClick={() =>
-                navigate("/app/profile", { state: { open: "practices" } })
-              }
-            >
-              Your practices
-            </button>
-            .
-          </p>
-        )}
-        {shareSheet}
-      </div>
-    );
-  }
 
   // ---------- COMPLETE PHASE ----------
   if (phase === "complete") {
@@ -1006,7 +909,7 @@ function PracticeSessionAttempt() {
           <Check size={56} strokeWidth={3} aria-hidden="true" />
         </div>
 
-        <h1 className="complete-title">Amazing!</h1>
+        <h1 className="complete-title">Amazing</h1>
         <p className="complete-subtitle">You showed up for yourself today.</p>
 
         <div className="complete-stats">
@@ -1055,7 +958,7 @@ function PracticeSessionAttempt() {
         >
           Back to home
         </button>
-        {shareButton && (
+        {actualDurationSeconds > 0 && (
           <button
             type="button"
             className="fb-secondary-btn sh-btn sh-open-btn"
@@ -1064,18 +967,34 @@ function PracticeSessionAttempt() {
             <Share2 size={17} aria-hidden="true" /> Share my practice
           </button>
         )}
-        <p className="saved-later">
-          Want feedback on this one later? Find it in{" "}
-          <button
-            type="button"
-            onClick={() =>
-              navigate("/app/profile", { state: { open: "practices" } })
-            }
-          >
-            Your practices
-          </button>
-          .
-        </p>
+        {aiLocked ? (
+          <p className="saved-later">
+            Want to know how you did?{" "}
+            <button
+              type="button"
+              onClick={() =>
+                navigate("/app/membership", {
+                  state: { reason: "feedback", recordingId: savedRecordingId },
+                })
+              }
+            >
+              Unlock detailed feedback
+            </button>
+          </p>
+        ) : (
+          <p className="saved-later">
+            Want feedback on this one later? Find it in{" "}
+            <button
+              type="button"
+              onClick={() =>
+                navigate("/app/profile", { state: { open: "practices" } })
+              }
+            >
+              Your practices
+            </button>
+            .
+          </p>
+        )}
         {shareSheet}
       </div>
     );
@@ -1101,7 +1020,7 @@ function PracticeSessionAttempt() {
         )}
         <button
           className="fb-link-btn"
-          onClick={() => setPhase(aiLocked ? "saved" : "complete")}
+          onClick={() => setPhase("complete")}
         >
           {analysisErrorCode === "DAILY_LIMIT" ? "Continue" : "Skip for now"}
         </button>

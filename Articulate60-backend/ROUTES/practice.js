@@ -188,6 +188,9 @@ async function buildLeaderboard() {
           sessions: { $sum: "$sessions" },
           speakingTimeSeconds: { $sum: "$speakingTimeSeconds" },
           practiceDays: { $push: "$_id.day" },
+          dailySeconds: {
+            $push: { day: "$_id.day", seconds: "$speakingTimeSeconds" },
+          },
           lastActive: { $max: "$lastActive" },
         },
       },
@@ -215,6 +218,15 @@ async function buildLeaderboard() {
           "UTC",
         ).current;
         const user = usersById.get(stats._id.toString());
+        // Speaking time of the current streak only: the streak is always the
+        // member's most recent run of practice days, so add up the seconds of
+        // their latest `streak` practice days.
+        const streakSpeakingTimeSeconds = streak
+          ? [...stats.dailySeconds]
+              .sort((a, b) => (a.day < b.day ? 1 : -1))
+              .slice(0, streak)
+              .reduce((total, day) => total + (day.seconds || 0), 0)
+          : 0;
 
         return {
           userId: stats._id.toString(),
@@ -223,15 +235,23 @@ async function buildLeaderboard() {
           currentStreak: streak,
           sessions: stats.sessions,
           speakingTimeSeconds: stats.speakingTimeSeconds,
+          streakSpeakingTimeSeconds,
           lastActive: stats.lastActive,
         };
       });
 
+    // Streak ranking: longest current streak first; ties go to whoever spoke
+    // longer during that streak.
+    const tieBreak = (metric) =>
+      metric === "currentStreak" ? "streakSpeakingTimeSeconds" : null;
     const rankBy = (metric) =>
       [...entries]
         .sort(
           (left, right) =>
             right[metric] - left[metric] ||
+            (tieBreak(metric)
+              ? right[tieBreak(metric)] - left[tieBreak(metric)]
+              : 0) ||
             left.username.localeCompare(right.username),
         )
         .slice(0, 5)
@@ -242,6 +262,10 @@ async function buildLeaderboard() {
           currentStreak: entry.currentStreak,
           speakingTimeSeconds: entry.speakingTimeSeconds,
           speakingTimeDisplay: formatSpeakingTime(entry.speakingTimeSeconds),
+          streakSpeakingTimeSeconds: entry.streakSpeakingTimeSeconds,
+          streakSpeakingTimeDisplay: formatSpeakingTime(
+            entry.streakSpeakingTimeSeconds,
+          ),
           lastActive: entry.lastActive,
           displayValue:
             metric === "currentStreak"

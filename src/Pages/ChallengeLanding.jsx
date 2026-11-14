@@ -75,7 +75,7 @@ export default function ChallengeLanding() {
           </div>
 
           <button className="a60-cta-primary">
-            JOIN THE CHALLENGE <ArrowRight size={18} />
+            Join the challenge <ArrowRight size={18} />
           </button>
         </div>
       </section>
@@ -210,7 +210,7 @@ export default function ChallengeLanding() {
       </section>
 
       <div className="a60-bottom-bar">
-        JOIN THE CHALLENGE NOW <ArrowRight size={18} />
+        Join the challenge now <ArrowRight size={18} />
       </div>
     </div>
   );

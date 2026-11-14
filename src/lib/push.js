@@ -34,11 +34,24 @@ function hasPushApis() {
   );
 }
 
+// The service worker that shows notifications. On a first visit it may still
+// be installing, so wait for it (briefly) instead of giving up.
 async function getRegistration() {
   if (!("serviceWorker" in navigator)) return null;
-  const existing = await navigator.serviceWorker.getRegistration();
-  if (!existing) return null;
-  return navigator.serviceWorker.ready;
+  let existing = await navigator.serviceWorker.getRegistration();
+  if (!existing) {
+    // vite-plugin-pwa normally registers it on load; register it ourselves
+    // if that hasn't happened yet.
+    existing = await navigator.serviceWorker
+      .register("/sw.js", { scope: "/" })
+      .catch(() => null);
+    if (!existing) return null;
+  }
+  const ready = await Promise.race([
+    navigator.serviceWorker.ready,
+    new Promise((resolve) => setTimeout(() => resolve(null), 8000)),
+  ]);
+  return ready || existing;
 }
 
 export async function getPushState() {
@@ -57,22 +70,26 @@ function urlBase64ToUint8Array(base64) {
   return Uint8Array.from([...raw].map((c) => c.charCodeAt(0)));
 }
 
-// Must be called from a tap (browsers only show the permission prompt then).
+// Must be called from a tap. Safari (iPhone especially) only shows the
+// permission pop-up when it is asked straight away inside the tap, before
+// anything else is awaited, so the request comes first.
 export async function enablePush() {
-  const state = await getPushState();
-  if (state === "needs-install" || state === "unsupported" || state === "denied") {
-    return state;
-  }
-  const permission = await Notification.requestPermission();
+  if (isIos() && !isStandalone()) return "needs-install";
+  if (!hasPushApis()) return "unsupported";
+  if (Notification.permission === "denied") return "denied";
+  const permission =
+    Notification.permission === "granted"
+      ? "granted"
+      : await Notification.requestPermission();
   if (permission !== "granted") {
     return permission === "denied" ? "denied" : "off";
   }
+  const registration = await getRegistration();
+  if (!registration) return "unsupported";
   const { data } = await api.get("/api/push/public-key");
   if (!data?.enabled || !data.publicKey) {
     throw new Error("Notifications aren't available right now.");
   }
-  const registration = await getRegistration();
-  if (!registration) return "unsupported";
   let sub = await registration.pushManager.getSubscription();
   if (!sub) {
     sub = await registration.pushManager.subscribe({

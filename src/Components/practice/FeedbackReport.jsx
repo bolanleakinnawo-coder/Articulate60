@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import {
   ArrowRight,
-  CheckCircle2,
   ChevronDown,
   ChevronRight,
   FileText,
@@ -59,7 +58,7 @@ const SCORED = [
   {
     key: "repetition",
     label: "Repetition",
-    tab: "fillers",
+    tab: "repetition",
     bands: [
       "You kept moving forward",
       "Some ideas were repeated",
@@ -94,6 +93,7 @@ const TABS = [
   { id: "clarity", label: "Clarity" },
   { id: "delivery", label: "Delivery" },
   { id: "fillers", label: "Fillers" },
+  { id: "repetition", label: "Repetition" },
   { id: "grammar", label: "Grammar" },
   { id: "vocabulary", label: "Vocabulary" },
 ];
@@ -104,14 +104,15 @@ const FOCUS_TAB = { form: "grammar", shape: "clarity", deliver: "delivery" };
 const TAB_CRITERIA = {
   clarity: ["clarity", "structure"],
   delivery: ["pace", "pauses"],
-  fillers: ["fillers", "repetition"],
+  fillers: ["fillers"],
+  repetition: ["repetition"],
   grammar: ["grammar"],
   vocabulary: ["vocabulary"],
 };
 
 const TYPE_LABEL = {
   genuine_error: "Grammar to fix",
-  optional_suggestion: "Wording to improve",
+  optional_suggestion: "Grammar tip",
   observation: "Observation",
 };
 
@@ -359,6 +360,7 @@ export default function FeedbackReport({
     clarity: [],
     delivery: [],
     fillers: [],
+    repetition: [],
     grammar: [],
     vocabulary: [],
   };
@@ -492,20 +494,6 @@ export default function FeedbackReport({
           })}
         </div>
       </div>
-
-      {(strongest && notes[strongest.key]) || analysis.summary ? (
-        <div className="fb-card fb-callout fb-callout-good">
-          <h3 className="fb-callout-title">
-            <CheckCircle2 size={22} strokeWidth={1.8} aria-hidden="true" />
-            What you did well
-          </h3>
-          <p className="fb-callout-text">
-            {strongest && notes[strongest.key]
-              ? notes[strongest.key]
-              : analysis.summary}
-          </p>
-        </div>
-      ) : null}
 
       {opportunity.title && (
         <div className="fb-card fb-callout fb-callout-warn">
@@ -678,30 +666,28 @@ export default function FeedbackReport({
   };
 
   const renderFillers = () => {
-    const repScore = scores.repetition;
     const clean = fillers.total === 0 && crutchPhrases.length === 0;
-    const repOk = !isScore(repScore) || repScore >= 8;
-    const status =
-      clean && repOk
-        ? { label: "Clean", tone: "good" }
-        : fillers.total <= 2 && (!isScore(repScore) || repScore >= 7)
-          ? { label: "Mostly clear", tone: "good" }
-          : { label: "Needs work", tone: "warn" };
-    const repeated = byTab.fillers.filter(
-      ({ c }) => c.criterion === "repetition",
-    );
-    const fillerFindings = byTab.fillers.filter(
-      ({ c }) => c.criterion !== "repetition",
-    );
+    const status = clean
+      ? { label: "Clean", tone: "good" }
+      : fillers.total <= 2
+        ? { label: "Mostly clear", tone: "good" }
+        : { label: "Needs work", tone: "warn" };
+    const fillerFindings = byTab.fillers;
     return (
       <div className="fb-card fb-panel">
         <div className="fb-panel-head">
-          <h3 className="fb-panel-title">Fillers and repetition</h3>
+          <h3 className="fb-panel-title">Fillers</h3>
           <span className={`fb-status fb-status-${status.tone}`}>
             {status.label}
           </span>
         </div>
         {notes.fillers && <p className="fb-panel-text">{notes.fillers}</p>}
+
+        {clean && !notes.fillers && (
+          <div className="fb-box fb-box-good">
+            <p className="fb-box-title">No filler words this time</p>
+          </div>
+        )}
 
         {Object.entries(fillers.breakdown || {}).map(([word, count]) => (
           <div key={`f-${word}`} className="fb-box">
@@ -739,6 +725,36 @@ export default function FeedbackReport({
           </div>
         ))}
 
+        {transcriptToggle("View highlighted transcript", true)}
+      </div>
+    );
+  };
+
+  const renderRepetition = () => {
+    const repScore = scores.repetition;
+    const repeated = byTab.repetition;
+    const frequent = repetition.frequentWords || [];
+    const status = !isScore(repScore)
+      ? null
+      : repScore >= 8
+        ? { label: "Clean", tone: "good" }
+        : repScore >= 6
+          ? { label: "Some repeats", tone: "warn" }
+          : { label: "Needs work", tone: "warn" };
+    return (
+      <div className="fb-card fb-panel">
+        <div className="fb-panel-head">
+          <h3 className="fb-panel-title">Repetition</h3>
+          {status && (
+            <span className={`fb-status fb-status-${status.tone}`}>
+              {status.label}
+            </span>
+          )}
+        </div>
+        {notes.repetition && (
+          <p className="fb-panel-text">{notes.repetition}</p>
+        )}
+
         {repeated.map(({ c, i }) => (
           <div
             key={i}
@@ -754,22 +770,22 @@ export default function FeedbackReport({
           </div>
         ))}
 
-        {(repetition.frequentWords || []).length > 0 && (
+        {frequent.length > 0 && (
           <div className="fb-box">
             <p className="fb-eyebrow">Words you used most</p>
             <p className="fb-box-text">
-              {repetition.frequentWords
-                .map((w) => `${w.word} ×${w.count}`)
-                .join(", ")}
+              {frequent.map((w) => `${w.word} ×${w.count}`).join(", ")}
             </p>
           </div>
         )}
 
-        {notes.repetition && !repeated.length && (
-          <p className="fb-panel-text">{notes.repetition}</p>
+        {!repeated.length && !frequent.length && !notes.repetition && (
+          <div className="fb-box fb-box-good">
+            <p className="fb-box-title">You kept moving forward</p>
+          </div>
         )}
 
-        {transcriptToggle("View highlighted transcript", true)}
+        {transcriptToggle("View highlighted transcript")}
       </div>
     );
   };
@@ -788,7 +804,7 @@ export default function FeedbackReport({
     return (
       <div className="fb-card fb-panel">
         <div className="fb-panel-head">
-          <h3 className="fb-panel-title">Grammar and wording</h3>
+          <h3 className="fb-panel-title">Grammar</h3>
           {status && (
             <span className={`fb-status fb-status-${status.tone}`}>
               {status.label}
@@ -826,7 +842,7 @@ export default function FeedbackReport({
         ))}
         {items.length > 0 && !genuine.length && (
           <p className="fb-footnote">
-            These are wording suggestions, not grammar corrections.
+            These are suggestions, not errors.
           </p>
         )}
         {transcriptToggle("View full transcript")}
@@ -990,6 +1006,7 @@ export default function FeedbackReport({
               {tab === "clarity" && renderClarity()}
               {tab === "delivery" && renderDelivery()}
               {tab === "fillers" && renderFillers()}
+              {tab === "repetition" && renderRepetition()}
               {tab === "grammar" && renderGrammar()}
               {tab === "vocabulary" && renderVocabulary()}
             </div>

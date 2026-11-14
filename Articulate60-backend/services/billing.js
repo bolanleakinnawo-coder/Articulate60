@@ -115,6 +115,7 @@ async function applyToUser(payment) {
           planStartedAt: startsAt,
           planExpiresAt: expiresAt,
           planPeriodId: payment.periodId,
+          planCancelledAt: null,
         },
         $push: { appliedPaymentRefs: ref },
       },

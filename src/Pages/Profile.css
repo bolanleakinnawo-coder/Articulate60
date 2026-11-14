@@ -2934,3 +2934,508 @@
   font-weight: 600;
   white-space: nowrap;
 }
+
+/* =====================================================
+   ROUND 5 (2026-11-11): profile header + membership card, practices bento
+   and boxed practice cards, membership actions + cancel, usage overview.
+   Home palette and type scale only.
+   ===================================================== */
+
+/* ---------- Profile header ---------- */
+.pf-hero {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.pf-hero-id {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+
+.pf-hero-avatar {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--olive-primary);
+  color: var(--text-primary);
+  font-size: 24px;
+  font-weight: 700;
+  object-fit: cover;
+}
+
+.pf-hero-info {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.pf-hero-name {
+  overflow: hidden;
+  color: var(--text-primary);
+  font-size: 20px;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pf-hero-since {
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.pf-hero-edit {
+  flex: 0 0 auto;
+  padding: 9px 16px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.pf-hero-edit:hover {
+  border-color: var(--olive-bright);
+}
+
+@media (max-width: 360px) {
+  .pf-hero-avatar {
+    width: 52px;
+    height: 52px;
+    font-size: 20px;
+  }
+
+  .pf-hero-name {
+    font-size: 18px;
+  }
+
+  .pf-hero-edit {
+    padding: 8px 12px;
+  }
+}
+
+@media (min-width: 900px) {
+  .pf-hero .mc-card,
+  .pf-membership-page > .mc-card {
+    max-width: 560px;
+  }
+}
+
+/* ---------- Practices: bento counts ---------- */
+.pf-bento {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  grid-template-rows: repeat(3, auto);
+  gap: 12px;
+}
+
+.pf-bento-big,
+.pf-bento-small {
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: var(--pf-card);
+}
+
+.pf-bento-big {
+  display: flex;
+  grid-row: 1 / span 3;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 18px 14px;
+  background:
+    linear-gradient(160deg, rgba(100, 103, 66, 0.28), transparent 70%),
+    var(--pf-card);
+  text-align: center;
+}
+
+.pf-bento-kicker {
+  align-self: flex-start;
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.pf-bento-goal {
+  align-self: flex-start;
+  margin: -4px 0 0;
+  color: var(--text-primary);
+  font-size: 15px;
+  font-weight: 700;
+  text-align: left;
+}
+
+.pf-ring {
+  --pct: 0;
+  display: grid;
+  place-items: center;
+  width: min(100%, 132px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: conic-gradient(
+    var(--pf-accent) calc(var(--pct) * 1%),
+    rgba(241, 236, 222, 0.1) 0
+  );
+}
+
+.pf-ring-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: calc(100% - 20px);
+  height: calc(100% - 20px);
+  border-radius: 50%;
+  background: var(--bg-card);
+}
+
+.pf-ring-inner strong {
+  color: var(--text-primary);
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.pf-ring-inner span {
+  max-width: 80%;
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 1.3;
+}
+
+.pf-bento-foot {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+.pf-bento-small {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 6px;
+  padding: 14px 16px;
+}
+
+.pf-bento-icon {
+  color: var(--pf-accent);
+}
+
+.pf-bento-small-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.pf-bento-small strong {
+  color: var(--text-primary);
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.pf-bento-small-text span {
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+@media (max-width: 340px) {
+  .pf-bento {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-rows: auto auto;
+  }
+
+  .pf-bento-big {
+    grid-column: 1 / -1;
+    grid-row: auto;
+  }
+
+  .pf-bento-small {
+    padding: 12px;
+  }
+}
+
+@media (min-width: 900px) {
+  .pf-bento {
+    grid-template-columns: minmax(0, 1.3fr) repeat(3, minmax(0, 1fr));
+    grid-template-rows: auto;
+  }
+
+  .pf-bento-big {
+    grid-row: auto;
+  }
+
+  .pf-bento-small {
+    justify-content: center;
+    gap: 10px;
+    padding: 20px;
+  }
+
+  .pf-bento-small strong {
+    font-size: 28px;
+  }
+}
+
+/* smaller All / Speaking / Vocabulary chips */
+.pf-chips.pf-chips-sm {
+  gap: 8px;
+}
+
+.pf-chips.pf-chips-sm button {
+  padding: 6px 14px;
+  font-size: 12px;
+}
+
+/* ---------- Practices: one box per practice ---------- */
+.pf-practice-cards {
+  display: grid;
+  gap: 12px;
+}
+
+.pf-practice-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: var(--pf-card);
+}
+
+.pf-practice-card-text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 0;
+}
+
+.pf-practice-card-date {
+  margin: 0 0 6px;
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+.pf-practice-card-title {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.pf-practice-card-meta {
+  margin: 4px 0 0;
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+.pf-feedback-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 12px;
+  padding: 8px 14px;
+  border: none;
+  border-radius: 10px;
+  background: var(--olive-primary);
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.pf-feedback-cta:hover {
+  background: var(--olive-bright);
+}
+
+.pf-feedback-cta:disabled {
+  opacity: 0.7;
+  cursor: progress;
+}
+
+.pf-play {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 50%;
+  background: var(--olive-primary);
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.pf-play:hover,
+.pf-play.is-playing {
+  background: var(--olive-bright);
+}
+
+@media (min-width: 900px) {
+  .pf-practice-cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1300px) {
+  .pf-practice-cards {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* ---------- Manage Membership: actions, cancel ---------- */
+.pf-plan-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.pf-plan-action,
+.pf-cancel-button {
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 44px;
+  padding: 10px 8px;
+  border: none;
+  border-radius: 10px;
+  background: var(--olive-primary);
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 14px;
+  white-space: nowrap;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.pf-plan-action:hover,
+.pf-cancel-button:hover {
+  background: var(--olive-bright);
+}
+
+.pf-cancel-button:disabled,
+.pf-plan-action:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+@media (max-width: 400px) {
+  .pf-plan-action {
+    font-size: 13px;
+  }
+}
+
+@media (min-width: 900px) {
+  .pf-plan-actions {
+    max-width: 560px;
+  }
+}
+
+.pf-cancel-panel .pf-cancel-button {
+  width: 100%;
+}
+
+.pf-cancelled-note {
+  margin: 0;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--pf-tile);
+  color: var(--text-primary);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.pf-dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.65);
+}
+
+.pf-dialog {
+  width: min(100%, 420px);
+  padding: 22px;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: var(--bg-card);
+}
+
+.pf-dialog h2 {
+  margin: 0 0 10px;
+  color: var(--text-primary);
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.pf-dialog p {
+  margin: 0 0 18px;
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.pf-dialog p strong {
+  color: var(--text-primary);
+}
+
+.pf-dialog-actions {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 10px;
+}
+
+.pf-dialog-actions .pf-cancel-button,
+.pf-dialog-actions .pf-outline-button {
+  width: 100%;
+  min-height: 46px;
+  font-size: 15px;
+}
+
+.pf-dialog-actions .pf-outline-button {
+  border-radius: 10px;
+}
+
+/* ---------- Usage & Limits: small plan line under Today ---------- */
+.pf-usage-overview .pf-plan-period {
+  padding-top: 0;
+}
+
+.pf-usage-overview .pf-plan-period > div:first-child {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.pf-plan-mini {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 6px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: var(--pf-tile);
+  color: var(--pf-accent);
+  font-size: 12px;
+  font-weight: 600;
+}

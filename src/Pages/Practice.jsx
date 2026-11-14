@@ -541,7 +541,7 @@ export default function Practice() {
               className="spin-jar-btn result-cta"
               onClick={handleStartPreparing}
             >
-              {hasPrep ? "START PREPARING" : "I'M READY TO SPEAK"}
+              {hasPrep ? "Start preparing" : "I'm ready to speak"}
               <span className="arrow">→</span>
             </button>
 

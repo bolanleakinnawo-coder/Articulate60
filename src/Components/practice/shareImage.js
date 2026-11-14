@@ -42,13 +42,13 @@ export function getStoredUser() {
   return null;
 }
 
-// Same link as Profile > Invite & Earn, so referrals land in one place.
-export function getInviteLink(user = getStoredUser()) {
-  const origin = window.location.origin;
-  const username = user?.username;
-  return username
-    ? `${origin}/register?ref=${encodeURIComponent(username)}`
-    : `${origin}/register`;
+// Referrals aren't tracked yet (Sheriff, 2026-11-10), so shares point to the
+// plain site address with no username: loquiex.app.
+export const SHARE_URL = "https://loquiex.app";
+
+// eslint-disable-next-line no-unused-vars
+export function getInviteLink(_user = getStoredUser()) {
+  return SHARE_URL;
 }
 
 export function getShareCaption(user) {

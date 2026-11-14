@@ -1,0 +1,143 @@
+/* Loquiex membership card (Profile top + Manage Membership top).
+   Home tab palette: olive #646742 / #79774e, cream text #f1ecde. */
+.mc-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+  padding: 22px 22px 24px;
+  overflow: hidden;
+  border: 1px solid rgba(241, 236, 222, 0.08);
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at 18% 0%, rgba(121, 119, 78, 0.55), transparent 60%),
+    linear-gradient(150deg, #646742 0%, #4d4f33 55%, #34361f 100%);
+  color: var(--text-primary);
+  font: inherit;
+  text-align: left;
+}
+
+.mc-card.is-button {
+  cursor: pointer;
+}
+
+.mc-card.is-button:hover {
+  border-color: rgba(241, 236, 222, 0.22);
+}
+
+.mc-card.is-button:focus-visible {
+  outline: 2px solid var(--text-primary);
+  outline-offset: 3px;
+}
+
+.mc-glow {
+  position: absolute;
+  right: -70px;
+  bottom: -110px;
+  width: 260px;
+  height: 260px;
+  border-radius: 50%;
+  background: rgba(241, 236, 222, 0.05);
+  pointer-events: none;
+}
+
+.mc-top,
+.mc-bottom {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.mc-top {
+  align-items: center;
+}
+
+.mc-eyebrow {
+  color: rgba(241, 236, 222, 0.72);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.mc-crown {
+  flex: 0 0 auto;
+  color: var(--text-primary);
+}
+
+.mc-plan {
+  position: relative;
+  margin-top: 14px;
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 1.15;
+}
+
+.mc-price {
+  position: relative;
+  color: rgba(241, 236, 222, 0.78);
+  font-size: 14px;
+}
+
+.mc-bottom {
+  margin-top: 18px;
+}
+
+.mc-until {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.mc-until strong {
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.mc-days {
+  flex: 0 0 auto;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.mc-bar {
+  position: relative;
+  display: block;
+  height: 6px;
+  margin-top: 12px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.28);
+}
+
+.mc-bar span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--text-primary);
+}
+
+.mc-note {
+  position: relative;
+  margin-top: 14px;
+  color: rgba(241, 236, 222, 0.85);
+  font-size: 14px;
+}
+
+@media (max-width: 380px) {
+  .mc-card {
+    padding: 18px 18px 20px;
+  }
+
+  .mc-plan {
+    font-size: 26px;
+  }
+
+  .mc-until strong {
+    font-size: 18px;
+  }
+}

@@ -26,7 +26,13 @@ import ProfileShareWin from "./ProfileShareWin";
 import ProfilePractices from "./ProfilePractices";
 import ProfileUsage from "./ProfileUsage";
 import ProfileNotifications from "./ProfileNotifications";
-import { getPlan } from "../data/plans";
+import {
+  PRICES,
+  getPlan,
+  getStoredUser as getSavedUser,
+  refreshPlanFromServer,
+} from "../data/plans";
+import MembershipCard from "../Components/MembershipCard";
 import {
   getNotificationPrefs,
   setNotificationPrefs,
@@ -59,6 +65,7 @@ export default function Profile({ user }) {
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [notificationPrefs, setPrefs] = useState(getNotificationPrefs);
+  const [billing, setBilling] = useState(null); // GET /api/billing/me
   const [deleteForm, setDeleteForm] = useState({ password: "", confirmText: "" });
   const [showDeletePassword, setShowDeletePassword] = useState(false);
   const [deleteError, setDeleteError] = useState("");
@@ -224,6 +231,20 @@ export default function Profile({ user }) {
     };
   }, [view]);
 
+  // The plan, its dates and the currency last paid in, from the server.
+  useEffect(() => {
+    let alive = true;
+    refreshPlanFromServer().then((data) => {
+      if (!alive || !data) return;
+      setBilling(data);
+      const saved = getSavedUser();
+      if (saved) setProfileUser((u) => ({ ...u, ...saved }));
+    });
+    return () => {
+      alive = false;
+    };
+  }, []);
+
   // Show a freshly cropped picture before it's saved.
   const photoPreview = useMemo(
     () => (profilePhoto ? URL.createObjectURL(profilePhoto) : null),
@@ -240,14 +261,14 @@ export default function Profile({ user }) {
     window.scrollTo({ top: 0 });
   }, [view, feedbackRecording]);
 
-  const name = profileUser?.fullName || profileUser?.username || "Amara";
+  const name = profileUser?.fullName || profileUser?.username || "Loquiex member";
   const plan = getPlan(profileUser);
 
   const memberSince = profileUser?.createdAt
     ? `Member since ${new Date(profileUser.createdAt).toLocaleDateString(
         undefined,
         {
-          month: "long",
+          month: "short",
           year: "numeric",
         },
       )}`
@@ -702,7 +723,8 @@ export default function Profile({ user }) {
   }
 
   // ---------- PROFILE HOME ----------
-  const planShortName = plan.name.replace(/^Loquiex\s+/i, "");
+  const lastPaidCurrency =
+    billing?.payments?.find((p) => p.status === "success")?.currency || "NGN";
   const sections = [
     {
       title: "Your Loquiex",
@@ -783,27 +805,40 @@ export default function Profile({ user }) {
         <p>Your communication journey, all in one place.</p>
       </header>
 
-      <button className="pf-summary" onClick={() => openForm("account")}>
-        {profileUser?.profileImageUrl ? (
-          <img
-            className="pf-avatar pf-avatar-image"
-            src={profileUser.profileImageUrl}
-            alt={`${name}'s profile`}
-          />
-        ) : (
-          <span className="pf-avatar" aria-hidden="true">
-            <User size={30} strokeWidth={1.8} />
+      <section className="pf-hero">
+        <div className="pf-hero-id">
+          {profileUser?.profileImageUrl ? (
+            <img
+              className="pf-hero-avatar"
+              src={profileUser.profileImageUrl}
+              alt={`${name}'s profile`}
+            />
+          ) : (
+            <span className="pf-hero-avatar" aria-hidden="true">
+              {name.trim().charAt(0).toUpperCase() || "L"}
+            </span>
+          )}
+          <span className="pf-hero-info">
+            <strong className="pf-hero-name">{name}</strong>
+            <span className="pf-hero-since">{memberSince}</span>
           </span>
-        )}
-        <span className="pf-summary-info">
-          <strong className="pf-summary-name">{name}</strong>
-          <span className="pf-summary-plan">
-            Current plan: <span className="pf-plan-pill">{planShortName}</span>
-          </span>
-          <span className="pf-member-since">{memberSince}</span>
-        </span>
-        <ChevronRight size={20} className="pf-row-chev" />
-      </button>
+          <button
+            type="button"
+            className="pf-hero-edit"
+            onClick={() => openForm("account")}
+          >
+            Edit profile
+          </button>
+        </div>
+        <MembershipCard
+          user={profileUser}
+          currency={lastPaidCurrency}
+          prices={{ ...PRICES, ...(billing?.prices || {}) }}
+          onClick={() =>
+            navigate("/app/membership", { state: { from: "profile" } })
+          }
+        />
+      </section>
 
       <div className="pf-groups">
         {sections.map((section) => (

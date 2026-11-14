@@ -15,31 +15,76 @@ import useLiveStreak from "../hooks/useLiveStreak";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
+// Word of the Day pronunciation.
+// Laptops (Chrome/Edge) ship a natural "Google UK English Female" voice, which
+// is the sound we want everywhere. Phones list very different voices: iPhones
+// include robotic novelty voices (Flo, Shelley, Grandma, Rocko, Eddy...) that
+// the old picker could choose, and Android's engine distorts when the pitch
+// and rate are nudged. So we score every British voice, never pick a novelty
+// voice, prefer natural/enhanced ones, and only nudge pitch/rate on desktop.
+const NOVELTY_VOICES =
+  /\b(eddy|flo|grandma|grandpa|reed|rocko|sandy|shelley|albert|bad news|bahh|bells|boing|bubbles|cellos|good news|jester|organ|superstar|trinoids|whisper|wobble|zarvox|junior|ralph|fred|kathy|princess)\b/i;
+const FEMALE_VOICES =
+  /\b(female|woman|serena|kate|sonia|hazel|libby|amy|charlotte|olivia|stephanie|martha|natasha|emma|fiona|moira|tessa|karen|catherine|susan)\b/i;
+const MALE_VOICES =
+  /\b(daniel|oliver|arthur|george|james|ryan|thomas|william|brian|malcolm|male|man)\b/i;
+
+const isPhone = () =>
+  typeof navigator !== "undefined" &&
+  /android|iphone|ipad|ipod|mobile/i.test(navigator.userAgent || "");
+
+function scoreVoice(voice) {
+  const name = voice.name || "";
+  const lang = (voice.lang || "").replace("_", "-").toLowerCase();
+  if (!lang.startsWith("en")) return -1;
+  if (NOVELTY_VOICES.test(name)) return -1;
+  let score = 0;
+  if (lang === "en-gb") score += 40;
+  else if (/^en-(ie|au|nz|za)$/.test(lang)) score += 15;
+  else if (lang === "en-us") score += 5;
+  if (/google/i.test(name)) score += 20;
+  if (/(enhanced|premium|natural|neural|online)/i.test(name)) score += 18;
+  if (FEMALE_VOICES.test(name)) score += 12;
+  if (MALE_VOICES.test(name)) score -= 8;
+  // Android: network voices sound much better than the compact local ones.
+  if (voice.localService === false) score += 4;
+  return score;
+}
+
+function pickVoice(voices) {
+  let best = null;
+  let bestScore = -1;
+  for (const voice of voices) {
+    const score = scoreVoice(voice);
+    if (score > bestScore) {
+      best = voice;
+      bestScore = score;
+    }
+  }
+  return best;
+}
+
 function speakWord(word, availableVoices = []) {
   if (!("speechSynthesis" in window)) return;
+  const synth = window.speechSynthesis;
+  const voices = availableVoices.length ? availableVoices : synth.getVoices();
+  const voice = pickVoice(voices);
+  const phone = isPhone();
 
-  const voices = availableVoices.length
-    ? availableVoices
-    : window.speechSynthesis.getVoices();
-  const britishVoices = voices.filter((voice) =>
-    /^en[-_]gb\b/i.test(voice.lang),
-  );
-  const preferredFemaleNames =
-    /\b(serena|kate|sonia|hazel|libby|amy|charlotte|olivia|rosie|martha|flo|shelley|natasha)\b/i;
-  const knownMaleNames =
-    /\b(daniel|oliver|arthur|george|james|ryan|thomas|william|brian|male|man)\b/i;
-  const britishFemaleVoice =
-    britishVoices.find((voice) => /\b(female|woman)\b/i.test(voice.name)) ||
-    britishVoices.find((voice) => preferredFemaleNames.test(voice.name)) ||
-    britishVoices.find((voice) => !knownMaleNames.test(voice.name));
+  // Android Chrome can get stuck with a queued or paused utterance.
+  synth.cancel();
+  if (synth.paused) synth.resume();
+
   const utterance = new SpeechSynthesisUtterance(word);
-  utterance.lang = "en-GB";
-  utterance.rate = 0.88;
-  utterance.pitch = 1.08;
+  utterance.lang = voice?.lang || "en-GB";
+  // Phone engines already speak at a natural pace; nudging pitch/rate is what
+  // made them sound strained.
+  utterance.rate = phone ? 0.95 : 0.88;
+  utterance.pitch = phone ? 1 : 1.08;
   utterance.volume = 1;
-  if (britishFemaleVoice) utterance.voice = britishFemaleVoice;
+  if (voice) utterance.voice = voice;
 
-  window.speechSynthesis.speak(utterance);
+  synth.speak(utterance);
 }
 
 export default function Home() {
@@ -63,8 +108,8 @@ export default function Home() {
   const [loadingLeaderboard, setLoadingLeaderboard] = useState(true);
   const [leaderboardError, setLeaderboardError] = useState("");
 
-  // Recent activity — only the single most recent item is shown on Home.
-  // "See all" routes to the Profile tab, where the full history lives.
+  // Recent practices: only the single most recent one is shown on Home.
+  // "View all" opens Profile straight on the "Your practices" page.
 
   function getGreeting() {
     const hour = new Date().getHours();
@@ -136,9 +181,9 @@ export default function Home() {
       });
   }, []);
 
-  // Ranked by total speaking time, highest number of seconds first.
-  const activeLeaderboardEntries =
-    leaderboard.speakingTime || leaderboard.streak || [];
+  // Ranked by current streak; speaking time is the time spoken during that
+  // streak (ties go to whoever spoke longer in their streak).
+  const activeLeaderboardEntries = leaderboard.streak || [];
 
   return (
     <div className="page">
@@ -224,13 +269,15 @@ export default function Home() {
 
       <section className="section">
         <div className="section-header">
-          <h2>Your Recent Activity</h2>
+          <h2>Your Recent Practices</h2>
 
           <button
             className="text-button"
-            onClick={() => navigate("/app/profile")}
+            onClick={() =>
+              navigate("/app/profile", { state: { open: "practices" } })
+            }
           >
-            See all
+            View all
           </button>
         </div>
 
@@ -483,10 +530,10 @@ function LeaderboardRow({ rank, entry }) {
   );
 }
 
-// Speaking time on the leaderboard: hours, minutes and seconds, highest first.
+// Speaking time during the current streak: hours, minutes and seconds.
 function formatLeaderboardSeconds(entry) {
-  const raw = Number(entry.speakingTimeSeconds);
-  if (!Number.isFinite(raw)) return entry.speakingTimeDisplay || "0s";
+  const raw = Number(entry.streakSpeakingTimeSeconds);
+  if (!Number.isFinite(raw)) return entry.streakSpeakingTimeDisplay || "0s";
   const total = Math.max(0, Math.round(raw));
   const hours = Math.floor(total / 3600);
   const minutes = Math.floor((total % 3600) / 60);

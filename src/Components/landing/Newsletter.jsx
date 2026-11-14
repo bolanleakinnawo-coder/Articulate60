@@ -44,7 +44,7 @@ const Newsletter = () => {
                 required
               />
               <button type="submit" className="news-btn">
-                {submitted ? "SUBSCRIBED ✓" : "SUBSCRIBE"}
+                {submitted ? "Subscribed ✓" : "Subscribe"}
               </button>
             </form>
 

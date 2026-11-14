@@ -521,3 +521,91 @@
   margin-left: 0;
   margin-right: 0;
 }
+
+/* ---------- Round 4 (Sheriff, 2026-11-10) ----------
+   Smaller "How to research better" section, smaller CTAs, normal-case
+   labels, and "Surprise me" on the brand call-to-action colour. */
+.rm-section-title {
+  font-size: 13px;
+  letter-spacing: 0;
+}
+
+.rm-section-sub {
+  margin-bottom: 12px;
+  font-size: 13px;
+}
+
+.rm-howto-grid {
+  gap: 8px;
+}
+
+.rm-howto-card,
+.rm-howto-card:is(div) {
+  padding: 12px;
+  border-radius: var(--radius-md);
+}
+
+.rm-howto-num {
+  margin-bottom: 6px;
+  font-size: 13px;
+}
+
+.rm-howto-card h3 {
+  margin-bottom: 4px;
+  font-size: 13px;
+}
+
+.rm-howto-card p {
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.spin-jar-btn.rm-cta {
+  max-width: 340px;
+  margin-top: 20px;
+  padding: 12px 16px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.spin-jar-btn.rm-timer-btn,
+.spin-jar-btn.rm-done-btn {
+  padding: 11px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 10px;
+}
+
+.rm-done-btn {
+  margin-bottom: 16px;
+}
+
+.rm-work-side .rm-hint {
+  margin: 0 0 14px;
+}
+
+.rm-subject.rm-subject-surprise {
+  margin-bottom: 6px;
+  padding: 12px 14px;
+  border-bottom: none;
+  border-radius: var(--radius-md);
+  background: var(--olive-primary);
+  color: #ffffff;
+}
+
+.rm-subject.rm-subject-surprise:hover,
+.rm-subject.rm-subject-surprise:focus-visible {
+  background: var(--olive-bright);
+}
+
+.rm-subject-surprise .rm-subject-num,
+.rm-subject-surprise .rm-subject-sub {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+@media (min-width: 760px) {
+  .rm-howto-card,
+  .rm-howto-card:is(div) {
+    padding: 14px;
+  }
+}

@@ -8,7 +8,7 @@ const { resolveTimeZone } = require("../utils/timeZone");
 const { summarise } = require("../utils/groupUsage");
 const crypto = require("crypto");
 const ScheduledPractice = require("../MODELS/ScheduledPractice");
-const { hasGroupPractice } = require("../utils/plans");
+const { hasGroupPractice, limitsFor } = require("../utils/plans");
 const {
   publicScheduled,
   isCodeLive,
@@ -85,7 +85,8 @@ router.get("/ice", authMiddleware, async (_req, res) => {
   res.json({ iceServers: await iceServers() });
 });
 
-// GET /api/group/usage — this month's group minutes, day by day.
+// GET /api/group/usage — today's call time left (daily limit), plus the
+// minutes used day by day.
 router.get("/usage", authMiddleware, async (req, res) => {
   try {
     const user = await User.findById(req.userId, {
@@ -105,6 +106,8 @@ router.get("/usage", authMiddleware, async (req, res) => {
 
 // ---- Practices planned for later ------------------------------------------
 const MAX_PLANNED_PER_HOST = 10;
+// Host-led topics are kept short (Sheriff, 2026-11-10).
+const TOPIC_MAX = 60;
 const MAX_DAYS_AHEAD = 30;
 // A planned practice stays listed until 3 hours after its start time.
 const LISTED_FOR_MS = 3 * 60 * 60 * 1000;
@@ -187,7 +190,7 @@ router.post("/scheduled", authMiddleware, async (req, res) => {
       });
 
     const mode = body.mode === "host" ? "host" : "guided";
-    const topic = mode === "host" ? clean(body.topic, 200) : "";
+    const topic = mode === "host" ? clean(body.topic, TOPIC_MAX) : "";
     if (mode === "host" && !topic)
       return res
         .status(400)
@@ -203,7 +206,16 @@ router.post("/scheduled", authMiddleware, async (req, res) => {
         message: `You already have ${MAX_PLANNED_PER_HOST} practices planned.`,
       });
 
-    const max = Math.min(6, Math.max(2, Math.floor(Number(body.max)) || 4));
+    // "unlimited" (saved as 0) only for plans with unlimited seats.
+    const wantsUnlimited = body.max === "unlimited" || Number(body.max) === 0;
+    if (wantsUnlimited && !limitsFor(user).unlimitedSeats)
+      return res.status(403).json({
+        message: "Unlimited seats come with Loquiex Infinity.",
+        code: "no-unlimited",
+      });
+    const max = wantsUnlimited
+      ? 0
+      : Math.min(6, Math.max(2, Math.floor(Number(body.max)) || 4));
     const doc = await ScheduledPractice.create({
       host: req.userId,
       hostName: user.fullName || user.username || "Member",

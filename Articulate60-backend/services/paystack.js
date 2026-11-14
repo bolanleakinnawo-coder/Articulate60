@@ -1,23 +1,25 @@
 // Paystack API calls. The secret key is read from the server environment
 // only and never sent to the app.
 //
-//   PAYSTACK_SECRET_KEY  sk_test_... while testing (sk_live_... only when
-//                        PAYSTACK_LIVE=true)
-//   PAYSTACK_LIVE        leave unset (or "false") for test mode
+//   PAYSTACK_SECRET_KEY  sk_live_... takes real payments, sk_test_... takes
+//                        Paystack test payments. Swapping the key is all it
+//                        takes to go live (PAYSTACK_LIVE is no longer used).
 const crypto = require("crypto");
 
 const API = "https://api.paystack.co";
 
-function mode() {
-  return process.env.PAYSTACK_LIVE === "true" ? "live" : "test";
+function rawKey() {
+  return (process.env.PAYSTACK_SECRET_KEY || "").trim();
 }
 
-// The key must match the mode, so a live key can't charge real cards while
-// the app is meant to be in testing (and the other way round).
+// Live or test follows the key itself.
+function mode() {
+  return rawKey().startsWith("sk_live_") ? "live" : "test";
+}
+
 function secretKey() {
-  const key = (process.env.PAYSTACK_SECRET_KEY || "").trim();
-  const prefix = mode() === "live" ? "sk_live_" : "sk_test_";
-  return key.startsWith(prefix) ? key : null;
+  const key = rawKey();
+  return key.startsWith("sk_live_") || key.startsWith("sk_test_") ? key : null;
 }
 
 function isConfigured() {

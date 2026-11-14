@@ -57,10 +57,12 @@ export const PLANS = [
       aiFeedbackPerMonth: 360,
       aiFeedbackPerDay: 12,
       groupMinutesPerMonth: 2700,
+      // Enforced daily by the server (utils/plans.js groupMinutesPerDay).
+      groupMinutesPerDay: 90,
     },
     features: [
       "360 AI feedback sessions/month · up to 12/day",
-      "2,700 group practice minutes/month",
+      "1 hr 30 min of group practice calls every day",
       "Unlimited personal practice",
       "Earn subscription credits for every qualifying paid referral",
       "Withdraw eligible referral rewards directly to your bank account",
@@ -76,6 +78,8 @@ export const PLANS = [
       aiFeedbackPerMonth: null,
       aiFeedbackPerDay: null,
       groupMinutesPerMonth: null,
+      groupMinutesPerDay: null,
+      unlimitedSeats: true,
     },
     features: [
       "Unlimited AI feedback",
@@ -268,6 +272,11 @@ export function hasGroupPractice(user) {
   return getPlan(user).limits.groupMinutesPerMonth !== 0;
 }
 
+// Infinity hosts may open calls with "Unlimited" seats.
+export function canHostUnlimited(user) {
+  return Boolean(getPlan(user).limits.unlimitedSeats);
+}
+
 // Plans that include group practice, for "included with ..." copy.
 export function groupPracticePlanNames() {
   return PLANS.filter((p) => p.limits.groupMinutesPerMonth !== 0).map((p) =>
@@ -287,7 +296,56 @@ export function getSubscription(user = getStoredUser()) {
     periodId: period.id,
     startedAt: sub.startedAt || null,
     expiresAt: sub.expiresAt || null,
+    cancelledAt: sub.cancelledAt || null,
   };
+}
+
+// Cancel: the plan stays until it expires (plans never renew on their own).
+export async function cancelPlan() {
+  const { data } = await api.post("/api/billing/cancel");
+  saveStoredUser({ plan: data.subscription.planId, subscription: data.subscription });
+  return data.subscription;
+}
+
+// Undo a cancel while the plan is still active.
+export async function resumePlan() {
+  const { data } = await api.post("/api/billing/resume");
+  saveStoredUser({ plan: data.subscription.planId, subscription: data.subscription });
+  return data.subscription;
+}
+
+// Calendar months, clamped so 31 Jan + 1 month = 28/29 Feb (as the server).
+function addMonthsLocal(date, months) {
+  const d = new Date(date);
+  const day = d.getDate();
+  d.setDate(1);
+  d.setMonth(d.getMonth() + months);
+  const last = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+  d.setDate(Math.min(day, last));
+  return d;
+}
+
+// The member's current monthly allowance cycle. It starts on the day they
+// paid and resets on the same date each month (not on the 1st), until the
+// plan expires. Free members count from their sign-up date.
+// Returns { start, resetsAt } as Dates.
+export function allowanceCycle(user = getStoredUser(), now = new Date()) {
+  const sub = getSubscription(user);
+  const anchorRaw = sub?.startedAt || user?.createdAt;
+  const anchor = anchorRaw ? new Date(anchorRaw) : null;
+  if (!anchor || Number.isNaN(anchor.getTime()) || anchor > now) {
+    const start = new Date(now.getFullYear(), now.getMonth(), 1);
+    return { start, resetsAt: addMonthsLocal(start, 1) };
+  }
+  let months =
+    (now.getFullYear() - anchor.getFullYear()) * 12 +
+    (now.getMonth() - anchor.getMonth());
+  let start = addMonthsLocal(anchor, months);
+  if (start > now) start = addMonthsLocal(anchor, --months);
+  let resetsAt = addMonthsLocal(anchor, months + 1);
+  const expires = sub?.expiresAt ? new Date(sub.expiresAt) : null;
+  if (expires && expires < resetsAt) resetsAt = expires;
+  return { start, resetsAt };
 }
 
 // --- Paystack checkout ------------------------------------------------------
@@ -352,16 +410,15 @@ export function aiFeedbackUsedToday(recordings = []) {
   ).length;
 }
 
-// AI feedback used so far this calendar month.
-export function aiFeedbackUsedThisMonth(recordings = []) {
-  const now = new Date();
-  return recordings.filter((r) => {
-    if (r.analysisStatus !== "done" || !r.analyzedAt) return false;
-    const d = new Date(r.analyzedAt);
-    return (
-      d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth()
-    );
-  }).length;
+// AI feedback used so far in this monthly cycle (from the day they paid).
+export function aiFeedbackUsedThisMonth(recordings = [], user = getStoredUser()) {
+  const { start } = allowanceCycle(user);
+  return recordings.filter(
+    (r) =>
+      r.analysisStatus === "done" &&
+      r.analyzedAt &&
+      new Date(r.analyzedAt) >= start,
+  ).length;
 }
 
 // Group practice minutes are counted by the server while a member is in a
@@ -384,10 +441,11 @@ export function groupMinutesUsedToday() {
   return Number(readGroupLog()[todayKey()]) || 0;
 }
 
-export function groupMinutesUsedThisMonth() {
-  const prefix = todayKey().slice(0, 7);
+// Group minutes used in this monthly cycle (from the day they paid).
+export function groupMinutesUsedThisMonth(user = getStoredUser()) {
+  const from = dayKeyOf(allowanceCycle(user).start);
   return Object.entries(readGroupLog())
-    .filter(([day]) => day.startsWith(prefix))
+    .filter(([day]) => day >= from)
     .reduce((total, [, minutes]) => total + (Number(minutes) || 0), 0);
 }
 
@@ -441,8 +499,9 @@ export function getUsage(recordings, user) {
   const limits = effectiveLimits(user);
   const { aiFeedbackPerDay, aiFeedbackPerMonth, groupMinutesPerMonth } = limits;
   const aiToday = aiFeedbackUsedToday(recordings);
-  const aiMonth = aiFeedbackUsedThisMonth(recordings);
-  const groupMonth = groupMinutesUsedThisMonth();
+  const aiMonth = aiFeedbackUsedThisMonth(recordings, user);
+  const groupMonth = groupMinutesUsedThisMonth(user);
+  const cycle = allowanceCycle(user);
 
   let aiLeft = null;
   if (aiFeedbackPerDay !== null)
@@ -455,6 +514,7 @@ export function getUsage(recordings, user) {
   return {
     plan,
     limits,
+    cycle,
     onAiTrial: plan.id === "free" && isOnAiTrial(user),
     aiTrialDaysLeft: aiTrialDaysLeft(user),
     aiFeedback: {

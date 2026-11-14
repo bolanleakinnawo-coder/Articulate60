@@ -30,7 +30,7 @@ export function AiFeedbackMeter({ allowance, infoOpen, onToggleInfo }) {
     <div
       className={`ai-meter ${locked ? "is-locked" : ""} ${empty ? "is-empty" : ""}`}
     >
-      <p className="eyebrow ai-meter-label">AI FEEDBACK</p>
+      <p className="eyebrow ai-meter-label">FEEDBACK</p>
       <button
         type="button"
         className="ai-meter-box"
@@ -39,10 +39,10 @@ export function AiFeedbackMeter({ allowance, infoOpen, onToggleInfo }) {
         aria-controls="ai-meter-info"
         aria-label={
           locked
-            ? "AI feedback locked. Your free trial has ended."
+            ? "Feedback locked. Your free trial has ended."
             : unlimited
-              ? "Unlimited AI feedback"
-              : `${left} AI feedback ${left === 1 ? "session" : "sessions"} left today`
+              ? "Unlimited feedback"
+              : `${left} feedback ${left === 1 ? "session" : "sessions"} left today`
         }
       >
         <span className="ai-meter-value">
@@ -94,13 +94,13 @@ export function AiFeedbackInfo({ allowance }) {
   const { state, limit, left } = allowance;
   let text;
   if (state === "locked") {
-    text = `Your 3-day free trial of AI feedback has ended. Bloom gives you ${BLOOM_PER_DAY} a day.`;
+    text = `Your 3-day free trial of feedback has ended. Bloom gives you ${BLOOM_PER_DAY} a day.`;
   } else if (limit === null) {
-    text = "Your plan has unlimited AI feedback.";
+    text = "Your plan has unlimited feedback.";
   } else if (state === "trial") {
-    text = `Your free trial gives you ${limit} AI feedback sessions a day. ${plural(left, "session")} left today; they reset at midnight.`;
+    text = `Your free trial gives you ${limit} feedback sessions a day. ${plural(left, "session")} left today; they reset at midnight.`;
   } else {
-    text = `Your plan gives you ${limit} AI feedback sessions a day. ${plural(left, "session")} left today; they reset at midnight.`;
+    text = `Your plan gives you ${limit} feedback sessions a day. ${plural(left, "session")} left today; they reset at midnight.`;
   }
   return (
     <p className="ai-meter-info" id="ai-meter-info" role="note">
@@ -119,7 +119,7 @@ export function AiFeedbackNudge({ allowance }) {
   let body;
   let cta = "Get Bloom";
   if (state === "locked") {
-    title = "Your free AI feedback has ended.";
+    title = "Your free feedback has ended.";
     body = `Unlock it with Bloom from ${BLOOM_PRICE} a month.`;
     cta = "Unlock";
   } else if (left === 0) {

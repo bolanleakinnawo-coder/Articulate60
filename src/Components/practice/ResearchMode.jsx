@@ -74,7 +74,7 @@ export function ResearchIntro({ onBack, onReady }) {
 
       <section className="rm-howto" aria-labelledby="rm-howto-title">
         <h2 id="rm-howto-title" className="rm-section-title">
-          HOW TO RESEARCH BETTER
+          How to research better
         </h2>
         <p className="rm-section-sub">
           Don&apos;t stop at the first thing you find. Explore any topic more
@@ -94,7 +94,7 @@ export function ResearchIntro({ onBack, onReady }) {
       </section>
 
       <button className="spin-jar-btn rm-cta" onClick={onReady}>
-        I&apos;M READY, GIVE ME A TOPIC
+        I&apos;m ready, give me a topic
         <span className="arrow">→</span>
       </button>
     </div>
@@ -337,7 +337,7 @@ export function ResearchWorkspace({
           {!started && (
             <button className="spin-jar-btn rm-timer-btn" onClick={start}>
               <Play size={17} strokeWidth={2.2} />
-              START {RESEARCH_MINUTES}-MIN TIMER
+              Start {RESEARCH_MINUTES}-min timer
             </button>
           )}
           {session.status === "running" && !finished && (
@@ -360,6 +360,19 @@ export function ResearchWorkspace({
         </div>
 
         <div className="rm-work-side">
+          {started && (
+            <button className="spin-jar-btn rm-done-btn" onClick={onDone}>
+              I&apos;m done researching
+              <span className="arrow">→</span>
+            </button>
+          )}
+          {!started && (
+            <p className="rm-hint">
+              Start the timer when you begin. You can finish early whenever
+              you&apos;re ready.
+            </p>
+          )}
+
           <div className="rm-toolkit">
             <p className="rm-toolkit-head">
               <NotebookPen size={20} strokeWidth={1.8} />
@@ -375,19 +388,6 @@ export function ResearchWorkspace({
               </div>
             ))}
           </div>
-
-          {started && (
-            <button className="spin-jar-btn rm-done-btn" onClick={onDone}>
-              I&apos;M DONE RESEARCHING
-              <span className="arrow">→</span>
-            </button>
-          )}
-          {!started && (
-            <p className="rm-hint">
-              Start the timer when you begin. You can finish early whenever
-              you&apos;re ready.
-            </p>
-          )}
         </div>
       </div>
     </div>

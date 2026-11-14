@@ -2,12 +2,27 @@
 // only displays these; every price charged and every plan granted comes from
 // here. Keep the two files in step.
 //
-//   groupMinutesPerMonth:  null = unlimited, 0 = not included
+//   groupMinutesPerDay:    the call time members get EACH DAY (their own
+//                          calendar day, resets at their midnight).
+//                          null = unlimited, 0 = not included.
+//   groupMinutesPerMonth:  kept only as "is group practice included" (0 = no);
+//                          the monthly cap is no longer enforced (Sheriff,
+//                          2026-11-10: daily limits only).
+//   unlimitedSeats:        may host a call with "Unlimited" seats.
 const PLAN_LIMITS = {
-  free: { name: "Loquiex Free", groupMinutesPerMonth: 0 },
-  bloom: { name: "Loquiex Bloom", groupMinutesPerMonth: 0 },
-  flourish: { name: "Loquiex Flourish", groupMinutesPerMonth: 2700 },
-  infinity: { name: "Loquiex Infinity", groupMinutesPerMonth: null },
+  free: { name: "Loquiex Free", groupMinutesPerMonth: 0, groupMinutesPerDay: 0 },
+  bloom: { name: "Loquiex Bloom", groupMinutesPerMonth: 0, groupMinutesPerDay: 0 },
+  flourish: {
+    name: "Loquiex Flourish",
+    groupMinutesPerMonth: 2700,
+    groupMinutesPerDay: 90,
+  },
+  infinity: {
+    name: "Loquiex Infinity",
+    groupMinutesPerMonth: null,
+    groupMinutesPerDay: null,
+    unlimitedSeats: true,
+  },
 };
 
 // ---- PRICES: monthly price per plan, per currency, before any billing-period
@@ -134,6 +149,7 @@ function subscriptionOf(user, now = new Date()) {
       : "monthly",
     startedAt: user.planStartedAt || null,
     expiresAt: user.planExpiresAt,
+    cancelledAt: user.planCancelledAt || null,
   };
 }
 

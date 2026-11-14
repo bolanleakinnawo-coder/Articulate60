@@ -608,3 +608,20 @@
     animation: none;
   }
 }
+
+/* Round 4 (Sheriff, 2026-11-10): "That's a wrap!" sits higher and uses the
+   same page edges as Home / Practice instead of an extra inner gutter. */
+.session-page.wrap-page {
+  padding-top: 0;
+  padding-left: 0;
+  padding-right: 0;
+  max-width: 560px;
+}
+
+.wrap-topbar {
+  margin-bottom: 12px;
+}
+
+.wrap-back {
+  padding-top: 0;
+}

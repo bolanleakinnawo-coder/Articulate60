@@ -10,7 +10,8 @@ const User = require("../MODELS/User");
 const { pushReady, sendPushToUser } = require("./push");
 const { emitToUser } = require("./realtime");
 
-const REMIND_BEFORE_MIN = 10;
+// Sheriff (2026-11-10): remind 5 minutes before.
+const REMIND_BEFORE_MIN = 5;
 const RUN_EVERY_MS = 60 * 1000;
 
 function titleOf(doc) {

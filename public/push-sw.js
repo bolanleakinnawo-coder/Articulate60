@@ -17,10 +17,15 @@ self.addEventListener("push", (event) => {
     tag: data.tag || "loquiex",
     renotify: true,
     data: { url: data.url || "/app/home" },
-    actions: [
-      { action: "open", title: data.action || "Practise today" },
-      { action: "later", title: "Maybe later" },
-    ],
+    actions:
+      data.kind === "group-scheduled"
+        ? [{ action: "open", title: data.action || "Open Loquiex" }]
+        : [
+            { action: "open", title: data.action || "Practise today" },
+            { action: "later", title: "Maybe later" },
+          ],
+    requireInteraction: data.kind === "group-scheduled",
+    vibrate: [200, 100, 200],
   };
 
   event.waitUntil(self.registration.showNotification(title, options));

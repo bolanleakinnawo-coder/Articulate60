@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
-  CalendarClock,
   ChevronDown,
   CircleAlert,
   CircleCheck,
@@ -19,6 +18,7 @@ import {
   formatMoney,
   getPlan,
   getStoredUser,
+  cancelPlan,
   getSubscription,
   groupPracticePlanNames,
   monthlyPrice,
@@ -26,10 +26,11 @@ import {
   PRICES,
   priceFor,
   refreshPlanFromServer,
+  resumePlan,
   startCheckout,
   verifyPayment,
 } from "../data/plans";
-import { PLAN_ICONS } from "../data/planIcons";
+import MembershipCard from "../Components/MembershipCard";
 import "./Profile.css";
 
 const REASONS = {
@@ -74,15 +75,20 @@ export default function Membership() {
   const [payError, setPayError] = useState("");
   const [billing, setBilling] = useState(null); // GET /api/billing/me
   const [currency, setCurrency] = useState("NGN");
+  const [confirmCancel, setConfirmCancel] = useState(false);
+  const [cancelBusy, setCancelBusy] = useState(false);
+  const [cancelError, setCancelError] = useState("");
   const compareRef = useRef(null);
   const billingRef = useRef(null);
 
   const selected = PAID_PLANS.find((p) => p.id === selectedId) || PAID_PLANS[0];
-  const PlanIcon = PLAN_ICONS[plan.id];
   const isPaid = plan.id !== "free";
+  const cancelled = isPaid && Boolean(sub?.cancelledAt);
+  const shortName = plan.name.replace(/^Loquiex\s+/, "");
+  // The next plan up, for "Upgrade" (none on the top plan).
+  const upgradeTo = PAID_PLANS[PAID_PLANS.findIndex((p) => p.id === plan.id) + 1];
   const selectedPeriod = BILLING_PERIODS.find((p) => p.id === periodId);
   const renewing = isPaid && selected.id === plan.id;
-  const testMode = billing?.mode !== "live";
   const lastPayment = billing?.payments?.find((p) => p.status === "success");
   // Currencies the server accepts right now, and its prices.
   const currencies = CURRENCIES.filter((c) =>
@@ -98,6 +104,38 @@ export default function Membership() {
 
   const scrollTo = (ref) =>
     ref.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+
+  const doCancel = async () => {
+    setCancelBusy(true);
+    setCancelError("");
+    try {
+      await cancelPlan();
+      setConfirmCancel(false);
+      setVersion((v) => v + 1);
+    } catch (err) {
+      setCancelError(
+        err.response?.data?.message ||
+          "Couldn't cancel your plan. Check your connection and try again.",
+      );
+    } finally {
+      setCancelBusy(false);
+    }
+  };
+
+  const undoCancel = async () => {
+    setCancelBusy(true);
+    setCancelError("");
+    try {
+      await resumePlan();
+      setVersion((v) => v + 1);
+    } catch (err) {
+      setCancelError(
+        err.response?.data?.message || "Couldn't update your plan. Please try again.",
+      );
+    } finally {
+      setCancelBusy(false);
+    }
+  };
 
   const back = () => (fromProfile ? navigate("/app/profile") : navigate(-1));
 
@@ -246,42 +284,62 @@ export default function Membership() {
       {reasonText && <p className="pf-reason">{reasonText}</p>}
 
       {/* Current plan */}
-      <section className="pf-panel pf-plan-card">
-        <div className="pf-plan-top">
-          <span className="pf-row-icon pf-win-hero-icon">
-            <PlanIcon size={22} />
-          </span>
-          <div className="pf-plan-name">
-            <p className="pf-stats-kicker">Your current plan</p>
-            <strong>{plan.name}</strong>
-            <span className="pf-plan-term">
-              {isPaid
-                ? currentPeriod.months === 1
-                  ? "Monthly membership"
-                  : `${currentPeriod.label} membership`
-                : "Free plan"}
-            </span>
-          </div>
-          <span className="pf-active-badge">Active</span>
-        </div>
-        <p className="pf-price">
-          <strong>{isPaid ? money(monthly(plan)) : "Free"}</strong>
-          {isPaid && <span>/ month</span>}
+      <MembershipCard
+        user={user}
+        currency={lastPayment?.currency || "NGN"}
+        prices={prices}
+      />
+
+      {cancelled && (
+        <p className="pf-cancelled-note">
+          You cancelled your plan. You keep everything in {shortName} until{" "}
+          {sub?.expiresAt ? formatDate(sub.expiresAt) : "it ends"}, then you
+          move to Loquiex Free.{" "}
+          <button
+            type="button"
+            className="pf-inline-link"
+            disabled={cancelBusy}
+            onClick={undoCancel}
+          >
+            Keep my plan
+          </button>
         </p>
-        {isPaid && (
-          <p className="pf-renewal">
-            <CalendarClock size={18} />
-            <span>Active until:</span>
-            <strong>{sub?.expiresAt ? formatDate(sub.expiresAt) : "Loading…"}</strong>
-          </p>
+      )}
+
+      <div className="pf-plan-actions">
+        {upgradeTo && (
+          <button
+            type="button"
+            className="pf-plan-action is-primary"
+            onClick={() => {
+              setSelectedId(upgradeTo.id);
+              scrollTo(billingRef);
+            }}
+          >
+            {isPaid ? "Upgrade" : "Upgrade your plan"}
+          </button>
         )}
         <button
-          className="profile-save-button pf-wide-button"
+          type="button"
+          className="pf-plan-action"
           onClick={() => scrollTo(compareRef)}
         >
-          {isPaid ? "Explore other plans" : "Upgrade your plan"}
+          Compare plans
         </button>
-      </section>
+        {isPaid && (
+          <button
+            type="button"
+            className="pf-plan-action"
+            onClick={() => {
+              setSelectedId(plan.id);
+              setPeriodId(sub?.periodId || "monthly");
+              scrollTo(billingRef);
+            }}
+          >
+            Renew
+          </button>
+        )}
+      </div>
 
       {/* Compare plans */}
       <div ref={compareRef} className="pf-scroll-target">
@@ -481,7 +539,11 @@ export default function Membership() {
             {isPaid && (
               <div>
                 <dt>Renewal</dt>
-                <dd>Doesn&apos;t renew automatically</dd>
+                <dd>
+                  {cancelled
+                    ? `Cancelled. Ends on ${sub?.expiresAt ? formatDate(sub.expiresAt) : "its end date"}`
+                    : "Doesn't renew automatically. Renew any time before it ends."}
+                </dd>
               </div>
             )}
             {lastPayment && (
@@ -495,24 +557,95 @@ export default function Membership() {
             )}
             <div>
               <dt>Payment method</dt>
-              <dd>Paystack{testMode ? " (test mode)" : ""}</dd>
+              <dd>Paystack</dd>
             </div>
           </dl>
         )}
       </section>
 
-      {testMode && (
-        <p className="pf-stats-note">
-          Test mode: payments use Paystack test cards and no real money is
-          taken.
+      {/* Cancel plan: last thing on the page */}
+      {isPaid && !cancelled && (
+        <section className="pf-panel pf-cancel-panel">
+          <p className="pf-panel-title">Cancel plan</p>
+          <p className="pf-panel-text">
+            You keep everything you paid for until{" "}
+            {sub?.expiresAt ? formatDate(sub.expiresAt) : "your plan ends"}.
+            Nothing more is charged.
+          </p>
+          <button
+            type="button"
+            className="pf-cancel-button"
+            onClick={() => {
+              setCancelError("");
+              setConfirmCancel(true);
+            }}
+          >
+            Cancel plan
+          </button>
+        </section>
+      )}
+      {cancelError && !confirmCancel && (
+        <p className="pf-pay-error" role="alert">
+          <CircleAlert size={18} />
+          <span>{cancelError}</span>
         </p>
+      )}
+
+      {confirmCancel && (
+        <div
+          className="pf-dialog-backdrop"
+          onClick={() => !cancelBusy && setConfirmCancel(false)}
+        >
+          <div
+            className="pf-dialog"
+            role="alertdialog"
+            aria-modal="true"
+            aria-labelledby="pf-cancel-title"
+            aria-describedby="pf-cancel-text"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 id="pf-cancel-title">Are you sure you want to cancel your plan?</h2>
+            <p id="pf-cancel-text">
+              Cancelling won&apos;t take anything away now. You&apos;ve paid for{" "}
+              {shortName}, so you keep all of it until{" "}
+              <strong>
+                {sub?.expiresAt ? formatDate(sub.expiresAt) : "your plan ends"}
+              </strong>
+              . After that you move to Loquiex Free and nothing more is charged.
+            </p>
+            {cancelError && (
+              <p className="pf-pay-error" role="alert">
+                <CircleAlert size={18} />
+                <span>{cancelError}</span>
+              </p>
+            )}
+            <div className="pf-dialog-actions">
+              <button
+                type="button"
+                className="pf-outline-button"
+                disabled={cancelBusy}
+                onClick={() => setConfirmCancel(false)}
+              >
+                Keep my plan
+              </button>
+              <button
+                type="button"
+                className="pf-cancel-button"
+                disabled={cancelBusy}
+                onClick={doCancel}
+              >
+                {cancelBusy ? "Cancelling…" : "Yes, cancel plan"}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
 }
 
 function formatDate(date) {
-  return new Date(date).toLocaleDateString(undefined, {
+  return new Date(date).toLocaleDateString("en-GB", {
     day: "numeric",
     month: "long",
     year: "numeric",

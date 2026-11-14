@@ -101,6 +101,10 @@ const userSchema = new mongoose.Schema(
     planExpiresAt: { type: Date, default: null },
     planStartedAt: { type: Date, default: null },
     planPeriodId: { type: String, default: null },
+    // Set when the member cancels. Plans never renew on their own, so this
+    // only records the choice: they keep the plan until planExpiresAt.
+    // Cleared by the next successful payment.
+    planCancelledAt: { type: Date, default: null },
     // Paystack references already applied, so a payment is never counted twice.
     appliedPaymentRefs: { type: [String], default: [] },
     // Group practice minutes per local day, e.g. { "2026-11-05": 34 }.

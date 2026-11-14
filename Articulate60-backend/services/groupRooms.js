@@ -39,10 +39,19 @@
 const crypto = require("crypto");
 const User = require("../MODELS/User");
 const ScheduledPractice = require("../MODELS/ScheduledPractice");
-const { hasGroupPractice } = require("../utils/plans");
+const { hasGroupPractice, limitsFor } = require("../utils/plans");
 const { summarise, addMinutes, pruneOld } = require("../utils/groupUsage");
 
 const MAX_MEMBERS = Math.max(2, Number(process.env.GROUP_ROOM_MAX) || 6);
+// "Unlimited" seats (Infinity hosts). Calls are peer-to-peer, so every phone
+// sends audio to every other phone; past about 10-12 people that gets too
+// heavy for phones. GROUP_ROOM_MAX_UNLIMITED sets the technical ceiling. True
+// unlimited rooms need a media server (SFU).
+const UNLIMITED_MAX = Math.max(
+  MAX_MEMBERS,
+  Number(process.env.GROUP_ROOM_MAX_UNLIMITED) || 12,
+);
+const TOPIC_MAX = 60;
 const MINUTE_MS = 60 * 1000;
 // A member whose connection drops (phone locked, app sent to the background,
 // network blip) keeps their seat this long, so they can come straight back.
@@ -100,7 +109,8 @@ function publicScheduled(doc, viewerId) {
     categoryTitle: doc.categoryTitle,
     prompt: doc.prompt,
     private: doc.private,
-    max: doc.max,
+    max: doc.max || 0,
+    unlimited: doc.max === 0,
     startsAt: new Date(doc.startsAt).toISOString(),
     hostId: String(doc.host),
     hostName: doc.hostName,
@@ -197,6 +207,7 @@ function publicRoom(room) {
     private: room.private,
     createdAt: room.createdAt,
     max: room.max || MAX_MEMBERS,
+    unlimited: Boolean(room.unlimited),
     members: [...room.members.values()].map(publicMember),
   };
 }
@@ -242,7 +253,8 @@ function removeMember(userId, { notifySelf = null } = {}) {
   } else {
     io.to(`group-room:${room.id}`).emit("group:member-left", { userId });
     if (room.hostId === userId) {
-      // The longest-standing member becomes host.
+      // The longest-standing member becomes host until the original host
+      // comes back (see addToRoom).
       const next = [...room.members.values()].sort(
         (a, b) => a.joinedAt - b.joinedAt,
       )[0];
@@ -312,7 +324,9 @@ function addToRoom(socket, room, user, summary) {
   const others = [...room.members.values()].map(publicMember);
   room.members.set(userId, member);
   memberships.set(userId, { roomId: room.id, socketId: socket.id });
-  if (keepHost && room.hostId !== userId) {
+  // The member who started the call gets hosting back when they return,
+  // even after it was handed to someone else (Sheriff, 2026-11-10).
+  if ((keepHost || room.ownerId === userId) && room.hostId !== userId) {
     room.hostId = userId;
     io.to(`group-room:${room.id}`).emit("group:host", { hostId: userId });
   }
@@ -330,7 +344,7 @@ function errorMessage(code) {
     case "no-plan":
       return "Group practice comes with Loquiex Flourish and Infinity.";
     case "time-up":
-      return "You've used all your group practice minutes for this month.";
+      return "You've used all your group call time for today. It resets at midnight.";
     case "full":
       return "This room is full. Try another room or start your own.";
     case "gone":
@@ -404,12 +418,18 @@ function registerGroupHandlers(socket) {
           categoryTitle: planned.categoryTitle,
           prompt: planned.prompt,
           private: planned.private,
-          max: planned.max,
+          max: planned.max === 0 ? "unlimited" : planned.max,
           code: planned.code,
         };
       }
       const mode = settings.mode === "host" ? "host" : "guided";
-      const topic = mode === "host" ? clean(settings.topic, 200) : "";
+      const topic =
+        mode === "host"
+          ? clean(settings.topic, planned ? 200 : TOPIC_MAX)
+          : "";
+      const unlimited =
+        settings.max === "unlimited" &&
+        Boolean(limitsFor(access.user).unlimitedSeats);
       if (mode === "host" && !topic) return fail(ack, "no-topic");
       const room = {
         id: crypto.randomBytes(6).toString("hex"),
@@ -417,7 +437,8 @@ function registerGroupHandlers(socket) {
         code: newCode(settings.code),
         private: settings.private === true,
         // The host picks how many seats (2 up to the server limit).
-        max: seatCount(settings.max),
+        max: unlimited ? UNLIMITED_MAX : seatCount(settings.max),
+        unlimited,
         mode,
         topic,
         scheduledId: planned ? String(planned._id) : "",
@@ -426,6 +447,8 @@ function registerGroupHandlers(socket) {
           clean(settings.categoryTitle, 80) || "Open conversation",
         prompt: clean(settings.prompt, 500),
         hostId: userId,
+        // Who started it: gets hosting back after leaving and returning.
+        ownerId: userId,
         createdAt: Date.now(),
         members: new Map(),
       };

@@ -24,19 +24,23 @@ function summarise(user, now = new Date()) {
   const usedThisMonth = Object.entries(days)
     .filter(([d]) => d.startsWith(month))
     .reduce((t, [, m]) => t + m, 0);
-  const total = limitsFor(user).groupMinutesPerMonth;
+  // Daily call time (Sheriff, 2026-11-10): `total` and `left` are TODAY's
+  // minutes. null = unlimited. Resets at the member's own midnight.
+  const total = limitsFor(user).groupMinutesPerDay;
+  const usedToday = days[today] || 0;
   return {
     planId: planIdOf(user),
+    period: "day",
     total,
-    usedToday: days[today] || 0,
+    usedToday,
     usedThisMonth,
-    left: total === null ? null : Math.max(0, total - usedThisMonth),
+    left: total === null ? null : Math.max(0, total - usedToday),
     today,
     days,
   };
 }
 
-// Adds minutes to today's total. Returns the new monthly summary.
+// Adds minutes to today's total. Returns the new summary.
 async function addMinutes(userId, timeZone, minutes = 1) {
   const today = dayKey(localDayNumber(new Date(), safeZone(timeZone)));
   const user = await User.findByIdAndUpdate(

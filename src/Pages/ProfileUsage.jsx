@@ -11,6 +11,15 @@ import {
 import { PLANS, fetchGroupUsage, getUsage } from "../data/plans";
 import { PLAN_ICONS } from "../data/planIcons";
 
+// "15 Dec 2026"
+function formatResetDay(date) {
+  return new Date(date).toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+}
+
 // "Usage & Limits" page. AI feedback comes from the user's saved recordings
 // (each analysed recording counts on the day it was analysed); group minutes
 // come from the group-practice tracker in data/plans.js. AI feedback has a
@@ -26,6 +35,7 @@ export default function ProfileUsage({ user, recordings, onBack, onPlans }) {
   }, []);
 
   const usage = getUsage(recordings, user);
+  const resetDay = formatResetDay(usage.cycle.resetsAt);
   const plan = usage.plan;
   const PlanIcon = PLAN_ICONS[plan.id] || Sprout;
   const isTopPlan = plan.id === PLANS[PLANS.length - 1].id;
@@ -75,7 +85,7 @@ export default function ProfileUsage({ user, recordings, onBack, onPlans }) {
                   100,
                   Math.round((ai.usedThisMonth / aiFeedbackPerMonth) * 100),
                 ),
-                foot: `Up to ${aiFeedbackPerDay} a day · resets on the 1st`,
+                foot: `Up to ${aiFeedbackPerDay} a day · monthly allowance resets on ${resetDay}`,
               }
             : {
                 big: ai.usedThisMonth,
@@ -93,19 +103,24 @@ export default function ProfileUsage({ user, recordings, onBack, onPlans }) {
             unlimited: true,
             used: period === "today" ? group.usedToday : group.usedThisMonth,
           }
-        : {
-            big: group.left,
-            label: "minutes left this month",
-            right:
-              period === "today"
-                ? `${group.usedToday} used today`
-                : `${group.usedThisMonth.toLocaleString()} of ${groupMinutesPerMonth.toLocaleString()} used`,
-            pct: Math.min(
-              100,
-              Math.round((group.usedThisMonth / groupMinutesPerMonth) * 100),
-            ),
-            foot: `${groupMinutesPerMonth.toLocaleString()} minutes a month · resets on the 1st`,
-          };
+        : (() => {
+            // Daily call time (Sheriff, 2026-11-10).
+            const perDay = usage.limits.groupMinutesPerDay || 90;
+            const leftToday = Math.max(0, perDay - (group.usedToday || 0));
+            return {
+              big: leftToday,
+              label: "minutes left today",
+              right:
+                period === "today"
+                  ? `${group.usedToday} of ${perDay} used today`
+                  : `${group.usedThisMonth.toLocaleString()} used this month`,
+              pct: Math.min(
+                100,
+                Math.round(((group.usedToday || 0) / perDay) * 100),
+              ),
+              foot: `${perDay} minutes a day · resets at midnight`,
+            };
+          })();
 
   const allowances = [
     {
@@ -137,21 +152,15 @@ export default function ProfileUsage({ user, recordings, onBack, onPlans }) {
         <p>Your remaining allowances.</p>
       </header>
 
-      <section className="pf-panel pf-plan-card">
-        <div className="pf-plan-top">
-          <span className="pf-row-icon">
-            <PlanIcon size={18} />
-          </span>
-          <div className="pf-plan-name">
-            <p className="pf-stats-kicker">Your current plan</p>
-            <strong>{plan.name}</strong>
-          </div>
-          <span className="pf-active-badge">Active</span>
-        </div>
+      <section className="pf-panel pf-usage-overview">
         <div className="pf-plan-period">
           <div>
             <p className="pf-plan-period-label">Usage overview</p>
             <strong>{period === "today" ? "Today" : "This month"}</strong>
+            <span className="pf-plan-mini">
+              <PlanIcon size={13} aria-hidden="true" />
+              {plan.name.replace(/^Loquiex\s+/i, "")} plan
+            </span>
           </div>
           <div className="pf-segment" role="tablist">
             {[
@@ -173,7 +182,7 @@ export default function ProfileUsage({ user, recordings, onBack, onPlans }) {
         <p className="pf-panel-text pf-plan-foot">
           {period === "today"
             ? "Daily limits reset at midnight."
-            : "Monthly allowances reset on the 1st of each month."}
+            : `Your monthly allowance resets on ${resetDay}, a month after the day you paid.`}
         </p>
       </section>
 
@@ -241,8 +250,8 @@ export default function ProfileUsage({ user, recordings, onBack, onPlans }) {
           <strong>Unlimited</strong>
         </div>
         <p className="pf-panel-text pf-allowance-note">
-          Practise at your own pace without using your AI feedback or group
-          practice allowances.
+          Solo practice without AI feedback doesn&apos;t use your allowance.
+          Asking for AI feedback on a practice uses one AI feedback session.
         </p>
       </section>
 
@@ -263,17 +272,24 @@ export default function ProfileUsage({ user, recordings, onBack, onPlans }) {
               uses one session.
             </li>
             <li>
-              AI feedback has a monthly allowance and a daily limit. The daily
+              AI feedback has a daily limit and a monthly allowance. The daily
               limit resets at midnight.
             </li>
             <li>
-              Group practice counts each minute you spend in a call with at
-              least one other member against your monthly minutes. Waiting alone
-              in a room is free.
+              Your monthly allowance resets every month on the date you paid,
+              not on the 1st. Next reset: {resetDay}.
             </li>
-            <li>Monthly allowances reset on the 1st of each month.</li>
             <li>
-              Solo practice, recordings and streaks never use your allowances.
+              Group practice uses your call time whether you host the call or
+              join it. Daily call time resets at midnight.
+            </li>
+            <li>
+              Your plan lasts for the period you paid for (1, 3, 6 or 12
+              months) and ends on its expiry date unless you renew.
+            </li>
+            <li>
+              Solo practice without AI feedback doesn&apos;t use your
+              allowance.
             </li>
           </ul>
         )}

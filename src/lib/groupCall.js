@@ -332,7 +332,7 @@ export class GroupCall {
         categoryTitle,
         prompt,
         code,
-        max: this.room.max,
+        max: this.room.unlimited ? "unlimited" : this.room.max,
         private: Boolean(this.room.private),
       },
     }).finally(() => {

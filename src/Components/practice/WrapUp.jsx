@@ -7,7 +7,7 @@ const BLOOM_PER_DAY =
   PLANS.find((p) => p.id === "bloom")?.limits.aiFeedbackPerDay ?? 5;
 
 const BENEFITS = [
-  "What you did well",
+  "Scores for grammar, vocabulary, clarity and more",
   "Areas that need improvement",
   "Your transcript with specific observations",
   "Actionable tips for your next practice",

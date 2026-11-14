@@ -13,12 +13,13 @@ const scheduledPracticeSchema = new mongoose.Schema(
     hostName: { type: String, default: "" },
     // "host" = the host's own topic, "guided" = a Loquiex category + prompt.
     mode: { type: String, enum: ["host", "guided"], default: "guided" },
-    topic: { type: String, default: "", maxlength: 200 },
+    topic: { type: String, default: "", maxlength: 200 }, // app limits new topics to 60
     categoryId: { type: String, default: "", maxlength: 60 },
     categoryTitle: { type: String, default: "", maxlength: 80 },
     prompt: { type: String, default: "", maxlength: 500 },
     private: { type: Boolean, default: false },
-    max: { type: Number, default: 4, min: 2, max: 6 },
+    // 0 = unlimited seats (Infinity hosts only).
+    max: { type: Number, default: 4, min: 0, max: 6 },
     code: { type: String, required: true, index: true },
     startsAt: { type: Date, required: true, index: true },
     // Members who asked to be reminded (the host is always reminded).

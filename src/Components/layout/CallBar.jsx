@@ -12,6 +12,10 @@ import {
   useActiveCall,
 } from "../../lib/activeCall";
 import { getSocket } from "../../lib/realtime";
+import {
+  deliverReminder,
+  watchPlannedReminders,
+} from "../../lib/practiceReminders";
 import "../../styles/GroupCall.css";
 
 const CALL_PATH = "/app/group-practice/room/";
@@ -32,13 +36,18 @@ export default function CallBar() {
   const { pathname } = useLocation();
   const [reminder, setReminder] = useState(null);
 
-  // "Your practice starts in 10 min" while the app is open.
+  // "Your practice starts in 5 min": from the server while the app is open,
+  // and from this device's own timers as a backup. Shown once, with a system
+  // notification too when notifications are allowed.
   useEffect(() => {
+    const stopTimers = watchPlannedReminders(setReminder);
     const socket = getSocket();
-    if (!socket) return undefined;
-    const onReminder = (r) => setReminder(r);
-    socket.on("group:reminder", onReminder);
-    return () => socket.off("group:reminder", onReminder);
+    const onReminder = (r) => deliverReminder(r, setReminder);
+    socket?.on("group:reminder", onReminder);
+    return () => {
+      stopTimers();
+      socket?.off("group:reminder", onReminder);
+    };
   }, []);
 
   const onCallPage = pathname.startsWith(CALL_PATH);
@@ -54,7 +63,7 @@ export default function CallBar() {
             <strong>Your group call ended</strong>
             <span>
               {call.endReason?.code === "time-up"
-                ? "Your group minutes for this month are used up."
+                ? "You\u2019ve used today\u2019s group call time. It resets at midnight."
                 : "You can start or join another practice."}
             </span>
           </span>

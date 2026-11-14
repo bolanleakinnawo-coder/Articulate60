@@ -603,3 +603,12 @@
     max-width: 1040px;
   }
 }
+
+/* Round 4: Back to home and Share my practice sit close together. */
+.spin-jar-btn.complete-home-btn {
+  margin-bottom: 0;
+}
+
+.complete-home-btn + .sh-open-btn {
+  margin-top: 10px;
+}

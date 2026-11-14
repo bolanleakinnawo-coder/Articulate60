@@ -16,14 +16,11 @@ and POST /api/practice/recordings/:id/analyze, which still enforce plans and dai
      Save practice without feedback.
 3. Get my feedback -> "Let's unpack your response." with an animated loading bar and
    changing step text (Listening, Transcribing, Analysing, Preparing) -> feedback report.
-4. Save practice without feedback:
-   - Members with AI feedback (paid, or Free in the 3-day trial) -> "Amazing!" page
-     (time spent, topic completed, recording saved, day streak, Back to home,
-     Share my practice, link to Your practices for feedback later). The
-     "Reflection completed" row is gone with the Reflect page.
-   - Free members without AI feedback -> "You did it!" page: time practised, streak,
-     recording player, Share my practice, Practise again, Back to practice,
-     Unlock detailed feedback.
+4. Save practice without feedback -> "Amazing!" page for everyone (time spent, topic
+   completed, recording saved, day streak, Back to home, Share my practice). Under it:
+   members with AI see "Find it in Your practices" for feedback later; Free members
+   without AI see "Unlock detailed feedback". The "You did it!" page and the
+   "Reflection completed" row are removed (Sheriff, 2026-11-09).
 5. Analysis errors "Skip for now" go to the same page as Save without feedback.
 
 Feedback later: Profile > Your practices already shows "Get AI feedback" on any practice
@@ -31,4 +28,6 @@ without feedback (uses 1 from that day's allowance).
 
 ## Files
 - src/Pages/PracticeSession.jsx (changed)
-- src/Components/practice/WrapUp.jsx, WrapUp.css, wrapUpText.js (new)
+- src/Components/practice/WrapUp.jsx, WrapUp.css (new)
+
+Update 2026-11-09 late: applied on top of merged-project/ARTICULATE 60 (launch ready).zip; full project is now merged-project/ARTICULATE 60 (launch ready + amazing).zip.

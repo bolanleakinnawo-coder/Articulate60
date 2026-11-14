@@ -3,6 +3,8 @@
 //   POST /api/billing/checkout   { planId, periodId, currency }  -> { authorizationUrl, reference }
 //   POST /api/billing/verify     { reference }         -> { status, subscription }
 //   GET  /api/billing/me                               -> { subscription, payments }
+//   POST /api/billing/cancel                           -> { subscription }
+//   POST /api/billing/resume                           -> { subscription }
 //   POST /api/billing/paystack/webhook  (Paystack only; signed, raw body)
 //
 // The app only ever says WHICH plan and period it wants. The price comes from
@@ -63,6 +65,7 @@ async function subscriptionFor(userId) {
     planExpiresAt: 1,
     planStartedAt: 1,
     planPeriodId: 1,
+    planCancelledAt: 1,
     createdAt: 1,
   });
   return user ? subscriptionOf(user) : null;
@@ -203,6 +206,41 @@ router.get("/me", authMiddleware, async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Couldn't load your membership." });
+  }
+});
+
+// POST /api/billing/cancel — the member cancels their plan. Plans are prepaid
+// and never renew on their own, so nothing is refunded or charged: they keep
+// everything they paid for until planExpiresAt, then move to Free.
+router.post("/cancel", authMiddleware, async (req, res) => {
+  try {
+    const now = new Date();
+    await User.updateOne(
+      { _id: req.userId, planExpiresAt: { $gt: now }, planCancelledAt: null },
+      { $set: { planCancelledAt: now } },
+    );
+    const subscription = await subscriptionFor(req.userId);
+    if (!subscription) return res.status(404).json({ message: "User not found." });
+    res.json({ subscription });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Couldn't cancel your plan. Please try again." });
+  }
+});
+
+// POST /api/billing/resume — undo a cancel while the plan is still active.
+router.post("/resume", authMiddleware, async (req, res) => {
+  try {
+    await User.updateOne(
+      { _id: req.userId, planExpiresAt: { $gt: new Date() } },
+      { $set: { planCancelledAt: null } },
+    );
+    const subscription = await subscriptionFor(req.userId);
+    if (!subscription) return res.status(404).json({ message: "User not found." });
+    res.json({ subscription });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Couldn't update your plan. Please try again." });
   }
 });
 
