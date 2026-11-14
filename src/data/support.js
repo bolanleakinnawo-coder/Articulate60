@@ -1,6 +1,6 @@
 // Help & support content (Profile > Help & support).
-// Answers describe the app as it's built today. Update them when payments,
-// referral rewards and live group calls go live.
+// Answers describe the app as it's built today. Update them when referral
+// rewards are added.
 
 export const SUPPORT_EMAIL = "support@loquiex.app"; // TODO: confirm address
 
@@ -25,7 +25,7 @@ export const FAQS = [
     id: "subscription",
     question: "What is included in my subscription?",
     answer:
-      "Your plan sets your monthly AI feedback allowance (with a daily limit) and, on Loquiex Flourish and Loquiex Infinity, your group practice minutes. Loquiex Bloom doesn't include group practice. Visit Usage & Limits in your profile to check your allowance.",
+      "Your plan sets your monthly AI feedback allowance (with a daily limit) and, on Loquiex Flourish and Loquiex Infinity, your daily group call time. Loquiex Bloom doesn't include group practice. Visit Usage & Limits in your profile to check your allowance.",
   },
   {
     id: "free",
@@ -37,7 +37,7 @@ export const FAQS = [
     id: "change-cancel",
     question: "How do I change or cancel my subscription?",
     answer:
-      "Go to Your Profile and select Manage Membership to compare plans, change your billing period or cancel. Payments aren't live yet, so for now any change is saved on your device and nothing is charged.",
+      "Go to Your Profile and select Manage Membership to compare plans, change your billing period or cancel.",
   },
   {
     id: "previous-practices",
@@ -49,13 +49,13 @@ export const FAQS = [
     id: "limits",
     question: "What happens when I reach my usage limits?",
     answer:
-      "Your daily AI feedback limit resets at 12 a.m. in your own time zone. Monthly allowances reset on the 1st of each month. You can keep practising on your own in the meantime, because personal practice is unlimited.",
+      "Your daily AI feedback limit and your daily group call time reset at 12 a.m. in your own time zone. Your monthly allowance resets a month after the day you paid (for example, pay on 7 Nov and it resets on 7 Dec), and starts again when you renew. It doesn't reset on the 1st of the month. You can keep practising on your own in the meantime, because personal practice is unlimited.",
   },
   {
     id: "group",
     question: "How does group practice work?",
     answer:
-      "Group practice lets members practise speaking together in an audio-only session. It's included with Loquiex Flourish and Loquiex Infinity, and the time you spend in a room with others counts towards your monthly minutes. Open Practice, choose Group Practice, then join a public practice, start your own, or enter a code for a private one. You can host your own topic or let Loquiex pick a category and prompts, and start now or schedule a practice for later (we remind you 10 minutes before). You stay in the call when you move to another tab. On iPhone, keep Loquiex open during a call: iPhone pauses apps in the background, and you rejoin automatically when you come back within 2 minutes.",
+      "Group practice lets members practise speaking together in an audio-only session. It's included with Loquiex Flourish and Loquiex Infinity, and the time you spend in a room with others counts towards your daily call time (1 hr 30 min a day on Loquiex Flourish, unlimited on Loquiex Infinity). Open Practice, choose Group Practice, then join a public practice, start your own, or enter a code for a private one. You can host your own topic or let Loquiex pick a category and prompts, and start now or schedule a practice for later (we remind you 5 minutes before). You stay in the call when you move to another tab. On iPhone, keep Loquiex open during a call: iPhone pauses apps in the background, and you rejoin automatically when you come back within 2 minutes.",
   },
   {
     id: "invite",
@@ -67,7 +67,7 @@ export const FAQS = [
     id: "learn",
     question: "Where can I find learning resources?",
     answer:
-      "Open Learn to explore the learning resources and digital products available on Loquiex.",
+      "Open Learn to explore the learning resources available on Loquiex.",
   },
   {
     id: "account",

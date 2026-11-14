@@ -20,6 +20,23 @@ function formatResetDay(date) {
   });
 }
 
+// "7 Nov"
+function formatShortDay(date) {
+  return new Date(date).toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "short",
+  });
+}
+
+// Call time is always hours and minutes: "1 hr 30 min", "1 hr", "45 min".
+function formatCallTime(minutes) {
+  const total = Math.max(0, Math.floor(Number(minutes) || 0));
+  const h = Math.floor(total / 60);
+  const m = total % 60;
+  if (h === 0) return `${m} min`;
+  return m ? `${h} hr ${m} min` : `${h} hr`;
+}
+
 // "Usage & Limits" page. AI feedback comes from the user's saved recordings
 // (each analysed recording counts on the day it was analysed); group minutes
 // come from the group-practice tracker in data/plans.js. AI feedback has a
@@ -69,11 +86,7 @@ export default function ProfileUsage({ user, recordings, onBack, onPlans }) {
                     usage.aiTrialDaysLeft === 1 ? "" : "s"
                   } left`
                 : aiFeedbackPerDay !== null
-                  ? `Up to ${aiFeedbackPerDay} a day${
-                      aiFeedbackPerMonth
-                        ? ` · ${aiFeedbackPerMonth} a month`
-                        : ""
-                    }`
+                  ? `Up to ${aiFeedbackPerDay} a day · resets at midnight`
                   : null,
             }
           : aiFeedbackPerMonth
@@ -85,14 +98,14 @@ export default function ProfileUsage({ user, recordings, onBack, onPlans }) {
                   100,
                   Math.round((ai.usedThisMonth / aiFeedbackPerMonth) * 100),
                 ),
-                foot: `Up to ${aiFeedbackPerDay} a day · monthly allowance resets on ${resetDay}`,
+                foot: `Your monthly allowance resets on ${resetDay}.`,
               }
             : {
                 big: ai.usedThisMonth,
                 label: "sessions used this month",
-                right: `${aiFeedbackPerDay} a day`,
+                right: "",
                 pct: null,
-                foot: "Your daily sessions reset at midnight.",
+                foot: `Your monthly usage resets on ${resetDay}.`,
               };
 
   const groupCard =
@@ -104,21 +117,27 @@ export default function ProfileUsage({ user, recordings, onBack, onPlans }) {
             used: period === "today" ? group.usedToday : group.usedThisMonth,
           }
         : (() => {
-            // Daily call time (Sheriff, 2026-11-10).
+            // Daily call time (Sheriff, 2026-11-10). Round 8: Today shows the
+            // daily figures, This month shows monthly usage only, and call
+            // time is always hours and minutes.
             const perDay = usage.limits.groupMinutesPerDay || 90;
-            const leftToday = Math.max(0, perDay - (group.usedToday || 0));
+            const usedToday = group.usedToday || 0;
+            const leftToday = Math.max(0, perDay - usedToday);
+            if (period === "month") {
+              return {
+                big: formatCallTime(group.usedThisMonth || 0),
+                label: "call time used this month",
+                right: `Since ${formatShortDay(usage.cycle.start)}`,
+                pct: null,
+                foot: `Your monthly usage resets on ${resetDay}, a month after the day you paid.`,
+              };
+            }
             return {
-              big: leftToday,
-              label: "minutes left today",
-              right:
-                period === "today"
-                  ? `${group.usedToday} of ${perDay} used today`
-                  : `${group.usedThisMonth.toLocaleString()} used this month`,
-              pct: Math.min(
-                100,
-                Math.round(((group.usedToday || 0) / perDay) * 100),
-              ),
-              foot: `${perDay} minutes a day · resets at midnight`,
+              big: formatCallTime(leftToday),
+              label: "call time left today",
+              right: `${formatCallTime(usedToday)} used today`,
+              pct: Math.min(100, Math.round((usedToday / perDay) * 100)),
+              foot: `${formatCallTime(perDay)} a day · resets at midnight`,
             };
           })();
 
@@ -216,8 +235,10 @@ export default function ProfileUsage({ user, recordings, onBack, onPlans }) {
           ) : card.unlimited ? (
             <div className="pf-allowance-line pf-unlimited">
               <span>
-                {card.used} {unit} used{" "}
-                {period === "today" ? "today" : "this month"}
+                {unit === "minutes"
+                  ? `${formatCallTime(card.used)} of call time`
+                  : `${card.used} ${unit}`}{" "}
+                used {period === "today" ? "today" : "this month"}
               </span>
               <strong>Unlimited</strong>
             </div>
@@ -225,7 +246,11 @@ export default function ProfileUsage({ user, recordings, onBack, onPlans }) {
             <>
               <div className="pf-allowance-line">
                 <p>
-                  <strong>{card.big.toLocaleString()}</strong>
+                  <strong>
+                    {typeof card.big === "number"
+                      ? card.big.toLocaleString()
+                      : card.big}
+                  </strong>
                   <span>{card.label}</span>
                 </p>
                 <span>{card.right}</span>

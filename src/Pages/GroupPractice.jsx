@@ -21,6 +21,7 @@ import {
   CalendarDays,
   ChevronDown,
   Hand,
+  Info,
   KeyRound,
   LoaderCircle,
   LockKeyhole,
@@ -299,6 +300,52 @@ function DailyCallTime({ usage }) {
               : `You have ${formatCallTime(left)} left for calls today`}
         </strong>
       </span>
+    </div>
+  );
+}
+
+// Round 8: today's call time sits to the side of "Practise Together", small
+// and quiet (Sheriff's reference). Hours and minutes, never raw minutes.
+function CallTimeSide({ usage }) {
+  const [open, setOpen] = useState(false);
+  if (!usage?.loaded) return null;
+  const unlimited = usage.total === null;
+  const total = Number(usage.total) || 0;
+  const left = unlimited ? null : Math.max(0, Number(usage.left) || 0);
+  const usedUp = !unlimited && left === 0;
+  const low = !unlimited && !usedUp && left <= 15;
+  const value = unlimited ? "Unlimited" : formatCallTime(left);
+  const label = unlimited
+    ? "call time today"
+    : usedUp
+      ? "resets at midnight"
+      : "call time left today";
+  const detail = unlimited
+    ? `Infinity has unlimited call time. ${formatCallTime(usage.usedToday || 0)} used today.`
+    : `Your plan gives you ${formatCallTime(total)} of call time a day. ${formatCallTime(Number(usage.usedToday) || 0)} used today. It resets at midnight.`;
+  return (
+    <div
+      className={`cts ${usedUp ? "is-out" : ""} ${low ? "is-low" : ""}`}
+      role="status"
+    >
+      <span className="cts-text">
+        <strong className="cts-value">{value}</strong>
+        <span className="cts-label">{label}</span>
+      </span>
+      <button
+        type="button"
+        className="cts-info"
+        aria-label="About today's call time"
+        aria-expanded={open}
+        onClick={() => setOpen((v) => !v)}
+      >
+        <Info size={16} aria-hidden="true" />
+      </button>
+      {open && (
+        <span className="cts-pop" role="note">
+          {detail}
+        </span>
+      )}
     </div>
   );
 }
@@ -709,14 +756,15 @@ export function GroupPracticeTab() {
 
   const lobby = (
     <div className="gpt" aria-hidden={allowed ? undefined : true}>
-      <div className="practice-panel-intro gpt-intro">
-        <h2 className="practice-panel-title">Practise Together</h2>
-        <p className="practice-panel-sub">
-          Join or create a group and practise speaking up.
-        </p>
+      <div className="gpt-intro-row">
+        <div className="practice-panel-intro gpt-intro">
+          <h2 className="practice-panel-title">Practise Together</h2>
+          <p className="practice-panel-sub">
+            Join or create a group and practise speaking up.
+          </p>
+        </div>
+        {allowed && <CallTimeSide usage={usage} />}
       </div>
-
-      {allowed && <DailyCallTime usage={usage} />}
 
       <div className="gpt-actions">
         <button
@@ -2415,7 +2463,7 @@ function PlannedInvite({ planned, allowed }) {
             ? "Explore membership to join"
             : item.reminded
               ? "Reminder set · tap to remove"
-              : "Remind me 10 minutes before"}
+              : `Remind me ${REMIND_BEFORE_MIN} minutes before`}
         </button>
       )}
       <p className="gpc-note">
@@ -2433,8 +2481,8 @@ function TimeUpNote() {
         <ClockAlert size={18} aria-hidden="true" /> Your practice time is up
       </p>
       <span>
-        You&apos;ve used all your group practice minutes for this month. They
-        reset on the 1st.
+        You&apos;ve used all of today&apos;s group call time. It resets at
+        midnight.
       </span>
     </div>
   );

@@ -102,7 +102,6 @@ export default function ProfileStats({ recordings, streak, onBack, onStart }) {
       </header>
 
       <section className="pf-panel pf-stats-hero">
-        <p className="pf-stats-kicker">Your communication journey</p>
         <h2>Every practice counts.</h2>
         <p>
           See the time you&apos;ve put in, the sessions you&apos;ve completed,

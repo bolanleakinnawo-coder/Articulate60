@@ -2,12 +2,15 @@ import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
+  CircleArrowUp,
   ChevronDown,
   CircleAlert,
   CircleCheck,
   LoaderCircle,
+  LayoutList,
   LockKeyhole,
   ReceiptText,
+  RefreshCw,
   Sparkles,
 } from "lucide-react";
 import {
@@ -62,7 +65,13 @@ export default function Membership() {
     (p) => p.id === (sub?.periodId || "monthly"),
   );
   const [selectedId, setSelectedId] = useState(
-    reason === "unlimited" ? "infinity" : plan.id === "free" ? "bloom" : plan.id,
+    reason === "unlimited"
+      ? "infinity"
+      : reason === "group" && plan.limits.groupMinutesPerMonth === 0
+        ? "flourish" // came from Group practice: preselect a plan that has it
+        : plan.id === "free"
+          ? "bloom"
+          : plan.id,
   );
   const [periodId, setPeriodId] = useState(sub?.periodId || "monthly");
   const [detailsOpen, setDetailsOpen] = useState(false);
@@ -84,6 +93,7 @@ export default function Membership() {
   const [cancelError, setCancelError] = useState("");
   const compareRef = useRef(null);
   const billingRef = useRef(null);
+  const totalRef = useRef(null);
 
   const selected = PAID_PLANS.find((p) => p.id === selectedId) || PAID_PLANS[0];
   const isPaid = plan.id !== "free";
@@ -324,39 +334,44 @@ export default function Membership() {
         </p>
       )}
 
-      <div className="pf-plan-actions">
-        {upgradeTo && (
-          <button
-            type="button"
-            className="pf-plan-action is-primary"
-            onClick={() => {
-              setSelectedId(upgradeTo.id);
-              scrollTo(billingRef);
-            }}
-          >
-            {isPaid ? "Upgrade" : "Upgrade your plan"}
-          </button>
-        )}
-        <button
-          type="button"
-          className="pf-plan-action"
-          onClick={() => scrollTo(compareRef)}
-        >
-          Compare plans
-        </button>
+      {/* Plan options (round 8 follow-up): one compact row. Cancel plan
+          stays on its own at the very end of the page. */}
+      <div className="pf-plan-actions pf-plan-actions-compact">
         {isPaid && (
           <button
             type="button"
-            className="pf-plan-action"
+            className="pf-plan-action is-primary"
             onClick={() => {
               setSelectedId(plan.id);
               setPeriodId(sub?.periodId || "monthly");
               scrollTo(billingRef);
             }}
           >
+            <RefreshCw size={14} aria-hidden="true" />
             Renew
           </button>
         )}
+        {upgradeTo && (
+          <button
+            type="button"
+            className={`pf-plan-action ${isPaid ? "is-secondary" : "is-primary"}`}
+            onClick={() => {
+              setSelectedId(upgradeTo.id);
+              scrollTo(billingRef);
+            }}
+          >
+            <CircleArrowUp size={14} aria-hidden="true" />
+            {isPaid ? "Upgrade" : "Upgrade your plan"}
+          </button>
+        )}
+        <button
+          type="button"
+          className="pf-plan-action is-secondary"
+          onClick={() => scrollTo(compareRef)}
+        >
+          <LayoutList size={14} aria-hidden="true" />
+          Compare plans
+        </button>
       </div>
 
       {/* Compare plans */}
@@ -423,28 +438,9 @@ export default function Membership() {
           Choose how often you want to pay and save on longer membership
           periods.
         </p>
-        <div className="pf-periods" role="radiogroup" aria-label="Billing period">
-          {BILLING_PERIODS.map((period) => (
-            <button
-              key={period.id}
-              role="radio"
-              aria-checked={periodId === period.id}
-              className={`pf-period ${periodId === period.id ? "is-active" : ""}`}
-              onClick={() => setPeriodId(period.id)}
-            >
-              <span className="pf-radio" aria-hidden="true">
-                {periodId === period.id && <CircleCheck size={22} />}
-              </span>
-              <span className="pf-period-label">{period.label}</span>
-              <span className="pf-period-save">
-                {period.discount ? `Save ${period.discount}%` : "No discount"}
-              </span>
-            </button>
-          ))}
-        </div>
         {currencies.length > 1 && (
           <>
-            <p className="pf-panel-title pf-currency-title">Pay in</p>
+            <p className="pf-panel-title pf-currency-title pf-currency-first">Pay in</p>
             <div
               className="pf-periods pf-currencies"
               role="radiogroup"
@@ -467,6 +463,50 @@ export default function Membership() {
             </div>
           </>
         )}
+        <p className="pf-panel-title pf-currency-title">
+          Billing period{" "}
+          <span className="pf-period-for">· prices for {selected.name}</span>
+        </p>
+        <div className="pf-periods" role="radiogroup" aria-label="Billing period">
+          {BILLING_PERIODS.map((period) => (
+            <button
+              key={period.id}
+              role="radio"
+              aria-checked={periodId === period.id}
+              className={`pf-period ${periodId === period.id ? "is-active" : ""}`}
+              onClick={() => {
+                setPeriodId(period.id);
+                // Keep the total and Pay button in view once a period is picked.
+                requestAnimationFrame(() =>
+                  totalRef.current?.scrollIntoView({
+                    behavior: "smooth",
+                    block: "nearest",
+                  }),
+                );
+              }}
+            >
+              <span className="pf-radio" aria-hidden="true">
+                {periodId === period.id && <CircleCheck size={22} />}
+              </span>
+              <span className="pf-period-text">
+                <span className="pf-period-label">{period.label}</span>
+                <span className="pf-period-save">
+                  {period.discount ? `Save ${period.discount}%` : "No discount"}
+                </span>
+              </span>
+              {/* Round 8: the price is on every option, so nobody has to
+                  scroll to see it. */}
+              <span className="pf-period-price">
+                <strong>{money(total(selected, period.id))}</strong>
+                {period.months > 1 && (
+                  <span>
+                    {money(total(selected, period.id) / period.months)} / month
+                  </span>
+                )}
+              </span>
+            </button>
+          ))}
+        </div>
         <p className="pf-total">
           {selected.name} ·{" "}
           {BILLING_PERIODS.find((p) => p.id === periodId).label}:{" "}
@@ -487,6 +527,7 @@ export default function Membership() {
           </p>
         )}
         <button
+          ref={totalRef}
           className="profile-save-button pf-wide-button"
           disabled={paying}
           onClick={checkout}
@@ -581,7 +622,7 @@ export default function Membership() {
         )}
       </section>
 
-      {/* Cancel plan: last thing on the page */}
+      {/* Cancel plan: alone at the very end of the page, in red. */}
       {isPaid && !cancelled && (
         <section className="pf-panel pf-cancel-panel">
           <p className="pf-panel-title">Cancel plan</p>
@@ -592,7 +633,7 @@ export default function Membership() {
           </p>
           <button
             type="button"
-            className="pf-cancel-button"
+            className="pf-cancel-button pf-cancel-red"
             onClick={() => {
               setCancelError("");
               setConfirmCancel(true);
@@ -648,7 +689,7 @@ export default function Membership() {
               </button>
               <button
                 type="button"
-                className="pf-cancel-button"
+                className="pf-cancel-button pf-cancel-red"
                 disabled={cancelBusy}
                 onClick={doCancel}
               >

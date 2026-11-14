@@ -338,6 +338,7 @@ export default function FeedbackReport({
 
   const [tab, setTab] = useState("overview");
   const [activeId, setActiveId] = useState(null);
+  const [evidenceId, setEvidenceId] = useState(null);
   const [showTranscript, setShowTranscript] = useState(false);
   const [showShare, setShowShare] = useState(false);
 
@@ -406,6 +407,7 @@ export default function FeedbackReport({
   const openTab = (id, scroll = true) => {
     setTab(id);
     setActiveId(null);
+    setEvidenceId(null);
     setShowTranscript(false);
     if (scroll) {
       document
@@ -413,6 +415,35 @@ export default function FeedbackReport({
         ?.scrollIntoView({ behavior: "smooth", block: "start" });
     }
   };
+
+  // "See the evidence" (Focus on this next): open the matching tab with the
+  // transcript showing, highlight the first matching phrase and scroll the
+  // member straight to it in their transcript.
+  const [evidenceJump, setEvidenceJump] = useState(0);
+  const seeEvidence = () => {
+    const target = FOCUS_TAB[opportunity.focus] || "clarity";
+    const lowerTranscript = transcript.toLowerCase();
+    const match = (byTab[target] || []).find(
+      ({ c }) =>
+        c.original && lowerTranscript.includes(String(c.original).toLowerCase()),
+    );
+    setTab(target);
+    setShowTranscript(Boolean(transcript));
+    setActiveId(null);
+    setEvidenceId(match ? match.i : null);
+    setEvidenceJump((n) => n + 1);
+  };
+  useEffect(() => {
+    if (!evidenceJump) return;
+    const t = setTimeout(() => {
+      const el =
+        document.querySelector(".fb-transcript .fb-mark-active") ||
+        document.querySelector(".fb-transcript") ||
+        document.getElementById("fb-explore");
+      el?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 60);
+    return () => clearTimeout(t);
+  }, [evidenceJump]);
 
   const renderFindings = (items) =>
     items.map(({ c, i }) => (
@@ -443,7 +474,7 @@ export default function FeedbackReport({
         {showTranscript && (
           <Transcript
             segments={segments}
-            activeId={activeId}
+            activeId={activeId ?? evidenceId}
             onPick={setActiveId}
             evidenceNote={analysis.evidenceNote}
           />
@@ -508,7 +539,7 @@ export default function FeedbackReport({
           <button
             type="button"
             className="fb-text-link"
-            onClick={() => openTab(FOCUS_TAB[opportunity.focus] || "clarity")}
+            onClick={seeEvidence}
           >
             See the evidence <ArrowRight size={16} aria-hidden="true" />
           </button>

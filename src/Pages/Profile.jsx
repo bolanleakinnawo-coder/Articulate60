@@ -9,7 +9,6 @@ import {
   CreditCard,
   Eye,
   EyeOff,
-  Flame,
   LifeBuoy,
   LogOut,
   Mic,
@@ -758,15 +757,6 @@ export default function Profile({ user }) {
         text: "Previous sessions and feedback",
         onClick: () => setView("practices"),
       },
-      {
-        icon: Flame,
-        title: "Day streak",
-        text:
-          streak.current > 0
-            ? `${streak.current} day${streak.current === 1 ? "" : "s"} · keep it going`
-            : "Practise today to start your streak",
-        onClick: () => setView("stats"),
-      },
     ],
     membership: [
       {
@@ -895,7 +885,8 @@ export default function Profile({ user }) {
           ))}
         </div>
 
-        {profileTab === "account" && (
+        {/* Log out and Delete account on every tab (Sheriff, round 8). */}
+        {(
           <div className="pf-list pf-list-logout">
             <NavRow
               icon={LogOut}

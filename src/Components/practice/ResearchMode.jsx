@@ -2,8 +2,12 @@ import { useCallback, useEffect, useState } from "react";
 import {
   ArrowLeft,
   Ban,
+  BookOpen,
   Brain,
+  Compass,
   ExternalLink,
+  Layers,
+  Lightbulb,
   Globe,
   NotebookPen,
   Pause,
@@ -20,6 +24,8 @@ import {
   saveResearchSession,
 } from "../../data/research";
 import "../../styles/ResearchMode.css";
+
+const HOW_TO_ICONS = [BookOpen, Compass, Layers, Lightbulb];
 
 const HOW_TO = [
   ["Understand the basics", "What is it? What does it mean?"],
@@ -84,15 +90,23 @@ export function ResearchIntro({ onBack, onReady }) {
           deeply with these four questions.
         </p>
         <div className="rm-howto-grid">
-          {HOW_TO.map(([title, text], i) => (
-            <div className="rm-howto-card" key={title}>
-              <span className="rm-howto-num">
-                {String(i + 1).padStart(2, "0")}
-              </span>
-              <h3>{title}</h3>
-              <p>{text}</p>
-            </div>
-          ))}
+          {HOW_TO.map(([title, text], i) => {
+            const Icon = HOW_TO_ICONS[i];
+            return (
+              <div className="rm-howto-card" key={title}>
+                <span className="rm-howto-top">
+                  <span className="rm-howto-icon" aria-hidden="true">
+                    <Icon size={17} strokeWidth={1.9} />
+                  </span>
+                  <span className="rm-howto-num">
+                    {String(i + 1).padStart(2, "0")}
+                  </span>
+                </span>
+                <h3>{title}</h3>
+                <p>{text}</p>
+              </div>
+            );
+          })}
         </div>
       </section>
 

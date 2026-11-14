@@ -3,11 +3,11 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   Bell,
   BellRing,
-  BookOpen,
   Check,
   Library as LibraryIcon,
   Loader2,
   Sparkles,
+  ArrowRight,
   X,
 } from "lucide-react";
 import whatDoISayImage from "../assets/whatdoisay.PNG";
@@ -29,6 +29,7 @@ import {
   startBookCheckout,
   verifyBookPayment,
 } from "../lib/learn";
+import heroImage from "../assets/learn-hero.jpeg";
 import { syncPendingPayments } from "../data/plans";
 import { isPaystackUrl, openPaystackPopup, preloadPaystack } from "../lib/paystackPopup";
 import {
@@ -40,7 +41,7 @@ import "../styles/Learn.css";
 const TABS = [
   { id: "all", label: "All" },
   { id: "explore", label: "Explore" },
-  { id: "library", label: "My library" },
+  { id: "library", label: "My Learning" },
 ];
 
 const COMING_SOON = [
@@ -62,6 +63,9 @@ const COMING_SOON = [
 // Prices are shown in naira and dollars, as on the price list. Paystack
 // charges in naira unless dollar payments are switched on (PAYSTACK_USD_ENABLED).
 const DISPLAY_CURRENCIES = ["NGN", "USD"];
+
+// Sheriff's wording, word for word (round 8).
+const FEATURED_HEADING = "YOU’RE NOT BAD AT SPEAKING. YOU JUST NEED THIS.";
 
 const pad = (n) => String(n).padStart(2, "0");
 
@@ -88,25 +92,33 @@ function NotifyButton({ on, busy, onClick, className = "" }) {
   );
 }
 
-function PriceLine({ product, prices, offerActive, currencies }) {
+// Round 8: full price first, then the launch price (Sheriff's order).
+// The featured guide reads "20% discount: ₦9,600 / $9.6".
+function PriceLine({ product, prices, offerActive, currencies, discountLabel }) {
   const priceOf = (c) => prices?.[c] || product.prices[c];
   const ngn = priceOf("NGN");
   const discounted = offerActive && ngn.now < ngn.full;
+  const full = currencies.map((c) => formatPrice(priceOf(c).full, c)).join(" / ");
+  const now = currencies.map((c) => formatPrice(priceOf(c).now, c)).join(" / ");
+  if (!discounted) {
+    return (
+      <div className="lx-price">
+        <span className="lx-price-now">{full}</span>
+      </div>
+    );
+  }
   return (
-    <div className="lx-price">
-      <span className="lx-price-now">
-        {currencies
-          .map((c) => formatPrice(offerActive ? priceOf(c).now : priceOf(c).full, c))
-          .join(" / ")}
-      </span>
-      {discounted && (
-        <>
-          <s className="lx-price-full">
-            {currencies.map((c) => formatPrice(priceOf(c).full, c)).join(" / ")}
-          </s>
+    <div className="lx-price lx-price-stack">
+      <s className="lx-price-full">{full}</s>
+      <span className="lx-price-row">
+        <span className="lx-price-now">
+          {discountLabel && <span className="lx-price-label">{discountLabel} </span>}
+          {now}
+        </span>
+        {!discountLabel && (
           <span className="lx-off">{percentOff(ngn.full, ngn.now)}% off</span>
-        </>
-      )}
+        )}
+      </span>
     </div>
   );
 }
@@ -132,6 +144,10 @@ function LaunchCard({ endsAt, offset, onEnded }) {
   });
   return (
     <section className="lx-launch" aria-labelledby="lx-launch-title">
+      <div className="lx-launch-badge" aria-hidden="true">
+        <strong>20%</strong>
+        <span>off</span>
+      </div>
       <div className="lx-launch-head">
         <span className="lx-launch-pill">Launch special</span>
         <h2 id="lx-launch-title" className="lx-launch-title">
@@ -427,7 +443,7 @@ export default function Learn() {
             </button>
           ) : (
             <button type="button" className="lx-cta" onClick={() => openBuy(id)}>
-              Buy access
+              Buy Access
             </button>
           )}
         </div>
@@ -516,31 +532,42 @@ export default function Learn() {
       )}
 
       {showShop && (
-        <section className="lx-reset" aria-labelledby="lx-reset-title">
-          <div className="lx-reset-main">
-            <span className="lx-featured-pill">
-              <Sparkles size={13} aria-hidden="true" /> Featured for you
+        // Featured for you: the original Learn card design (the one used for
+        // the 7-day communication reset), with Sheriff's text (round 8).
+        <section className="learn-hero lx-featured-hero" aria-labelledby="lx-reset-title">
+          <div className="learn-hero-main">
+            <span className="learn-badge">
+              <Sparkles size={14} aria-hidden="true" />
+              Featured for you
             </span>
-            <h2 id="lx-reset-title" className="lx-reset-title">{featured.title}</h2>
-            <p className="lx-reset-text">{featured.description}</p>
-            <PriceLine
-              product={featured}
-              prices={serverPrices[FEATURED_ID]}
-              offerActive={offerActive}
-              currencies={DISPLAY_CURRENCIES}
-            />
+            <h2 id="lx-reset-title" className="learn-hero-title">
+              {FEATURED_HEADING}
+            </h2>
+            <p className="learn-hero-text">{featured.description}</p>
+            <div className="lx-featured-hero-price">
+              <PriceLine
+                product={featured}
+                prices={serverPrices[FEATURED_ID]}
+                offerActive={offerActive}
+                currencies={DISPLAY_CURRENCIES}
+                discountLabel={`${percentOff(
+                  (serverPrices[FEATURED_ID]?.NGN || featured.prices.NGN).full,
+                  (serverPrices[FEATURED_ID]?.NGN || featured.prices.NGN).now,
+                )}% discount:`}
+              />
+            </div>
             {ownsAll(FEATURED_ID) ? (
-              <button type="button" className="lx-cta lx-cta-outline lx-reset-cta" onClick={() => read(FEATURED_ID)}>
-                <BookOpen size={16} aria-hidden="true" /> Read now
+              <button type="button" className="learn-cta" onClick={() => read(FEATURED_ID)}>
+                Read now <ArrowRight size={18} />
               </button>
             ) : (
-              <button type="button" className="lx-cta lx-reset-cta" onClick={() => openBuy(FEATURED_ID)}>
-                Buy access
+              <button type="button" className="learn-cta" onClick={() => openBuy(FEATURED_ID)}>
+                Buy Access <ArrowRight size={18} />
               </button>
             )}
           </div>
-          <div className="lx-reset-cover">
-            <BookCover id={FEATURED_ID} size="lg" />
+          <div className="learn-hero-media">
+            <img src={heroImage} alt="" className="learn-hero-img" />
           </div>
         </section>
       )}
@@ -552,7 +579,7 @@ export default function Learn() {
           <div className="lx-section-head">
             <h2>Continue learning</h2>
             <button type="button" className="lx-link" onClick={() => setTab("library")}>
-              My library
+              My Learning
             </button>
           </div>
           <div className="lx-progress-grid">
@@ -604,18 +631,18 @@ export default function Learn() {
       {tab === "library" && (
         <section className="lx-section" aria-labelledby="lx-lib-title">
           <div className="lx-section-head lx-section-head-col">
-            <h2 id="lx-lib-title">My library</h2>
-            <p>Every book you’ve bought, and how far you’ve read.</p>
+            <h2 id="lx-lib-title">My Learning</h2>
+            <p>Everything you've unlocked, in one place.</p>
           </div>
           {!data && !loadError ? (
-            <p className="lx-muted" role="status">Loading your library…</p>
+            <p className="lx-muted" role="status">Loading My Learning…</p>
           ) : library.length === 0 ? (
             <div className="lx-empty">
               <LibraryIcon size={28} aria-hidden="true" />
-              <h3>Your library is empty</h3>
-              <p>Books you buy will appear here, with your reading progress.</p>
-              <button type="button" className="lx-cta" onClick={() => setTab("explore")}>
-                Explore books
+              <h3>Your learning journey starts here</h3>
+              <p>Access everything they've purchased, started or completed.</p>
+              <button type="button" className="lx-cta" onClick={() => setTab("all")}>
+                Explore Learn
               </button>
             </div>
           ) : (
@@ -676,7 +703,7 @@ export default function Learn() {
               )}
             </div>
             <p className="lx-muted">
-              One payment, yours to keep. It goes straight into My library and
+              One payment, yours to keep. It goes straight into My Learning and
               you can read it on any device.
             </p>
             {checkoutError && <p className="learn-notify-error" role="alert">{checkoutError}</p>}

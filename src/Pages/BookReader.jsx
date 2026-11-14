@@ -1,6 +1,6 @@
 // Reads a book the member owns, one page at a time, and saves how far they
 // got (furthest page / total pages = "% completed") to the server, so
-// Continue learning and My library show it on every device.
+// Continue learning and My Learning show it on every device.
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
@@ -169,7 +169,7 @@ export default function BookReader() {
   return (
     <div className="learn-content lx-page br-page">
       <header className="br-head">
-        <button type="button" className="br-back" onClick={back} aria-label="Back to My library">
+        <button type="button" className="br-back" onClick={back} aria-label="Back to My Learning">
           <ArrowLeft size={18} />
         </button>
         <div className="br-head-text">
@@ -213,7 +213,7 @@ export default function BookReader() {
             soon as you can start reading.
           </p>
           <button type="button" className="lx-cta lx-cta-outline" onClick={back}>
-            Back to My library
+            Back to My Learning
           </button>
         </div>
       )}

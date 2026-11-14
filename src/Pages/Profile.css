@@ -3478,8 +3478,9 @@
 }
 
 .pf-tab.is-active {
-  background: var(--text-primary);
-  color: var(--bg-card);
+  /* Brand call-to-action colour (round 8), not white. */
+  background: var(--olive-primary);
+  color: var(--text-primary);
   font-weight: 600;
 }
 
@@ -3507,5 +3508,254 @@
   .pf-tab {
     padding: 9px 4px;
     font-size: 13px;
+  }
+}
+
+/* Round 8: "Your communication journey" kicker removed from Your Stats. */
+.pf-stats-hero h2:first-child {
+  margin-top: 0;
+}
+
+/* Round 8: Share a Win list. One top line with date, time and status pill. */
+.pf-win-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.pf-win-top .pf-win-date {
+  margin: 0;
+  font-size: 12px;
+}
+
+.pf-win-top .pf-win-status {
+  flex-shrink: 0;
+  gap: 6px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: rgba(121, 119, 78, 0.18);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.pf-win-top .pf-win-status.is-pending {
+  background: rgba(210, 184, 120, 0.14);
+}
+
+.pf-win-top .pf-win-status span {
+  width: 7px;
+  height: 7px;
+}
+
+.pf-win-card .pf-win-quote {
+  margin: 0;
+}
+
+/* ---------- Round 8: Manage Membership ---------- */
+/* Plan options: Renew first, Upgrade + Compare side by side, Cancel in red. */
+.pf-plan-options {
+  display: grid;
+  gap: 10px;
+}
+
+.pf-plan-options .pf-plan-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 11px 12px;
+}
+
+.pf-plan-options .pf-plan-renew {
+  width: 100%;
+  min-height: 46px;
+  font-size: 15px;
+}
+
+.pf-plan-options .pf-plan-actions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 10px;
+  max-width: none;
+}
+
+.pf-plan-action.is-secondary {
+  border: 1px solid var(--border);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+.pf-plan-action.is-secondary svg {
+  color: var(--olive-bright);
+}
+
+.pf-plan-action.is-secondary:hover {
+  border-color: var(--olive-bright);
+  background: var(--bg-secondary);
+}
+
+.pf-plan-cancel {
+  display: grid;
+  gap: 6px;
+  margin-top: 4px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.pf-plan-cancel-note {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 1.5;
+  text-align: center;
+}
+
+/* Cancel plan is red, never green. */
+.pf-cancel-button.pf-cancel-red {
+  width: 100%;
+  border: 1px solid #7a3a33;
+  background: #3a1f1d;
+  color: #f0b4ad;
+}
+
+.pf-cancel-button.pf-cancel-red:hover:not(:disabled) {
+  border-color: #b5554a;
+  background: #4a2420;
+  color: #ffd2cc;
+}
+
+.pf-dialog-actions .pf-cancel-button.pf-cancel-red {
+  border-color: #b5554a;
+  background: #b5554a;
+  color: #ffffff;
+}
+
+.pf-dialog-actions .pf-cancel-button.pf-cancel-red:hover:not(:disabled) {
+  background: #c8635a;
+}
+
+@media (min-width: 900px) {
+  .pf-plan-options {
+    max-width: 560px;
+  }
+}
+
+/* Billing preferences: the price sits on every option. */
+.pf-period-text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.pf-period-text .pf-period-label {
+  flex: none;
+}
+
+.pf-period-text .pf-period-save {
+  font-size: 12px;
+}
+
+.pf-period-price {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.pf-period-price strong {
+  color: var(--text-primary);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.pf-period-price span {
+  color: var(--text-secondary);
+  font-size: 11.5px;
+}
+
+.pf-currency-first {
+  margin-top: 14px;
+}
+
+.pf-period-for {
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 400;
+}
+
+@media (max-width: 360px) {
+  .pf-period {
+    gap: 10px;
+    padding: 12px;
+  }
+
+  .pf-period-price strong {
+    font-size: 14px;
+  }
+}
+
+.pf-plan-options .pf-plan-action svg {
+  flex-shrink: 0;
+}
+
+@media (max-width: 400px) {
+  .pf-plan-options .pf-plan-actions {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Round 8 follow-up: compact plan buttons in one row. */
+.pf-plan-actions.pf-plan-actions-compact {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.pf-plan-actions-compact .pf-plan-action {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 6px;
+  min-height: 34px;
+  padding: 7px 14px;
+  border-radius: 999px;
+  font-size: 13px;
+}
+
+.pf-plan-actions-compact .pf-plan-action svg {
+  flex-shrink: 0;
+}
+
+.pf-cancel-panel .pf-cancel-button.pf-cancel-red {
+  width: 100%;
+}
+
+@media (max-width: 420px) {
+  .pf-plan-actions-compact {
+    flex-wrap: nowrap;
+  }
+
+  .pf-plan-actions-compact .pf-plan-action {
+    flex: 1 1 auto;
+    justify-content: center;
+    padding: 7px 10px;
+    font-size: 12.5px;
+  }
+
+  .pf-plan-actions-compact .pf-plan-action svg {
+    display: none;
+  }
+}
+
+@media (max-width: 340px) {
+  .pf-plan-actions-compact .pf-plan-action {
+    padding: 7px 8px;
+    font-size: 12px;
   }
 }

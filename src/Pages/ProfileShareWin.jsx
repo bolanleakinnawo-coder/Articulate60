@@ -178,11 +178,15 @@ export default function ProfileShareWin({ user, onBack }) {
           const status = STATUS[win.status] || STATUS.pending;
           return (
             <article className="pf-win-card" key={win._id}>
+              {/* Round 8: one top line (date, time and current status) and
+                  no Sent / In review / Published steps. */}
+              <div className="pf-win-top">
+                <p className="pf-win-date">{formatWhen(win.createdAt)}</p>
+                <p className={`pf-win-status ${status.className}`}>
+                  <span aria-hidden="true" /> {status.label}
+                </p>
+              </div>
               <p className="pf-win-quote">{win.quote}</p>
-              <p className="pf-win-date">{formatWhen(win.createdAt)}</p>
-              <p className={`pf-win-status ${status.className}`}>
-                <span aria-hidden="true" /> {status.label}
-              </p>
             </article>
           );
         })}
@@ -196,22 +200,23 @@ function displayNameFor(user) {
   return name.length >= 2 ? name.slice(0, 40) : "Loquiex member";
 }
 
-// "Today · 10:30 AM", "Yesterday · 4:15 PM", "3 Nov · 9:00 AM"
+// "Today · 10:30 am", "Yesterday · 4:15 pm", "3 Nov · 9:00 am"
 function formatWhen(date) {
   if (!date) return "";
   const d = new Date(date);
   const today = new Date();
   const yesterday = new Date();
   yesterday.setDate(today.getDate() - 1);
-  const time = d.toLocaleTimeString(undefined, {
-    hour: "numeric",
-    minute: "2-digit",
-  });
+  // 12-hour clock, "9:40 am".
+  const time = d
+    .toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true })
+    .replace(/\s?AM$/i, " am")
+    .replace(/\s?PM$/i, " pm");
   let day;
   if (d.toDateString() === today.toDateString()) day = "Today";
   else if (d.toDateString() === yesterday.toDateString()) day = "Yesterday";
   else
-    day = d.toLocaleDateString(undefined, {
+    day = d.toLocaleDateString("en-GB", {
       day: "numeric",
       month: "short",
       ...(d.getFullYear() !== today.getFullYear() && { year: "numeric" }),

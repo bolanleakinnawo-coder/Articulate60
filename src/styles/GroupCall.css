@@ -2984,3 +2984,254 @@
 .gpc-upsell-btn:hover {
   background: var(--olive-bright);
 }
+
+/* ======================================================================
+   Round 8 (Sheriff, 2026-11-14): Group tab
+   ====================================================================== */
+
+/* Today's call time sits to the side of "Practise Together". */
+.gpt-intro-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.gpt-intro-row .practice-panel-intro.gpt-intro,
+.practice-group-panel .gpt-intro-row .practice-panel-intro.gpt-intro {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin-bottom: 0;
+}
+
+.cts {
+  position: relative;
+  display: flex;
+  flex: 0 0 auto;
+  align-items: flex-start;
+  gap: 6px;
+  padding-top: 2px;
+  text-align: right;
+}
+
+.cts-text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 1px;
+}
+
+.cts-value {
+  color: var(--text-primary);
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.2;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.cts-label {
+  color: var(--text-secondary);
+  font-size: 11.5px;
+  white-space: nowrap;
+}
+
+.cts.is-low .cts-value {
+  color: var(--accent-gold);
+}
+
+.cts.is-out .cts-value {
+  color: var(--text-muted);
+}
+
+.cts-info {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  margin-top: 1px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: none;
+  color: var(--olive-bright);
+  cursor: pointer;
+}
+
+.cts-info:hover,
+.cts-info[aria-expanded="true"] {
+  color: var(--text-primary);
+}
+
+.cts-pop {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 20;
+  width: min(250px, 78vw);
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 1.5;
+  text-align: left;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+}
+
+@media (max-width: 360px) {
+  .cts-value {
+    font-size: 15px;
+  }
+
+  .cts-label {
+    font-size: 11px;
+  }
+}
+
+/* Start a practice / Join a private group: a bit bigger so they stand out. */
+.gpt-actions {
+  gap: 12px;
+}
+
+.gpt-action {
+  gap: 14px;
+  min-height: 76px;
+  padding: 18px 18px;
+  border-radius: var(--radius-lg);
+}
+
+.gpt-action > svg {
+  width: 24px;
+  height: 24px;
+}
+
+.gpt-action-text {
+  gap: 4px;
+}
+
+.gpt-action-text strong {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.gpt-action-text span {
+  font-size: 13px;
+}
+
+.gpt-action:not(.gpt-action-primary) {
+  border-color: rgba(121, 119, 78, 0.55);
+  background: linear-gradient(0deg, rgba(100, 103, 66, 0.1), rgba(100, 103, 66, 0.1)), var(--bg-card);
+}
+
+/* Live / upcoming / scheduled call cards: smaller topic and details. */
+.gpt-room {
+  gap: 8px;
+  padding: 14px 16px;
+}
+
+.gpt-badge {
+  gap: 5px;
+  padding: 4px 10px;
+  font-size: 11px;
+}
+
+.gpt-badge-soon svg {
+  width: 12px;
+  height: 12px;
+}
+
+.gpt-seats {
+  font-size: 11.5px;
+}
+
+.gpt-room-title {
+  margin: 2px 0 0;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.gpt-room .gpt-room-meta {
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.gpt-room-host,
+.gpt-planned-code {
+  font-size: 12px;
+}
+
+.gpt-room-foot {
+  align-items: center;
+  gap: 10px;
+  padding-top: 2px;
+}
+
+/* Remind me / Join: the brand call-to-action colour used across Group. */
+.gpt-room-join,
+.gpt-planned-actions .gpt-join {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border: none;
+  border-radius: 10px;
+  background: var(--olive-primary);
+  color: var(--text-primary);
+  font-size: 12.5px;
+  font-weight: 600;
+  transition: background 0.2s ease;
+}
+
+.gpt-room-join svg,
+.gpt-room-join[aria-pressed="true"] svg {
+  width: 14px;
+  height: 14px;
+  color: var(--text-primary);
+}
+
+.gpt-room-join:hover:not(:disabled),
+.gpt-planned-actions .gpt-join:hover:not(:disabled) {
+  background: var(--olive-bright);
+  color: var(--text-primary);
+}
+
+.gpt-room-join[aria-pressed="true"] {
+  border: 1px solid var(--olive-bright);
+  background: rgba(100, 103, 66, 0.35);
+}
+
+.gpt-room-join:disabled {
+  background: var(--bg-secondary);
+  color: var(--text-muted);
+}
+
+.gpt-room-join:disabled svg {
+  color: var(--text-muted);
+}
+
+@media (max-width: 360px) {
+  .gpt-room-top {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+}
+
+@media (max-width: 359px) {
+  .gpt-intro-row {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .gpt-intro-row .practice-panel-intro.gpt-intro,
+  .practice-group-panel .gpt-intro-row .practice-panel-intro.gpt-intro {
+    flex-basis: 100%;
+  }
+
+  .cts {
+    margin-left: auto;
+  }
+}

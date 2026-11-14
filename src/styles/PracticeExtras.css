@@ -739,3 +739,24 @@
   font-size: 13px;
   color: var(--text-primary);
 }
+
+/* Round 8: the button only wraps its text and starts on the same line as
+   "Ready to practise with others?" (icon 30px + 10px gap), so it no longer
+   competes with Spin the jar. */
+.practice-others-btn {
+  display: inline-flex;
+  width: auto;
+  max-width: calc(100% - 40px);
+  margin-left: 40px;
+  padding: 7px 12px;
+  font-size: 12.5px;
+  border-radius: 8px;
+  white-space: nowrap;
+}
+
+@media (max-width: 340px) {
+  .practice-others-btn {
+    white-space: normal;
+    text-align: left;
+  }
+}

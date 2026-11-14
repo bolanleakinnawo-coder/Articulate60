@@ -911,16 +911,6 @@
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
-/* Featured for you: the featured guide, with its cover on the right. */
-.lx-reset {
-  grid-template-columns: minmax(0, 1fr) auto;
-}
-
-.lx-reset-cover {
-  display: flex;
-  justify-content: center;
-}
-
 .lx-reset .lx-price {
   margin-top: 0;
 }
@@ -1024,35 +1014,233 @@
   }
 }
 
-@media (max-width: 560px) {
-  .lx-reset {
-    grid-template-columns: minmax(0, 1fr) auto;
-  }
 
-  .lx-reset-cover .lx-cover-lg {
-    width: 84px;
-    font-size: 9px;
-  }
 
-  .lx-reset-title {
-    font-size: 20px;
-  }
-
+@media (max-width: 380px) {
   .lx-reset-cta {
-    min-width: 0;
+    width: 100%;
+  }
+}
+
+/* ---------- Round 8 (Sheriff, 2026-11-14) ---------- */
+
+/* Featured for you: the earlier design (illustration on the right), with
+   Sheriff's heading in capitals. */
+.lx-reset-title {
+  font-size: clamp(20px, 2.6vw, 28px);
+  line-height: 1.15;
+  letter-spacing: 0;
+}
+
+/* Prices: full price first, then the launch price. */
+.lx-price.lx-price-stack {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+}
+
+.lx-price-row {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+}
+
+.lx-price-label {
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+/* Launch special: a celebratory card with a 20% badge and a clear timer. */
+.lx-launch {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px 20px;
+  padding: 18px 20px;
+  overflow: hidden;
+  border: 1px solid rgba(121, 119, 78, 0.6);
+  border-radius: var(--radius-lg);
+  background:
+    radial-gradient(120% 140% at 0% 0%, rgba(100, 103, 66, 0.38), transparent 60%),
+    var(--bg-card);
+}
+
+.lx-launch-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: var(--olive-primary);
+  box-shadow:
+    0 0 0 4px rgba(100, 103, 66, 0.25),
+    0 8px 22px rgba(0, 0, 0, 0.35);
+  color: var(--text-primary);
+  line-height: 1;
+}
+
+.lx-launch-badge strong {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.lx-launch-badge span {
+  margin-top: 2px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.lx-launch-head {
+  gap: 6px;
+}
+
+.lx-launch-pill {
+  align-self: flex-start;
+  padding: 3px 10px;
+  border: 1px solid var(--accent-gold);
+  background: transparent;
+  color: var(--text-primary);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.lx-launch-title {
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.lx-launch-text {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.lx-launch-timer {
+  align-items: center;
+  gap: 8px;
+}
+
+.lx-launch-label {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.lx-timer {
+  grid-template-columns: repeat(4, 58px);
+  gap: 6px;
+}
+
+.lx-timer-box {
+  padding: 8px 2px 6px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg-secondary);
+}
+
+.lx-timer-box strong {
+  font-size: 20px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.lx-timer-box span {
+  margin-top: 2px;
+  color: var(--text-secondary);
+  font-size: 10px;
+}
+
+.lx-launch-note {
+  grid-column: 1 / -1;
+  margin: 0;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+@media (max-width: 760px) {
+  .lx-launch {
+    grid-template-columns: auto minmax(0, 1fr);
+    padding: 16px;
+  }
+
+  .lx-launch-timer {
+    grid-column: 1 / -1;
+    align-items: stretch;
+  }
+
+  .lx-launch-label {
+    text-align: left;
+  }
+
+  .lx-timer {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    max-width: none;
   }
 }
 
 @media (max-width: 380px) {
-  .lx-reset {
-    grid-template-columns: 1fr;
+  .lx-launch {
+    gap: 12px;
+    padding: 14px;
   }
 
-  .lx-reset-cover {
-    display: none;
+  .lx-launch-badge {
+    width: 58px;
+    height: 58px;
   }
 
-  .lx-reset-cta {
-    width: 100%;
+  .lx-launch-badge strong {
+    font-size: 18px;
+  }
+
+  .lx-launch-title {
+    font-size: 16px;
+  }
+
+  .lx-launch-text {
+    font-size: 13px;
+  }
+
+  .lx-timer-box strong {
+    font-size: 17px;
+  }
+}
+
+/* Round 8 follow-up: Featured for you uses the original Learn card
+   (.learn-hero in globals.css). Only the prices are added. */
+.lx-featured-hero .lx-price {
+  margin-top: 0;
+}
+
+.lx-featured-hero .lx-price-now {
+  font-size: 17px;
+}
+
+.lx-featured-hero .lx-price-full {
+  font-size: 14px;
+}
+
+@media (max-width: 760px) {
+  .lx-featured-hero .lx-featured-hero-price {
+    grid-row: 5;
+  }
+
+  .lx-featured-hero .learn-cta {
+    grid-row: 6;
   }
 }
