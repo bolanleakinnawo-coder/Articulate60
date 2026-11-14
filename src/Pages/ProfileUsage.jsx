@@ -20,14 +20,6 @@ function formatResetDay(date) {
   });
 }
 
-// "7 Nov"
-function formatShortDay(date) {
-  return new Date(date).toLocaleDateString("en-GB", {
-    day: "numeric",
-    month: "short",
-  });
-}
-
 // Call time is always hours and minutes: "1 hr 30 min", "1 hr", "45 min".
 function formatCallTime(minutes) {
   const total = Math.max(0, Math.floor(Number(minutes) || 0));
@@ -124,12 +116,16 @@ export default function ProfileUsage({ user, recordings, onBack, onPlans }) {
             const usedToday = group.usedToday || 0;
             const leftToday = Math.max(0, perDay - usedToday);
             if (period === "month") {
+              // Monthly allowance = daily call time x 30 days (Flourish:
+              // 1 hr 30 min x 30 = 45 hr), shown like the AI feedback card.
+              const perMonth = groupMinutesPerMonth || perDay * 30;
+              const usedMonth = group.usedThisMonth || 0;
               return {
-                big: formatCallTime(group.usedThisMonth || 0),
-                label: "call time used this month",
-                right: `Since ${formatShortDay(usage.cycle.start)}`,
-                pct: null,
-                foot: `Your monthly usage resets on ${resetDay}, a month after the day you paid.`,
+                big: formatCallTime(Math.max(0, perMonth - usedMonth)),
+                label: "call time left this month",
+                right: `${formatCallTime(usedMonth)} of ${formatCallTime(perMonth)} used`,
+                pct: Math.min(100, Math.round((usedMonth / perMonth) * 100)),
+                foot: `${formatCallTime(perDay)} a day for 30 days · resets on ${resetDay}, a month after the day you paid.`,
               };
             }
             return {

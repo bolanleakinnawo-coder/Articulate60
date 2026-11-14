@@ -95,8 +95,10 @@ export default function ProfileShareWin({ user, onBack }) {
         <span className="pf-row-icon pf-win-hero-icon">
           <Trophy size={26} />
         </span>
-        <h2>What&apos;s a communication win you&apos;re celebrating today?</h2>
-        <p>Big or small, tell us about the moment.</p>
+        <span className="pf-win-hero-text">
+          <h2>What&apos;s a communication win you&apos;re celebrating today?</h2>
+          <p>Big or small, tell us about the moment.</p>
+        </span>
       </section>
 
       <form className="pf-win-form" onSubmit={handleSubmit}>

@@ -26,7 +26,7 @@ Everything from round 7 is kept, including the in-app Paystack payments.
    - Word Playbook and Grammar Playbook show ₦3,500 / $3.5, then ₦2,800 / $2.8, with your descriptions.
    - Every button says **Buy Access**.
    Prices show in your order, the full price first and the discounted price under it.
-6. **"My library" is now "My Learning"**, with your text: "Everything you've unlocked, in one place." When it's empty it shows "Your learning journey starts here" / "Access everything they've purchased, started or completed." and an **Explore Learn** button. The book reader's back button and the buy pop-up say My Learning too.
+6. **"My library" is now "My Learning"**, with your text: "Everything you've unlocked, in one place." When it's empty it shows "Your learning journey starts here" / "Access everything you've purchased, started or completed." and an **Explore Learn** button. The book reader's back button and the buy pop-up say My Learning too.
 7. **Profile:**
    - Day streak is removed from Activity.
    - The selected Activity / Membership / Account pill uses the brand button colour, not white.
@@ -52,6 +52,13 @@ Everything from round 7 is kept, including the in-app Paystack payments.
 - **Manage Membership:** Renew, Upgrade and Compare plans are now three small buttons on one line. **Cancel plan** is back on its own at the very end of the page, in red.
 - **New subscribers:** the price on every billing option (Monthly, 3, 6 and 12 months) works for everyone, because there's one plans screen. New members get there from the Group practice page, from Upgrade, or from Profile. When someone comes from the Group practice page, Flourish is now picked for them, because Bloom doesn't include group practice. See `previews/membership-from-group-*.png`.
 
+## Second follow-up (same day)
+
+- **My Learning** empty state now says "Access everything you've purchased, started or completed."
+- **Share a Win:** the trophy sits on the left and "What's a communication win you're celebrating today?" sits on the right, side by side on every screen, including 320px.
+- **Manage Membership:** the Renew, Upgrade and Compare plans icons now show on small phones too.
+- **Usage & Limits > This month > Group practice:** now works like the AI feedback card. It shows the call time left this month, how much of the monthly allowance is used (for example "46 min of 45 hr used") and a progress bar. Flourish's monthly allowance is 1 hr 30 min a day for 30 days, which is 45 hr. The Today tab is unchanged.
+
 ## Small fixes found along the way
 
 - Help & support said the reminder comes 10 minutes before a scheduled practice, but it comes 5 minutes before. This is now correct in the FAQ and on the invite page.
@@ -60,7 +67,6 @@ Everything from round 7 is kept, including the in-app Paystack payments.
 ## Please check
 
 - **Landing page plan cards** still say "Up to 90 group practice minutes per day" and "2,700 group practice minutes per month". That's your landing page wording, so I didn't change it. If you'd like hours and minutes there too (for example "Up to 1 hr 30 min of group practice a day"), send me the exact lines.
-- **My Learning empty state** uses your words exactly: "Access everything they've purchased…". If you meant "you've", tell me and I'll change that one word.
 
 ## Testing
 

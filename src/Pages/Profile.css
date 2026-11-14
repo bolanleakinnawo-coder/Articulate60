@@ -3759,3 +3759,70 @@
     font-size: 12px;
   }
 }
+
+/* Round 8 follow-up: Share a Win hero, trophy on the left and the question
+   on the right (side by side on every screen). */
+.pf-win-hero {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.pf-win-hero .pf-win-hero-icon {
+  flex: 0 0 auto;
+  margin: 0;
+}
+
+.pf-win-hero-text {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.pf-win-hero-text h2,
+.pf-win-hero-text p {
+  margin: 0;
+}
+
+@media (max-width: 360px) {
+  .pf-win-hero {
+    gap: 10px;
+  }
+
+  .pf-win-hero .pf-win-hero-icon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .pf-win-hero-text h2 {
+    font-size: 18px;
+  }
+}
+
+/* Membership buttons keep their icons on small screens. */
+@media (max-width: 420px) {
+  .pf-plan-actions-compact .pf-plan-action {
+    gap: 5px;
+    padding: 7px 8px;
+  }
+
+  .pf-plan-actions-compact .pf-plan-action svg {
+    display: inline-block;
+    width: 13px;
+    height: 13px;
+  }
+}
+
+@media (max-width: 340px) {
+  .pf-plan-actions-compact .pf-plan-action {
+    gap: 4px;
+    padding: 7px 6px;
+    font-size: 11.5px;
+  }
+
+  .pf-plan-actions-compact .pf-plan-action svg {
+    width: 12px;
+    height: 12px;
+  }
+}

@@ -640,7 +640,7 @@ export default function Learn() {
             <div className="lx-empty">
               <LibraryIcon size={28} aria-hidden="true" />
               <h3>Your learning journey starts here</h3>
-              <p>Access everything they've purchased, started or completed.</p>
+              <p>Access everything you've purchased, started or completed.</p>
               <button type="button" className="lx-cta" onClick={() => setTab("all")}>
                 Explore Learn
               </button>
