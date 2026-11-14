@@ -28,22 +28,26 @@ import {
   refreshPlanFromServer,
   resumePlan,
   startCheckout,
+  syncPendingPayments,
   verifyPayment,
 } from "../data/plans";
+import { preloadPaystack } from "../lib/paystackPopup";
 import MembershipCard from "../Components/MembershipCard";
 import "./Profile.css";
 
 const REASONS = {
   feedback: "Unlock AI feedback and see exactly how you communicated.",
+  unlimited: "Unlimited seats in group practice come with Loquiex Infinity.",
   group: () =>
     `Group practice comes with Loquiex ${groupPracticePlanNames().join(" and Loquiex ")}.`,
 };
 
 // Manage Membership, opened from Profile, "Unlock my AI feedback" and group
 // practice. Plans, prices and allowances come from data/plans.js.
-// Paying goes through Paystack's secure checkout page. Paystack sends the
-// member back here with ?reference=..., and the server confirms the payment
-// with Paystack before the plan changes (the app never sets the plan itself).
+// Paying opens Paystack's secure pop-up inside the app. When it finishes, the
+// server confirms the payment with Paystack before the plan changes (the app
+// never sets the plan itself). Payments that were left unconfirmed (pop-up
+// closed, signal lost) are checked again every time this page and the app open.
 export default function Membership() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -58,7 +62,7 @@ export default function Membership() {
     (p) => p.id === (sub?.periodId || "monthly"),
   );
   const [selectedId, setSelectedId] = useState(
-    plan.id === "free" ? "bloom" : plan.id,
+    reason === "unlimited" ? "infinity" : plan.id === "free" ? "bloom" : plan.id,
   );
   const [periodId, setPeriodId] = useState(sub?.periodId || "monthly");
   const [detailsOpen, setDetailsOpen] = useState(false);
@@ -139,13 +143,20 @@ export default function Membership() {
 
   const back = () => (fromProfile ? navigate("/app/profile") : navigate(-1));
 
-  // Plan and payments from the server.
+  // Plan and payments from the server. Any payment that went through but
+  // wasn't confirmed yet is applied first.
   useEffect(() => {
     let alive = true;
-    refreshPlanFromServer().then((data) => {
-      if (!alive || !data) return;
-      setBilling(data);
-      setVersion((v) => v + 1);
+    preloadPaystack();
+    const load = () =>
+      refreshPlanFromServer().then((data) => {
+        if (!alive || !data) return;
+        setBilling(data);
+        setVersion((v) => v + 1);
+      });
+    load();
+    syncPendingPayments().then((applied) => {
+      if (alive && applied.length) load();
     });
     return () => {
       alive = false;
@@ -194,13 +205,20 @@ export default function Membership() {
     setPayError("");
     setPaying(true);
     try {
-      await startCheckout(selected.id, periodId, payCurrency);
-      // The browser is now going to Paystack.
+      const result = await startCheckout(selected.id, periodId, payCurrency);
+      setPaying(false);
+      if (result.status === "success") {
+        check(result.reference);
+      } else {
+        // Closed the pop-up. A bank transfer can still come through after,
+        // so check quietly; the plan updates on its own if it does.
+        check(result.reference, { quiet: true });
+      }
     } catch (err) {
       setPaying(false);
       setPayError(
         err.response?.data?.message ||
-          "Couldn't open the payment page. Check your connection and try again.",
+          "Couldn't open the payment. Check your connection and try again.",
       );
     }
   };

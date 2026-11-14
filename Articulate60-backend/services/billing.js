@@ -63,16 +63,127 @@ async function settlePayment(payment) {
       { returnDocument: "after" },
     );
   }
+  if (!payment.appliedAt) tellMember(payment);
+  const duplicate = await findDuplicateOf(payment);
+  if (duplicate) {
+    console.warn(`Payment ${payment.reference} looks like a duplicate of ${duplicate}: check Admin > Payments.`);
+  }
   return Payment.findOneAndUpdate(
     { _id: payment._id },
     {
       $set: {
         appliedAt: payment.appliedAt || new Date(),
         ...(applied?.expiresAt ? { planStartsAt: applied.startsAt, planExpiresAt: applied.expiresAt } : {}),
+        ...(duplicate ? { possibleDuplicate: true, duplicateOf: duplicate } : {}),
       },
     },
     { returnDocument: "after" },
   );
+}
+
+// Live "your plan is active" / "your book is in your library" in the app,
+// if the member has it open (e.g. the webhook landed while they waited).
+function tellMember(payment) {
+  try {
+    const { emitToUser } = require("./realtime");
+    emitToUser(String(payment.user), "payment:applied", {
+      reference: payment.reference,
+      kind: payment.kind || "plan",
+      planId: payment.kind === "book" ? null : payment.planId,
+      productId: payment.kind === "book" ? payment.productId : null,
+    });
+  } catch (err) {
+    console.error("Payment notice failed:", err.message);
+  }
+}
+
+// Another successful payment by the same account for the same thing: the
+// same book (any time, they already own it) or the same plan within a day.
+// The plan time is still added (the money was taken); Admin shows it as a
+// possible duplicate so it can be refunded in Paystack.
+const DUPLICATE_PLAN_WINDOW_MS = 24 * 60 * 60 * 1000;
+async function findDuplicateOf(payment) {
+  const query = {
+    _id: { $ne: payment._id },
+    user: payment.user,
+    status: "success",
+    refundedAt: null,
+  };
+  if (payment.kind === "book") {
+    const books = PRODUCTS[payment.productId]?.books || [];
+    const sameBooks = Object.entries(PRODUCTS)
+      .filter(([, p]) => p.books.some((b) => books.includes(b)))
+      .map(([id]) => id);
+    Object.assign(query, { kind: "book", productId: { $in: sameBooks } });
+  } else {
+    const at = new Date(payment.createdAt || Date.now()).getTime();
+    Object.assign(query, {
+      kind: { $ne: "book" },
+      planId: payment.planId,
+      createdAt: {
+        $gte: new Date(at - DUPLICATE_PLAN_WINDOW_MS),
+        $lte: new Date(at + DUPLICATE_PLAN_WINDOW_MS),
+      },
+    });
+  }
+  const other = await Payment.findOne(query, { reference: 1 }).sort({ createdAt: 1 }).lean();
+  return other?.reference || null;
+}
+
+// Payments still waiting on Paystack (the member closed the pop-up, lost
+// connection, or the webhook didn't arrive). Asks Paystack about each and
+// applies the paid ones to the account that STARTED the payment
+// (Payment.user), whoever is signed in on this device.
+const OPEN_STATUSES = ["pending", "abandoned"];
+const LOOK_BACK_MS = 7 * 24 * 60 * 60 * 1000;
+
+async function settleOpen(query, { limit, minGapMs }) {
+  const now = Date.now();
+  const due = await Payment.find({
+    ...query,
+    status: { $in: OPEN_STATUSES },
+    createdAt: { $gte: new Date(now - LOOK_BACK_MS) },
+    $or: [{ lastCheckedAt: null }, { lastCheckedAt: { $lte: new Date(now - minGapMs) } }],
+  })
+    .sort({ lastCheckedAt: 1, createdAt: -1 })
+    .limit(limit);
+  const applied = [];
+  for (const p of due) {
+    await Payment.updateOne({ _id: p._id }, { $set: { lastCheckedAt: new Date() } });
+    try {
+      const after = await settlePayment(p);
+      if (after?.status === "success" && after.appliedAt) applied.push(after);
+    } catch (err) {
+      if (err.code === "NOT_CONFIGURED") break;
+      console.error(`Pending check failed for ${p.reference}:`, err.message);
+    }
+  }
+  return applied;
+}
+
+// One member's open payments (app open, Membership, Learn).
+function settlePendingFor(userId) {
+  if (!paystack.isConfigured()) return Promise.resolve([]);
+  return settleOpen({ user: userId }, { limit: 5, minGapMs: 20 * 1000 });
+}
+
+// Everyone's open payments, every few minutes, so a payment is applied even
+// if the webhook never arrives and the member doesn't open the app.
+let sweepTimer = null;
+function startPendingPaymentSweep(intervalMs = 5 * 60 * 1000) {
+  if (sweepTimer) return;
+  const run = async () => {
+    if (!paystack.isConfigured()) return;
+    try {
+      const applied = await settleOpen({}, { limit: 40, minGapMs: 4 * 60 * 1000 });
+      if (applied.length) console.log(`Pending sweep applied ${applied.length} payment(s).`);
+    } catch (err) {
+      console.error("Pending sweep failed:", err.message);
+    }
+  };
+  sweepTimer = setInterval(run, intervalMs);
+  sweepTimer.unref?.();
+  setTimeout(run, 30 * 1000).unref?.();
 }
 
 function mismatch(payment, tx) {
@@ -155,4 +266,4 @@ async function addBooksToLibrary(payment) {
   return { books: product.books };
 }
 
-module.exports = { settlePayment };
+module.exports = { settlePayment, settlePendingFor, startPendingPaymentSweep };

@@ -218,4 +218,130 @@ router.post("/learn/announce/:productId", async (req, res) => {
   }
 });
 
+// ---------- Payments: recent payments, duplicates, check by reference ----------
+
+const { settlePayment } = require("../services/billing");
+const paystackApi = require("../services/paystack");
+const { addMonths } = require("../utils/plans");
+const PLAN_NAMES = { bloom: "Bloom", flourish: "Flourish", infinity: "Infinity" };
+
+function itemName(p) {
+  if (p.kind === "book") return PRODUCTS[p.productId]?.title || p.productId;
+  const months = p.months === 1 ? "1 month" : `${p.months} months`;
+  return `${PLAN_NAMES[p.planId] || p.planId} · ${months}`;
+}
+
+function adminPayment(p) {
+  const u = p.user && typeof p.user === "object" ? p.user : null;
+  return {
+    reference: p.reference,
+    kind: p.kind || "plan",
+    item: itemName(p),
+    amount: p.amountMinor / 100,
+    currency: p.currency,
+    status: p.status,
+    flagReason: p.flagReason || "",
+    mode: p.mode,
+    possibleDuplicate: Boolean(p.possibleDuplicate),
+    duplicateOf: p.duplicateOf || "",
+    refundedAt: p.refundedAt,
+    createdAt: p.createdAt,
+    paidAt: p.paidAt,
+    appliedAt: p.appliedAt,
+    user: u ? { username: u.username, email: u.email, name: u.fullName } : null,
+  };
+}
+
+const PAYMENT_USER_FIELDS = "username email fullName";
+
+// GET /api/admin/payments?filter=all|duplicates|pending|problems
+router.get("/payments", async (req, res) => {
+  const filter = String(req.query.filter || "all");
+  const query = {
+    duplicates: { possibleDuplicate: true },
+    pending: { status: { $in: ["pending", "abandoned"] } },
+    problems: { status: "flagged" },
+  }[filter] || {};
+  try {
+    const [payments, counts] = await Promise.all([
+      Payment.find(query).sort({ createdAt: -1 }).limit(200).populate("user", PAYMENT_USER_FIELDS).lean(),
+      Payment.aggregate([
+        {
+          $group: {
+            _id: null,
+            paid: { $sum: { $cond: [{ $eq: ["$status", "success"] }, 1, 0] } },
+            pending: { $sum: { $cond: [{ $in: ["$status", ["pending", "abandoned"]] }, 1, 0] } },
+            duplicates: {
+              $sum: { $cond: [{ $and: ["$possibleDuplicate", { $eq: ["$refundedAt", null] }] }, 1, 0] },
+            },
+            problems: { $sum: { $cond: [{ $eq: ["$status", "flagged"] }, 1, 0] } },
+          },
+        },
+      ]),
+    ]);
+    const c = counts[0] || {};
+    res.json({
+      payments: payments.map(adminPayment),
+      counts: { paid: c.paid || 0, pending: c.pending || 0, duplicates: c.duplicates || 0, problems: c.problems || 0 },
+      mode: paystackApi.mode(),
+    });
+  } catch (error) {
+    console.error("Admin payments failed:", error);
+    res.status(500).json({ message: "Could not load payments." });
+  }
+});
+
+// POST /api/admin/payments/check { reference } — asks Paystack about one
+// payment now and, if it was paid, gives it to the account that started it.
+router.post("/payments/check", async (req, res) => {
+  const reference = String(req.body?.reference || "").trim();
+  if (!reference) return res.status(400).json({ message: "Enter a payment reference." });
+  try {
+    let payment = await Payment.findOne({ reference });
+    if (!payment) return res.status(404).json({ message: "No Loquiex payment has that reference." });
+    if (!paystackApi.isConfigured()) {
+      return res.status(503).json({ message: "PAYSTACK_SECRET_KEY isn't set on the server." });
+    }
+    payment = await settlePayment(payment);
+    const full = await Payment.findById(payment._id).populate("user", PAYMENT_USER_FIELDS).lean();
+    res.json({ payment: adminPayment(full) });
+  } catch (error) {
+    console.error("Admin payment check failed:", error.message);
+    res.status(502).json({ message: `Paystack didn't answer: ${error.message}` });
+  }
+});
+
+// POST /api/admin/payments/:reference/refunded — after refunding in Paystack.
+// Takes back what the payment gave: plan time for a plan, the book for a
+// book (only if this payment is the one that added it).
+router.post("/payments/:reference/refunded", async (req, res) => {
+  try {
+    const payment = await Payment.findOne({ reference: req.params.reference });
+    if (!payment) return res.status(404).json({ message: "Unknown payment." });
+    if (payment.refundedAt) return res.json({ payment: adminPayment(payment.toObject()) });
+    if (payment.status !== "success") {
+      return res.status(409).json({ message: "Only paid payments can be marked as refunded." });
+    }
+
+    if (payment.appliedAt && payment.kind === "book") {
+      await LibraryItem.deleteMany({ user: payment.user, paymentRef: payment.reference });
+    } else if (payment.appliedAt) {
+      const user = await User.findById(payment.user, { plan: 1, planExpiresAt: 1, appliedPaymentRefs: 1 });
+      if (user?.plan === payment.planId && user.planExpiresAt && user.appliedPaymentRefs?.includes(payment.reference)) {
+        const now = new Date();
+        let expires = addMonths(user.planExpiresAt, -payment.months);
+        if (expires < now) expires = now;
+        await User.updateOne({ _id: user._id }, { $set: { planExpiresAt: expires } });
+      }
+    }
+    payment.refundedAt = new Date();
+    await payment.save();
+    const full = await Payment.findById(payment._id).populate("user", PAYMENT_USER_FIELDS).lean();
+    res.json({ payment: adminPayment(full) });
+  } catch (error) {
+    console.error("Mark refunded failed:", error);
+    res.status(500).json({ message: "Could not update the payment." });
+  }
+});
+
 module.exports = router;

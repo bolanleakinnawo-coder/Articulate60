@@ -1,45 +1,28 @@
 // Public landing page. Route "/" for visitors (signed-in members go straight
 // to the app, see Routes/AppRoutes.jsx). "/landingpage" always shows it.
 //
-// Everything here describes what the app really does. Plan prices and
-// allowances come from src/data/plans.js, practice levels and speaking times
-// from src/data/prompts.js, and community wins from the public
-// GET /api/testimonials (wins the admin approved). Pictures are placeholders,
-// swapped in one place: src/data/landingImages.js.
+// The wording on this page is Sheriff's, copied word for word from the
+// landing page mockup. Please don't reword it. Only the layout and colours
+// (Home tab palette) differ from the mockup. The referral programme section
+// is left out on purpose until referrals are live (Sheriff, 2026-11-14).
+// Pictures are placeholders, swapped in one place: src/data/landingImages.js.
+// Footer links that don't have a page yet are set in FOOTER_SUPPORT below.
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import {
   ArrowDown,
   ArrowRight,
-  Award,
-  BookOpen,
   CalendarDays,
-  Check,
   Clock3,
   Flame,
   Mic,
   Share2,
-  Sparkles,
-  Target,
-  Trophy,
   Users,
 } from "lucide-react";
 
-import api from "../api/axios";
 import brandLogo from "../assets/landing/loquiex-logo.png";
 import { LANDING_IMAGES } from "../data/landingImages";
-import {
-  AI_TRIAL,
-  BILLING_PERIODS,
-  PLANS,
-  formatNaira,
-} from "../data/plans";
-import {
-  CATEGORIES,
-  LEVEL_META,
-  SPEAK_DURATIONS,
-} from "../data/prompts";
 import "../styles/PublicLanding.css";
 
 const NAV_LINKS = [
@@ -49,103 +32,46 @@ const NAV_LINKS = [
   { label: "FAQs", href: "#faqs" },
 ];
 
-const plan = (id) => PLANS.find((p) => p.id === id);
-const shortName = (p) => p.name.replace(/^Loquiex\s+/, "");
-const maxSaving = Math.max(...BILLING_PERIODS.map((p) => p.discount));
-
-function minutesLabel(minutes) {
-  if (minutes === null) return "Unlimited";
-  if (!minutes) return "Not included";
-  const h = Math.floor(minutes / 60);
-  const m = minutes % 60;
-  return [h ? `${h} hr` : "", m ? `${m} min` : ""].filter(Boolean).join(" ");
-}
-
-function countLabel(value) {
-  if (value === null) return "Unlimited";
-  if (!value) return "Not included";
-  return value.toLocaleString("en-NG");
-}
-
-// What each plan includes, written from its real allowances.
-function planPoints(p) {
-  const l = p.limits;
-  if (p.id === "free") {
-    return [
-      "Unlimited solo speaking practice",
-      `${AI_TRIAL.days}-day AI feedback trial (up to ${AI_TRIAL.perDay} a day)`,
-      "Your recordings, streaks and milestones",
-      "Share your practice and your wins",
-    ];
-  }
-  const points = [];
-  if (l.aiFeedbackPerDay === null) points.push("Unlimited AI feedback");
-  else
-    points.push(
-      `${countLabel(l.aiFeedbackPerMonth)} AI feedback sessions a month`,
-      `Up to ${l.aiFeedbackPerDay} AI feedback sessions a day`,
-    );
-  if (l.groupMinutesPerMonth === 0) points.push("Group practice not included");
-  else if (l.groupMinutesPerDay === null)
-    points.push("Unlimited group practice", "Host larger group calls");
-  else
-    points.push(
-      `${minutesLabel(l.groupMinutesPerDay)} of group practice every day`,
-      "Join or host audio-only group calls",
-    );
-  points.push("Unlimited solo speaking practice");
-  return points;
-}
+// Contact, Privacy policy and Terms and conditions: change the addresses
+// here when those pages exist.
+const FOOTER_SUPPORT = [
+  { label: "FAQs", href: "#faqs" },
+  { label: "Contact", href: "/app/help" },
+  { label: "Privacy policy", href: "#privacy-policy" },
+  { label: "Terms and conditions", href: "#terms-and-conditions" },
+];
 
 const JOURNEY = [
   {
-    eyebrow: "First, you find your starting point.",
-    title: "Pick a level that suits you.",
-    body: "Create your account and step into your practice space. Choose a practice level, then spin the jar for a speaking topic or pick the kind of situation you want to work on.",
+    title: "First, you find your starting point.",
+    body: "Create your account and enter your Loquiex practice space. You can explore speaking prompts, choose the kind of communication situation you want to work on and start with a practice level that suits you.",
+    image: "solo",
   },
   {
     eyebrow: "Then, you start speaking.",
     title: "Practise putting your thoughts into words.",
-    body: "Take your preparation time and record yourself speaking. No script to lean on, just you organising your ideas and saying them out loud: everyday conversations, opinions, interviews, storytelling and more.",
+    body: "Choose a prompt, take your preparation time and record yourself speaking. You get to practise expressing your ideas without depending on a script. You can work on everyday conversations, difficult situations, work-related communication, interviews, storytelling and more.",
     dark: true,
   },
   {
-    eyebrow: "You begin to understand how you communicate.",
-    title: "See what went well and what to work on.",
-    body: "Listen back to your recording and read your transcript. With AI speaking feedback, you see your strengths, the areas that need attention and how to improve your next attempt.",
+    title: "You begin to understand how you communicate.",
+    body: "With AI speaking feedback available through paid memberships, you can review your recording and transcript, see what you did well, understand the areas that need attention and learn how to improve your next attempt.",
   },
   {
-    eyebrow: "Beyond practising alone.",
+    eyebrow: "Beyond practising alone",
     title: "You get to practise with other people, too.",
-    body: "Join or host audio-only group practice sessions. Discuss ideas, respond to questions, listen to other perspectives and get comfortable expressing yourself around people.",
+    body: "Join or host audio-only group practice sessions. Discuss ideas, respond to questions, listen to other perspectives and get more comfortable expressing yourself around people.",
     dark: true,
   },
   {
-    eyebrow: "And you see yourself making progress.",
-    title: "Your streaks, stats and milestones.",
-    body: "Track your practice activity, keep your streak going, unlock milestones and share your wins. The more consistently you practise, the more room you give yourself to grow.",
+    title: "And you can see yourself making progress.",
+    body: "Track your practice activity, work towards milestones, celebrate your wins and share your journey. The more consistently you practise, the more opportunities you give yourself to develop.",
   },
   {
-    eyebrow: "The goal is bigger than one session.",
-    title: "Speak with confidence in real life.",
-    body: "It's to become someone who can organise their thoughts, communicate their ideas and express themselves with confidence in real-life situations.",
+    title: "The goal is bigger than completing a practice session.",
+    body: "It's to become someone who can organise their thoughts, communicate their ideas and express themselves with greater confidence in real-life situations.",
     dark: true,
   },
-];
-
-const FEEDBACK_AREAS = [
-  ["Clarity", "How clearly your main point comes across."],
-  ["Delivery", "Your pace and how your speech flows."],
-  ["Fillers", "The ums, ahs and likes that creep in."],
-  ["Repetition", "Words and phrases you lean on too often."],
-  ["Grammar", "Slips, with a clear correction for each."],
-  ["Vocabulary", "Stronger words you could have used."],
-];
-
-const MILESTONES = [
-  [Target, "10, 50 and 100 practices"],
-  [Flame, "7, 30 and 100-day streaks"],
-  [BookOpen, "100 and 250 words used"],
 ];
 
 const FOR_YOU = [
@@ -156,49 +82,121 @@ const FOR_YOU = [
   "You want to make communication practice part of your routine.",
 ];
 
-const bloom = plan("bloom");
-const flourish = plan("flourish");
-const infinity = plan("infinity");
-const groupPlans = PLANS.filter((p) => p.limits.groupMinutesPerMonth !== 0)
-  .map(shortName)
-  .join(" and ");
+const PLANS = [
+  {
+    id: "free",
+    name: "Free",
+    price: "₦0",
+    per: "forever",
+    intro: "A place to begin and build your practice habit.",
+    points: [
+      "Free speaking practice",
+      "Practise expressing your thoughts",
+      "Track practice activity",
+      "Share practice wins",
+    ],
+    cta: "Get started for free",
+  },
+  {
+    id: "bloom",
+    pill: "Popular choice",
+    name: "Bloom",
+    price: "₦4,900",
+    per: "/ month",
+    intro: "Everything in Free, plus:",
+    points: [
+      "150 AI feedback sessions per month",
+      "Up to 5 AI feedback sessions per day",
+      "1,350 group practice minutes per month",
+      "Up to 45 group practice minutes per day",
+      "Share speaking progress and AI feedback highlights",
+    ],
+    cta: "Choose Bloom",
+  },
+  {
+    id: "flourish",
+    pill: "More access",
+    name: "Flourish",
+    price: "₦8,000",
+    per: "/ month",
+    intro: "Everything in Bloom, plus:",
+    points: [
+      "360 AI feedback sessions per month",
+      "Up to 12 AI feedback sessions per day",
+      "2,700 group practice minutes per month",
+      "Up to 90 group practice minutes per day",
+      "Learner discount benefits",
+    ],
+    cta: "Choose Flourish",
+    featured: true,
+  },
+  {
+    id: "infinity",
+    pill: "Premium",
+    name: "Infinity",
+    price: "₦29,800",
+    per: "/ month",
+    intro: "Premium membership access.",
+    points: ["Expanded practice and feedback capacity", "Learner discount benefits"],
+    note: "Detailed allowances and additional benefits to be confirmed.",
+    cta: "Explore Infinity",
+    dark: true,
+  },
+];
+
+const COMPARE = [
+  ["Price/month", "₦4,900", "₦8,000", "₦29,800"],
+  ["AI sessions/ month", "150", "360", "TBC"],
+  ["Daily AI limit", "5", "12", "TBC"],
+  ["Group minutes/ month", "1,350", "2,700", "TBC"],
+  ["Daily group limit", "45", "90", "TBC"],
+  ["Learner benefits", "No", "Yes", "Yes"],
+];
 
 const FAQS = [
   {
     q: "What is Loquiex?",
-    a: "Loquiex is a communication practice platform that helps you organise your thoughts, express yourself clearly and build confidence through regular speaking practice.",
+    a: "Loquiex is a communication practice platform that helps you organise your thoughts, express yourself clearly and build confidence through practice.",
+  },
+  {
+    q: "What happens when I join?",
+    a: "You can explore the platform, choose a speaking prompt and begin solo practice. You can also explore learning resources, track your activity and participate in other available features based on your membership.",
   },
   {
     q: "Can I use Loquiex for free?",
-    a: `Yes. Solo speaking practice is free and unlimited. New members also get a ${AI_TRIAL.days}-day AI feedback trial, with up to ${AI_TRIAL.perDay} feedback sessions a day.`,
+    a: "Yes. You can start with the Free membership and access its included features without a monthly subscription.",
   },
   {
-    q: "Do I need AI feedback to practise?",
-    a: "No. You can practise speaking, listen back and track your progress on your own. AI feedback is an extra that comes with Bloom, Flourish and Infinity.",
+    q: "Do I need AI to practise?",
+    a: "No. You can practise speaking on your own. AI feedback is an additional feature available through paid memberships.",
   },
   {
     q: "How does AI feedback work?",
-    a: "After a practice session, choose Get my feedback. AI reviews your recording and transcript and shows you what went well and what to work on, across clarity, delivery, fillers, repetition, grammar and vocabulary. Each review uses one of your feedback sessions.",
+    a: "After a speaking session, AI reviews your speech and provides feedback to help you understand your communication strengths and areas to improve.",
   },
   {
     q: "What is group practice?",
-    a: `Audio-only calls where members practise speaking together. You can join a session, host your own or join with a code from a friend. Group practice comes with ${groupPlans}. Flourish includes ${minutesLabel(flourish.limits.groupMinutesPerDay)} a day and Infinity has no limit.`,
+    a: "Group practice lets you join or host audio-only sessions with other members to practise speaking in a group setting.",
   },
   {
-    q: "What is the difference between sharing a practice and sharing a win?",
-    a: "A practice card is an image you can send to friends or post on social media after a session. A win is something you share from your profile. Once it's approved, it appears on the Loquiex community wall.",
+    q: "What is the difference between sharing a practice session and sharing a win?",
+    a: "A practice session card announces that you have completed a speaking practice. A win is an achievement shared from your profile and displayed on the Loquiex community wall.",
   },
   {
     q: "Can I track my progress?",
-    a: "Yes. Your profile shows your practice sessions, speaking time, days practised, current streak and the milestones you've unlocked.",
+    a: "Yes. Your stats and milestones help you follow your practice activity and recognise your progress.",
   },
   {
-    q: "Do plans renew automatically?",
-    a: `No. You pay upfront for 1, 3, 6 or 12 months (longer periods save up to ${maxSaving}%), and nothing is charged again unless you choose to pay. If you cancel, you keep your plan until the end of the period you paid for.`,
+    q: "What is the Loquiex dashboard?",
+    a: "Your dashboard brings together your practice activity and community information, including your position on the leaderboard.",
+  },
+  {
+    q: "Are there learner discounts?",
+    a: "Learner discount benefits are included in the Flourish and Infinity plans. Eligibility and verification requirements apply.",
   },
   {
     q: "Can I change my membership plan?",
-    a: "Yes. You can choose a different plan from Manage membership in your profile at any time.",
+    a: "Plan changes are subject to the subscription and billing terms shown when you manage your membership.",
   },
 ];
 
@@ -244,29 +242,10 @@ function MoreLink({ to, children }) {
   );
 }
 
-// Approved community wins (real data). Hidden when there are none.
-function useCommunityWins() {
-  const [wins, setWins] = useState([]);
-  useEffect(() => {
-    let cancelled = false;
-    api
-      .get("/api/testimonials")
-      .then(({ data }) => {
-        if (!cancelled && Array.isArray(data)) setWins(data.slice(0, 3));
-      })
-      .catch(() => {});
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-  return wins;
-}
-
 export default function LandingPage() {
-  const wins = useCommunityWins();
   const signedIn = hasToken();
   const startTo = signedIn ? "/app/home" : "/register";
-  const startLabel = signedIn ? "Go to my practice" : "Start practising";
+  const planTo = signedIn ? "/app/membership" : "/register";
 
   useEffect(() => {
     const previous = document.title;
@@ -326,7 +305,7 @@ export default function LandingPage() {
               </p>
               <div className="lp-actions">
                 <Link className="lp-btn" to={startTo}>
-                  {startLabel}
+                  Start practising
                 </Link>
                 <a className="lp-btn-text" href="#platform">
                   Explore Loquiex <ArrowDown size={16} aria-hidden="true" />
@@ -343,15 +322,15 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* ---------- Problem ---------- */}
+        {/* ---------- Your ideas deserve to be heard ---------- */}
         <section className="lp-section lp-light" id="platform">
           <div className="lp-wrap lp-narrow">
             <h2 className="lp-h2">Your ideas deserve to be heard.</h2>
             <p className="lp-lead">
               You know those moments when you have something to say, but the
               words don't come out the way you want them to? When you have an
-              idea but struggle to explain it, or you want to contribute to a
-              conversation but aren't quite sure how to put your thoughts
+              idea but struggle to explain it, or when you want to contribute to
+              a conversation but aren't quite sure how to put your thoughts
               together?
             </p>
             <p className="lp-lead">
@@ -362,7 +341,7 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* ---------- Journey ---------- */}
+        {/* ---------- Your journey ---------- */}
         <section className="lp-section" id="how-it-works">
           <div className="lp-wrap">
             <div className="lp-head">
@@ -370,36 +349,34 @@ export default function LandingPage() {
               <h2 className="lp-h2">So, what happens when you join Loquiex?</h2>
               <p className="lp-lead">
                 You don't just sign up and get a collection of lessons to read.
-                You get a place to practise, take part, learn and see your
+                You get a place to practise, participate, learn and see your
                 communication develop over time.
               </p>
             </div>
             <div className="lp-journey">
-              {JOURNEY.map((step, i) => (
+              {JOURNEY.map((step) => (
                 <article
                   key={step.title}
                   className={`lp-card ${step.dark ? "lp-card-olive" : ""}`}
                 >
-                  <span className="lp-step-num">
-                    {String(i + 1).padStart(2, "0")}
-                  </span>
-                  <p className="lp-card-eyebrow">{step.eyebrow}</p>
+                  {step.eyebrow && <p className="lp-card-eyebrow">{step.eyebrow}</p>}
                   <h3 className="lp-h3">{step.title}</h3>
                   <p className="lp-body">{step.body}</p>
+                  {step.image && <Img name={step.image} className="lp-media-card" />}
                 </article>
               ))}
             </div>
           </div>
         </section>
 
-        {/* ---------- 01 Solo ---------- */}
+        {/* ---------- 01 Solo practice ---------- */}
         <section className="lp-section lp-light">
           <div className="lp-wrap lp-split">
             <div>
               <Eyebrow>01 / Solo practice</Eyebrow>
               <h2 className="lp-h2">Make room for your thoughts.</h2>
               <p className="lp-lead">
-                Sometimes you know what you want to say, but putting it into
+                Sometimes, you know what you want to say, but putting it into
                 words is the difficult part. Solo practice gives you the space
                 to work through that, one speaking session at a time.
               </p>
@@ -408,50 +385,39 @@ export default function LandingPage() {
             <div className="lp-stack">
               <div className="lp-card">
                 <p className="lp-card-eyebrow">Here's what a session looks like</p>
-                <h3 className="lp-h3">Get a topic. Prepare. Speak.</h3>
+                <h3 className="lp-h3">What makes someone a good listener?</h3>
                 <p className="lp-body">
-                  Spin the jar for a speaking prompt, take your preparation
-                  time, then speak and record.
+                  You choose a prompt and get a little time to prepare before
+                  speaking.
                 </p>
-                <div className="lp-tiles">
-                  {LEVEL_META.map((level) => (
-                    <div className="lp-tile" key={level.id}>
-                      <strong>
-                        {level.prepareSeconds
-                          ? `${level.prepareSeconds}s`
-                          : "0s"}
-                      </strong>
-                      <span>{level.title}</span>
-                      <small>{level.description}</small>
-                    </div>
-                  ))}
+                <div className="lp-tiles lp-tiles-2">
+                  <div className="lp-tile">
+                    <strong>60s</strong>
+                    <span>Preparation</span>
+                  </div>
+                  <div className="lp-tile">
+                    <strong>60s</strong>
+                    <span>Speaking</span>
+                  </div>
                 </div>
-                <p className="lp-small">
-                  Then speak for{" "}
-                  {SPEAK_DURATIONS.map((d) => d.label).join(", ").replace(
-                    /, ([^,]*)$/,
-                    " or $1",
-                  )}
-                  . Or try Yap mode and Research mode for something different.
-                </p>
                 <Link className="lp-btn lp-btn-block" to={startTo}>
                   Start a practice session
                 </Link>
               </div>
-              <div className="lp-card">
+              <div>
                 <h3 className="lp-h4">What can you work on?</h3>
-                <ul className="lp-chips">
-                  {CATEGORIES.map((c) => (
-                    <li key={c.id || c.title}>{c.title}</li>
-                  ))}
-                </ul>
+                <p className="lp-body">
+                  Everyday conversations, opinions, explaining ideas, difficult
+                  conversations, interviews, storytelling, public speaking and
+                  business communication.
+                </p>
               </div>
               <div className="lp-card">
                 <h3 className="lp-h4">What changes with consistency?</h3>
                 <p className="lp-body">
                   You become more comfortable speaking without a prepared
-                  script, get better at organising your thoughts and learn to
-                  express your ideas more naturally.
+                  script, develop the ability to organise your thoughts and
+                  learn to express your ideas more naturally.
                 </p>
               </div>
               <MoreLink to={startTo}>Explore solo practice</MoreLink>
@@ -459,7 +425,7 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* ---------- 02 Group ---------- */}
+        {/* ---------- 02 Group practice ---------- */}
         <section className="lp-section">
           <div className="lp-wrap lp-split lp-split-rev">
             <div>
@@ -467,8 +433,9 @@ export default function LandingPage() {
               <h2 className="lp-h2">Practise with other people.</h2>
               <p className="lp-lead">
                 Being able to express yourself alone is one thing. Doing it
-                around other people is another. Group practice takes your
-                communication beyond individual exercises.
+                around other people is another. Group practice gives you
+                opportunities to take your communication beyond individual
+                exercises.
               </p>
               <Img name="group" />
             </div>
@@ -476,39 +443,32 @@ export default function LandingPage() {
               <div className="lp-card">
                 <h3 className="lp-h3">Join a conversation or host one yourself.</h3>
                 <p className="lp-body">
-                  Find live audio-only practice sessions, join one with a code
-                  from a friend, or start your own with a topic and invite
-                  others in.
+                  Find available audio-only group practice sessions, join a
+                  session or create one for other members to join.
                 </p>
               </div>
-              <div className="lp-card">
+              <div>
                 <h3 className="lp-h4">What happens in group practice?</h3>
                 <ol className="lp-steps">
                   <li>Join or host an audio-only group session.</li>
                   <li>Take part in conversations and speaking activities.</li>
                   <li>Listen to other people's ideas and perspectives.</li>
-                  <li>Practise contributing, responding and sharing your own thoughts.</li>
+                  <li>Practise contributing, responding and expressing your own thoughts.</li>
                 </ol>
               </div>
               <div className="lp-card lp-card-olive">
                 <h3 className="lp-h4">Real conversations. Real practice.</h3>
                 <p className="lp-body">
-                  The more chances you get to speak with others, the more
-                  familiar communicating in a group becomes.
+                  The more opportunities you have to speak with others, the more
+                  familiar communication in group settings can become.
                 </p>
               </div>
-              <p className="lp-small">
-                <Users size={14} aria-hidden="true" /> Included with{" "}
-                {shortName(flourish)} (
-                {minutesLabel(flourish.limits.groupMinutesPerDay)} a day) and{" "}
-                {shortName(infinity)} (unlimited).
-              </p>
-              <MoreLink to="#plans">See plans with group practice</MoreLink>
+              <MoreLink to={startTo}>Explore group practice</MoreLink>
             </div>
           </div>
         </section>
 
-        {/* ---------- 03 AI feedback ---------- */}
+        {/* ---------- 03 AI speaking feedback ---------- */}
         <section className="lp-section lp-light">
           <div className="lp-wrap lp-split">
             <div>
@@ -519,25 +479,40 @@ export default function LandingPage() {
               <p className="lp-lead">
                 Speaking repeatedly is useful, but knowing what to improve makes
                 your practice more intentional. Loquiex's AI speaking feedback
-                helps you understand how you communicate and what to work on
-                next.
+                helps you understand how you communicate and what you can work
+                on next.
               </p>
               <Img name="feedback" />
             </div>
             <div className="lp-stack">
-              <div className="lp-card">
-                <h3 className="lp-h4">What can the feedback help you notice?</h3>
-                <div className="lp-feedback-grid">
-                  {FEEDBACK_AREAS.map(([title, text]) => (
-                    <div key={title}>
-                      <strong>{title}</strong>
-                      <span>{text}</span>
-                    </div>
-                  ))}
+              <div className="lp-card lp-review">
+                <div className="lp-review-head">
+                  <h3 className="lp-h4">Your speaking review</h3>
+                  <span className="lp-pill lp-pill-sm">Sample review</span>
+                </div>
+                <div className="lp-review-score">
+                  <strong>82</strong>
+                  <div>
+                    <span className="lp-review-label">Good progress</span>
+                    <span className="lp-small">Sample overall score</span>
+                  </div>
+                </div>
+                <div className="lp-review-rows">
+                  <p className="lp-card-eyebrow">What went well</p>
+                  <p className="lp-body">Clear expression of your main idea.</p>
+                  <p className="lp-card-eyebrow">Your next focus</p>
+                  <p className="lp-body">Reduce unnecessary filler words.</p>
                 </div>
               </div>
+              <div>
+                <h3 className="lp-h4">What can the feedback help you notice?</h3>
+                <p className="lp-body">
+                  Your grammar, vocabulary, organisation, clarity, repetition,
+                  filler words and delivery.
+                </p>
+              </div>
               <div className="lp-card">
-                <h3 className="lp-h4">From recording to understanding.</h3>
+                <h3 className="lp-h4">From recording to understanding</h3>
                 <p className="lp-body">
                   Listen to your recording, follow your transcript, review
                   highlighted corrections and work through clear explanations of
@@ -545,24 +520,22 @@ export default function LandingPage() {
                 </p>
               </div>
               <p className="lp-small">
-                <Sparkles size={14} aria-hidden="true" /> Free for your first{" "}
-                {AI_TRIAL.days} days (up to {AI_TRIAL.perDay} a day), then
-                included with {shortName(bloom)}, {shortName(flourish)} and{" "}
-                {shortName(infinity)}.
+                AI speaking feedback is available through paid memberships.
+                Sample review content is illustrative.
               </p>
-              <MoreLink to={startTo}>Try AI feedback</MoreLink>
+              <MoreLink to={startTo}>Discover AI feedback</MoreLink>
             </div>
           </div>
         </section>
 
-        {/* ---------- 04 Learn ---------- */}
+        {/* ---------- 04 Learning resources ---------- */}
         <section className="lp-section">
           <div className="lp-wrap lp-split lp-split-rev">
             <div>
               <Eyebrow>04 / Learning resources</Eyebrow>
               <h2 className="lp-h2">Learn something. Put it into practice.</h2>
               <p className="lp-lead">
-                Sometimes you need more than a speaking prompt. You need to
+                Sometimes, you need more than a speaking prompt. You need to
                 learn how to communicate better, understand a concept or develop
                 a particular skill. That's where Loquiex's learning resources
                 come in.
@@ -570,12 +543,13 @@ export default function LandingPage() {
               <Img name="learn" />
             </div>
             <div className="lp-stack">
-              <div className="lp-card">
+              <div>
                 <h3 className="lp-h3">Explore resources that help you grow.</h3>
                 <p className="lp-body">
-                  Books and playbooks on speaking, words and grammar, read right
-                  inside the app. Work through them at your own pace and pick up
-                  where you stopped on any device.
+                  Access learning materials and practical resources designed to
+                  help you develop your communication skills. Work through them
+                  at your own pace, then apply what you've learnt in your
+                  speaking practice.
                 </p>
               </div>
               <div className="lp-card lp-card-olive">
@@ -590,64 +564,53 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* ---------- 05 Share wins ---------- */}
+        {/* ---------- 05 Share your wins ---------- */}
         <section className="lp-section lp-light">
           <div className="lp-wrap lp-split">
             <div>
               <Eyebrow>05 / Share your wins</Eyebrow>
               <h2 className="lp-h2">Your progress deserves to be celebrated.</h2>
               <p className="lp-lead">
-                Not every achievement has to be a major milestone. Speaking up
-                in a meeting, finishing a challenge or getting through a tough
-                conversation is worth celebrating.
+                Not every achievement has to be a major milestone. Sometimes,
+                completing a challenge, reaching a practice goal or making
+                progress in an area you've been working on is worth celebrating.
               </p>
               <p className="lp-lead">
-                Share a win from your profile. Once it's approved, it appears on
-                the Loquiex community wall for other members to see.
+                You can share achievements from your profile, and those wins
+                will appear on the Loquiex community wall for other members to
+                see.
               </p>
             </div>
             <div className="lp-stack">
-              {wins.length > 0 ? (
-                <div className="lp-card">
-                  <p className="lp-card-eyebrow">From the community wall</p>
-                  <div className="lp-wins">
-                    {wins.map((w) => (
-                      <figure key={w._id || w.quote} className="lp-win">
-                        <blockquote>{w.quote}</blockquote>
-                        <figcaption>{w.displayName}</figcaption>
-                      </figure>
-                    ))}
-                  </div>
-                </div>
-              ) : (
-                <div className="lp-card">
-                  <Trophy size={22} className="lp-card-icon" aria-hidden="true" />
-                  <h3 className="lp-h4">The community wall</h3>
-                  <p className="lp-body">
-                    Every win is reviewed before it goes up, so the wall stays
-                    real and encouraging.
-                  </p>
-                </div>
-              )}
-              <MoreLink to={startTo}>Share your first win</MoreLink>
+              <div className="lp-card lp-share-card">
+                <p className="lp-card-eyebrow">Community wall</p>
+                <h3 className="lp-h3">I completed my speaking milestone!</h3>
+                <p className="lp-body">A little progress is still progress.</p>
+                <p className="lp-share-foot">
+                  <Users size={15} aria-hidden="true" /> Shared with the Loquiex
+                  community
+                </p>
+              </div>
+              <MoreLink to={startTo}>Explore community wins</MoreLink>
             </div>
           </div>
         </section>
 
-        {/* ---------- 06 Share practice ---------- */}
+        {/* ---------- 06 Share your practice session ---------- */}
         <section className="lp-section">
           <div className="lp-wrap lp-split lp-split-rev">
             <div>
               <Eyebrow>06 / Share your practice session</Eyebrow>
               <h2 className="lp-h2">You showed up. Let the world know.</h2>
               <p className="lp-lead">
-                Every time you finish a practice session, you can create a
-                shareable card announcing that you practised on Loquiex.
+                Every time you complete a practice session, you have the option
+                to create a shareable card announcing that you've practised on
+                Loquiex.
               </p>
               <p className="lp-lead">
-                Send it to friends or post it on social media. It's a simple way
-                to celebrate showing up for yourself and encourage others to
-                start practising too.
+                You can send the card to your friends or share it on your social
+                media. It's a simple way to celebrate showing up for yourself
+                and encourage others to start practising too.
               </p>
             </div>
             <div className="lp-stack">
@@ -657,15 +620,19 @@ export default function LandingPage() {
                 <p className="lp-body">Learn it. Practise it. Use it.</p>
                 <p className="lp-share-foot">
                   <Share2 size={15} aria-hidden="true" /> Share with friends or
-                  on social media
+                  external social media
                 </p>
               </div>
+              <p className="lp-small">
+                Practice session cards can be shared externally, while profile
+                achievements appear on the Loquiex community wall.
+              </p>
               <MoreLink to={startTo}>Share your practice session</MoreLink>
             </div>
           </div>
         </section>
 
-        {/* ---------- 07 Progress ---------- */}
+        {/* ---------- 07 Your progress ---------- */}
         <section className="lp-section lp-light">
           <div className="lp-wrap lp-split">
             <div>
@@ -673,70 +640,104 @@ export default function LandingPage() {
               <h2 className="lp-h2">See how far you've come.</h2>
               <p className="lp-lead">
                 When you're working towards becoming a better communicator, it's
-                easy to overlook the progress you're making. Your stats and
+                easy to overlook the progress you're making. Your activity and
                 milestones give you a way to look back, recognise your
                 consistency and see how much you've practised.
               </p>
-              <Img name="progress" />
             </div>
             <div className="lp-stack">
               <div className="lp-stat-grid">
                 {[
-                  [Mic, "Practice sessions", "Every session you complete"],
-                  [Clock3, "Speaking time", "How long you've spoken in total"],
-                  [CalendarDays, "Days practised", "The days you showed up"],
-                  [Flame, "Current streak", "Days in a row, kept alive daily"],
-                ].map(([Icon, title, text]) => (
-                  <div className="lp-card lp-stat" key={title}>
+                  [Mic, "24", "Practice sessions"],
+                  [Clock3, "6h 20m", "Time practised"],
+                  [CalendarDays, "8", "Practice days"],
+                  [Flame, "5 days", "Current streak"],
+                ].map(([Icon, value, label]) => (
+                  <div className="lp-card lp-stat" key={label}>
                     <Icon size={20} aria-hidden="true" />
-                    <strong>{title}</strong>
-                    <span>{text}</span>
+                    <strong>{value}</strong>
+                    <span>{label}</span>
                   </div>
                 ))}
               </div>
               <div className="lp-card">
-                <h3 className="lp-h4">Milestones to unlock</h3>
-                <ul className="lp-list-icons">
-                  {MILESTONES.map(([Icon, text]) => (
-                    <li key={text}>
-                      <Icon size={17} aria-hidden="true" /> {text}
-                    </li>
-                  ))}
-                </ul>
+                <h3 className="lp-h4">Your milestones</h3>
+                <div className="lp-progress-row">
+                  <span className="lp-body">Progress towards your next milestone</span>
+                  <strong>80%</strong>
+                </div>
+                <div className="lp-progress" aria-hidden="true">
+                  <span style={{ width: "80%" }} />
+                </div>
+                <p className="lp-small">Illustrative example: 24 of 30 practice sessions.</p>
               </div>
             </div>
           </div>
         </section>
 
-        {/* ---------- 08 Dashboard ---------- */}
+        {/* ---------- 08 Loquiex dashboard ---------- */}
         <section className="lp-section">
           <div className="lp-wrap lp-split lp-split-rev">
             <div>
-              <Eyebrow>08 / Your Loquiex home</Eyebrow>
+              <Eyebrow>08 / Loquiex dashboard</Eyebrow>
               <h2 className="lp-h2">Your Loquiex space. Your progress at a glance.</h2>
               <p className="lp-lead">
-                Home brings your Loquiex activity into one place: today's
-                practice, your streak, the word of the day, your recent
-                practices and where you stand in the community.
+                Your dashboard brings your Loquiex activity into one place. See
+                your practice progress, keep track of your milestones and find
+                out where you stand within the community.
               </p>
-              <Img name="dashboard" />
             </div>
             <div className="lp-stack">
-              <div className="lp-card">
-                <Award size={22} className="lp-card-icon" aria-hidden="true" />
-                <h3 className="lp-h3">A little friendly competition.</h3>
-                <p className="lp-body">
-                  The Loquiex leaderboard ranks members by their streak and
-                  speaking time. Seeing others keep going is a nudge to keep
-                  practising too.
+              <div className="lp-board">
+                <div className="lp-review-head">
+                  <div>
+                    <p className="lp-card-eyebrow">Your dashboard</p>
+                    <h3 className="lp-h4">Welcome back!</h3>
+                  </div>
+                  <span className="lp-pill lp-pill-sm">Sample view</span>
+                </div>
+                <div className="lp-board-stats">
+                  <div>
+                    <span>Sessions</span>
+                    <strong>24</strong>
+                  </div>
+                  <div>
+                    <span>Practice time</span>
+                    <strong>6h 20m</strong>
+                  </div>
+                </div>
+                <h4 className="lp-h4">Community leaderboard</h4>
+                <ol className="lp-board-list">
+                  {[
+                    ["01", "Member One", "1,250 pts"],
+                    ["02", "Member Two", "980 pts"],
+                    ["03", "Member Three", "850 pts"],
+                  ].map(([n, name, pts]) => (
+                    <li key={n}>
+                      <span className="lp-board-num">{n}</span>
+                      <span className="lp-board-name">{name}</span>
+                      <span className="lp-board-pts">{pts}</span>
+                    </li>
+                  ))}
+                </ol>
+                <p className="lp-small">
+                  Illustrative dashboard and leaderboard data. Final points and
+                  ranking criteria to be confirmed.
                 </p>
               </div>
-              <MoreLink to={startTo}>Explore your home</MoreLink>
+              <div>
+                <h3 className="lp-h4">A little friendly competition.</h3>
+                <p className="lp-body">
+                  See your position within the Loquiex community and let the
+                  progress of other members encourage you to keep practising.
+                </p>
+              </div>
+              <MoreLink to={startTo}>Explore your dashboard</MoreLink>
             </div>
           </div>
         </section>
 
-        {/* ---------- For you ---------- */}
+        {/* ---------- Loquiex is for you if... ---------- */}
         <section className="lp-section lp-light">
           <div className="lp-wrap lp-narrow">
             <Eyebrow>Made for your progress</Eyebrow>
@@ -746,161 +747,131 @@ export default function LandingPage() {
               developing your professional communication, there's room for you
               here.
             </p>
-            <ul className="lp-checks">
+            <ul className="lp-bullets">
               {FOR_YOU.map((t) => (
-                <li key={t}>
-                  <Check size={18} aria-hidden="true" /> {t}
-                </li>
+                <li key={t}>{t}</li>
               ))}
             </ul>
           </div>
         </section>
 
-        {/* ---------- Plans ---------- */}
+        {/* ---------- Member experiences ---------- */}
+        <section className="lp-section">
+          <div className="lp-wrap lp-narrow">
+            <Eyebrow>Member experiences</Eyebrow>
+            <h2 className="lp-h2">Progress worth talking about.</h2>
+            <p className="lp-lead">
+              Hear from people who are making communication practice part of
+              their lives.
+            </p>
+            <figure className="lp-card lp-quote">
+              <blockquote>“[Insert an authentic member testimonial here.]”</blockquote>
+              <figcaption>Member name · Loquiex member</figcaption>
+            </figure>
+            <p className="lp-small">
+              Replace the sample with a verified testimonial shared with
+              permission.
+            </p>
+          </div>
+        </section>
+
+        {/* ---------- Membership ---------- */}
         <section className="lp-section" id="plans">
           <div className="lp-wrap">
             <div className="lp-head">
               <Eyebrow>Membership</Eyebrow>
               <h2 className="lp-h2">Find the membership that works for you.</h2>
               <p className="lp-lead">
-                Start with free practice, or get more AI feedback and group
-                practice with a paid membership. Pay for 1, 3, 6 or 12 months and
-                save up to {maxSaving}%. Plans never renew on their own.
+                Start with free practice or get more access to AI feedback and
+                group practice with a paid membership.
               </p>
             </div>
             <div className="lp-plans">
               {PLANS.map((p) => (
                 <article
                   key={p.id}
-                  className={`lp-plan ${p.id === "flourish" ? "lp-plan-featured" : ""}`}
+                  className={`lp-plan ${p.featured ? "lp-plan-featured" : ""} ${p.dark ? "lp-plan-dark" : ""}`}
                 >
-                  {p.id === "flourish" && (
-                    <span className="lp-pill lp-pill-sm">Most complete</span>
-                  )}
-                  <h3 className="lp-h4">{shortName(p)}</h3>
+                  {p.pill && <span className="lp-pill lp-pill-sm">{p.pill}</span>}
+                  <h3 className="lp-h4">{p.name}</h3>
                   <p className="lp-price">
-                    {formatNaira(p.priceNaira)}
-                    <span>{p.priceNaira ? " / month" : " forever"}</span>
+                    {p.price}
+                    <span> {p.per}</span>
                   </p>
-                  <p className="lp-small">{p.tagline}</p>
-                  <ul className="lp-plan-list">
-                    {planPoints(p).map((pt) => (
-                      <li
-                        key={pt}
-                        className={pt.includes("not included") ? "is-off" : ""}
-                      >
-                        <Check size={15} aria-hidden="true" /> {pt}
-                      </li>
+                  <p className="lp-small">{p.intro}</p>
+                  <ul className="lp-plan-list lp-plan-bullets">
+                    {p.points.map((pt) => (
+                      <li key={pt}>{pt}</li>
                     ))}
                   </ul>
-                  <Link
-                    className={`lp-btn lp-btn-block ${p.id === "flourish" ? "" : "lp-btn-ghost"}`}
-                    to={signedIn ? "/app/membership" : "/register"}
-                  >
-                    {p.id === "free"
-                      ? "Get started for free"
-                      : `Choose ${shortName(p)}`}
+                  {p.note && <p className="lp-small">{p.note}</p>}
+                  <Link className="lp-btn lp-btn-block" to={planTo}>
+                    {p.cta}
                   </Link>
                 </article>
               ))}
             </div>
 
             <h3 className="lp-h3 lp-compare-title">Compare your options</h3>
-            <p className="lp-small lp-swipe-hint">Swipe the table to see every plan.</p>
             <div className="lp-table-wrap">
               <table className="lp-table">
                 <thead>
                   <tr>
                     <th scope="col">Feature</th>
-                    {PLANS.map((p) => (
-                      <th scope="col" key={p.id}>
-                        {shortName(p)}
-                      </th>
-                    ))}
+                    <th scope="col">Bloom</th>
+                    <th scope="col">Flourish</th>
+                    <th scope="col">Infinity</th>
                   </tr>
                 </thead>
                 <tbody>
-                  <tr>
-                    <th scope="row">Price a month</th>
-                    {PLANS.map((p) => (
-                      <td key={p.id}>{formatNaira(p.priceNaira)}</td>
-                    ))}
-                  </tr>
-                  <tr>
-                    <th scope="row">Solo practice</th>
-                    {PLANS.map((p) => (
-                      <td key={p.id}>Unlimited</td>
-                    ))}
-                  </tr>
-                  <tr>
-                    <th scope="row">AI feedback a month</th>
-                    {PLANS.map((p) => (
-                      <td key={p.id}>
-                        {p.id === "free"
-                          ? `${AI_TRIAL.days}-day trial`
-                          : countLabel(p.limits.aiFeedbackPerMonth)}
-                      </td>
-                    ))}
-                  </tr>
-                  <tr>
-                    <th scope="row">AI feedback a day</th>
-                    {PLANS.map((p) => (
-                      <td key={p.id}>
-                        {p.id === "free"
-                          ? `${AI_TRIAL.perDay} during trial`
-                          : countLabel(p.limits.aiFeedbackPerDay)}
-                      </td>
-                    ))}
-                  </tr>
-                  <tr>
-                    <th scope="row">Group practice a day</th>
-                    {PLANS.map((p) => (
-                      <td key={p.id}>
-                        {p.limits.groupMinutesPerMonth === 0
-                          ? "Not included"
-                          : minutesLabel(p.limits.groupMinutesPerDay ?? null)}
-                      </td>
-                    ))}
-                  </tr>
+                  {COMPARE.map(([feature, ...values]) => (
+                    <tr key={feature}>
+                      <th scope="row">{feature}</th>
+                      {values.map((v, i) => (
+                        <td key={i}>{v}</td>
+                      ))}
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>
+            <p className="lp-small lp-table-note">
+              Membership allowances and benefits are subject to published
+              subscription terms. Infinity details are still to be confirmed.
+            </p>
           </div>
         </section>
 
         {/* ---------- FAQs ---------- */}
-        <section className="lp-section lp-light" id="faqs">
+        <section className="lp-section lp-light lp-faq-section" id="faqs">
           <div className="lp-wrap lp-narrow">
             <Eyebrow>Need to know more?</Eyebrow>
             <h2 className="lp-h2">Frequently asked questions.</h2>
-            <div className="lp-faqs">
+            <div className="lp-faqs lp-faqs-open">
               {FAQS.map((f) => (
-                <details key={f.q} className="lp-faq">
-                  <summary>{f.q}</summary>
+                <div key={f.q} className="lp-faq-item">
+                  <h3 className="lp-h4">{f.q}</h3>
                   <p className="lp-body">{f.a}</p>
-                </details>
+                </div>
               ))}
             </div>
           </div>
         </section>
 
-        {/* ---------- Final CTA ---------- */}
+        {/* ---------- Final call to action ---------- */}
         <section className="lp-section lp-final">
-          <div className="lp-wrap lp-narrow lp-center">
+          <div className="lp-wrap lp-narrow">
             <h2 className="lp-h2">Ready to give your voice room to grow?</h2>
             <p className="lp-lead">
               You have something to say. Start practising, find your words and
               become more confident expressing yourself.
             </p>
-            <Link className="lp-btn" to={startTo}>
-              {signedIn ? "Go to my practice" : "Create your free account"}
+            <Link className="lp-btn lp-btn-block" to={startTo}>
+              Create your free account
             </Link>
-            {!signedIn && (
-              <Link className="lp-more lp-more-center" to="/login">
-                Already a member? Log in{" "}
-                <ArrowRight size={15} aria-hidden="true" />
-              </Link>
-            )}
+            <Link className="lp-more" to={signedIn ? "/app/home" : "/login"}>
+              Already a member? Log in <ArrowRight size={15} aria-hidden="true" />
+            </Link>
           </div>
         </section>
       </main>
@@ -919,15 +890,16 @@ export default function LandingPage() {
               <div>
                 <p className="lp-footer-title">Explore</p>
                 <a href="#platform">The platform</a>
-                <a href="#how-it-works">How it works</a>
                 <a href="#plans">Membership plans</a>
-                <a href="#faqs">FAQs</a>
+                <Link to={signedIn ? "/app/home" : "/login"}>Dashboard</Link>
               </div>
               <div>
-                <p className="lp-footer-title">Account</p>
-                <Link to="/register">Create an account</Link>
-                <Link to="/login">Log in</Link>
-                <Link to="/forgot-password">Forgot password</Link>
+                <p className="lp-footer-title">Support</p>
+                {FOOTER_SUPPORT.map((l) => (
+                  <a key={l.label} href={l.href}>
+                    {l.label}
+                  </a>
+                ))}
               </div>
             </div>
           </div>

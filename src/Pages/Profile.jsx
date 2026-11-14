@@ -9,6 +9,7 @@ import {
   CreditCard,
   Eye,
   EyeOff,
+  Flame,
   LifeBuoy,
   LogOut,
   Mic,
@@ -38,6 +39,8 @@ import {
   setNotificationPrefs,
 } from "../data/notifications";
 import "./Profile.css";
+
+const PROFILE_TAB_KEY = "loquiex.profileTab";
 import { disablePush } from "../lib/push";
 import { disconnectRealtime } from "../lib/realtime";
 
@@ -50,6 +53,14 @@ export default function Profile({ user }) {
   const [profileUser, setProfileUser] = useState(storedUser);
   // main | stats | win | practices | usage | notifications | account
   const [view, setView] = useState(location.state?.open || "main");
+  const [profileTab, setProfileTab] = useState(() => {
+    try {
+      const saved = sessionStorage.getItem(PROFILE_TAB_KEY);
+      return ["activity", "membership", "account"].includes(saved) ? saved : "activity";
+    } catch {
+      return "activity";
+    }
+  });
   const [saveMessage, setSaveMessage] = useState("");
   const [feedbackRecording, setFeedbackRecording] = useState(null);
   const [analysingId, setAnalysingId] = useState(null);
@@ -725,78 +736,93 @@ export default function Profile({ user }) {
   // ---------- PROFILE HOME ----------
   const lastPaidCurrency =
     billing?.payments?.find((p) => p.status === "success")?.currency || "NGN";
-  const sections = [
-    {
-      title: "Your Loquiex",
-      rows: [
-        {
-          icon: BarChart3,
-          title: "Your Stats",
-          text: "Your progress and milestones",
-          onClick: () => setView("stats"),
-        },
-        {
-          icon: Trophy,
-          title: "Share a Win",
-          text: "Celebrate and share your progress",
-          onClick: () => setView("win"),
-        },
-        {
-          icon: Mic,
-          title: "Your Practices",
-          text: "Previous sessions and feedback",
-          onClick: () => setView("practices"),
-        },
-      ],
-    },
-    {
-      title: "Your membership",
-      rows: [
-        {
-          icon: TrendingUp,
-          title: "Usage & Limits",
-          text: "Your remaining allowances",
-          onClick: () => setView("usage"),
-        },
-        {
-          icon: Users,
-          title: "Invite & Earn",
-          text: "Referrals and rewards",
-          soon: true,
-        },
-        {
-          icon: CreditCard,
-          title: "Manage Membership",
-          text: "Plan, billing and renewal",
-          onClick: () =>
-            navigate("/app/membership", { state: { from: "profile" } }),
-        },
-      ],
-    },
-    {
-      title: "Account & preferences",
-      rows: [
-        {
-          icon: User,
-          title: "Personal information",
-          text: "Manage your name and account details",
-          onClick: () => openForm("account"),
-        },
-        {
-          icon: Bell,
-          title: "Notifications",
-          text: "Check your latest Loquiex updates",
-          onClick: () => setView("notifications"),
-        },
-        {
-          icon: LifeBuoy,
-          title: "Help & support",
-          text: "Get assistance with Loquiex",
-          onClick: () => navigate("/app/help", { state: { from: "profile" } }),
-        },
-      ],
-    },
+  // Profile is split into three tabs (Sheriff, round 7) so it isn't one
+  // long page: Activity, Membership and Account.
+  const tabs = {
+    activity: [
+      {
+        icon: BarChart3,
+        title: "Your Stats",
+        text: "Your progress and milestones",
+        onClick: () => setView("stats"),
+      },
+      {
+        icon: Trophy,
+        title: "Share a Win",
+        text: "Celebrate and share your progress",
+        onClick: () => setView("win"),
+      },
+      {
+        icon: Mic,
+        title: "Your Practices",
+        text: "Previous sessions and feedback",
+        onClick: () => setView("practices"),
+      },
+      {
+        icon: Flame,
+        title: "Day streak",
+        text:
+          streak.current > 0
+            ? `${streak.current} day${streak.current === 1 ? "" : "s"} · keep it going`
+            : "Practise today to start your streak",
+        onClick: () => setView("stats"),
+      },
+    ],
+    membership: [
+      {
+        icon: CreditCard,
+        title: "Manage Membership",
+        text: "Plan, billing and renewal",
+        onClick: () =>
+          navigate("/app/membership", { state: { from: "profile" } }),
+      },
+      {
+        icon: TrendingUp,
+        title: "Usage & Limits",
+        text: "Your remaining allowances",
+        onClick: () => setView("usage"),
+      },
+      {
+        icon: Users,
+        title: "Invite & Earn",
+        text: "Referrals and rewards",
+        soon: true,
+      },
+    ],
+    account: [
+      {
+        icon: User,
+        title: "Personal information",
+        text: "Manage your name and account details",
+        onClick: () => openForm("account"),
+      },
+      {
+        icon: Bell,
+        title: "Notifications",
+        text: "Check your latest Loquiex updates",
+        onClick: () => setView("notifications"),
+      },
+      {
+        icon: LifeBuoy,
+        title: "Help & support",
+        text: "Get assistance with Loquiex",
+        onClick: () => navigate("/app/help", { state: { from: "profile" } }),
+      },
+    ],
+  };
+  const TAB_LABELS = [
+    ["activity", "Activity"],
+    ["membership", "Membership"],
+    ["account", "Account"],
   ];
+  const chooseTab = (id) => {
+    setProfileTab(id);
+    try {
+      sessionStorage.setItem(PROFILE_TAB_KEY, id);
+    } catch {
+      /* private mode: the tab just isn't remembered */
+    }
+  };
 
   return (
     <div className="profile-content pf-home">
@@ -840,34 +866,53 @@ export default function Profile({ user }) {
         />
       </section>
 
-      <div className="pf-groups">
-        {sections.map((section) => (
-          <section className="pf-group" key={section.title}>
-            <h2 className="pf-group-title">{section.title}</h2>
-            <div className="pf-list">
-              {section.rows.map((row) => (
-                <NavRow key={row.title} {...row} />
-              ))}
-            </div>
-          </section>
+      <div className="pf-tabs" role="tablist" aria-label="Profile sections">
+        {TAB_LABELS.map(([id, label]) => (
+          <button
+            key={id}
+            type="button"
+            role="tab"
+            id={`pf-tab-${id}`}
+            aria-selected={profileTab === id}
+            aria-controls="pf-tab-panel"
+            className={`pf-tab ${profileTab === id ? "is-active" : ""}`}
+            onClick={() => chooseTab(id)}
+          >
+            {label}
+          </button>
         ))}
       </div>
 
-      <div className="pf-list pf-list-logout">
-        <NavRow
-          icon={LogOut}
-          title="Log out"
-          text="Sign out of your Loquiex account"
-          onClick={handleLogout}
-          className="pf-row-logout"
-        />
-        <NavRow
-          icon={Trash2}
-          title="Delete account"
-          text="Permanently remove your account and data"
-          onClick={openDelete}
-          className="pf-row-logout"
-        />
+      <div
+        id="pf-tab-panel"
+        role="tabpanel"
+        aria-labelledby={`pf-tab-${profileTab}`}
+        className="pf-tab-panel"
+      >
+        <div className="pf-list">
+          {tabs[profileTab].map((row) => (
+            <NavRow key={row.title} {...row} />
+          ))}
+        </div>
+
+        {profileTab === "account" && (
+          <div className="pf-list pf-list-logout">
+            <NavRow
+              icon={LogOut}
+              title="Log out"
+              text="Sign out of your Loquiex account"
+              onClick={handleLogout}
+              className="pf-row-logout"
+            />
+            <NavRow
+              icon={Trash2}
+              title="Delete account"
+              text="Permanently remove your account and data"
+              onClick={openDelete}
+              className="pf-row-logout"
+            />
+          </div>
+        )}
       </div>
     </div>
   );

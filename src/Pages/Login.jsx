@@ -45,7 +45,11 @@ function Login() {
       localStorage.setItem("token", response.data.token);
       localStorage.setItem("user", JSON.stringify(response.data.user));
 
-      const destination = location.state?.from?.pathname || "/app/home";
+      // Keep ?reference=... etc. so a payment return still gets checked.
+      const from = location.state?.from;
+      const destination = from?.pathname
+        ? `${from.pathname}${from.search || ""}`
+        : "/app/home";
       navigate(destination, { replace: true, state: { user: response.data.user } });
     } catch (err) {
       console.error(err);

@@ -39,7 +39,9 @@ export const PRODUCTS = {
     books: ["grammar-playbook"],
     prices: { NGN: { full: 3500, now: 2800 }, USD: { full: 3.5, now: 2.8 } },
   },
+  // No longer sold (round 7). Kept only so an earlier purchase still shows.
   "language-upgrade": {
+    retired: true,
     id: "language-upgrade",
     title: "The Language Upgrade",
     shortTitle: "The Language Upgrade",
@@ -53,7 +55,7 @@ export const PRODUCTS = {
 };
 
 export const FEATURED_ID = "not-bad-at-speaking";
-export const SHOP_ORDER = ["word-playbook", "grammar-playbook", "language-upgrade"];
+export const SHOP_ORDER = ["word-playbook", "grammar-playbook"];
 
 // Books (what ends up in the library). A bundle gives two books.
 export const BOOKS = {
@@ -64,7 +66,8 @@ export const BOOKS = {
 
 export function formatPrice(amount, currency) {
   if (amount == null) return "";
-  if (currency === "USD") return `$${Number(amount).toFixed(2)}`;
+  // $12, $9.6, $3.5 (as on the price list), never $12.00.
+  if (currency === "USD") return `$${Number(Number(amount).toFixed(2))}`;
   return `₦${Number(amount).toLocaleString("en-NG", { maximumFractionDigits: 0 })}`;
 }
 

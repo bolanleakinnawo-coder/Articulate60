@@ -10,7 +10,6 @@ import {
   Sparkles,
   X,
 } from "lucide-react";
-import heroImage from "../assets/learn-hero.jpeg";
 import whatDoISayImage from "../assets/whatdoisay.PNG";
 import whatDoIDoImage from "../assets/whatdoido.jpeg";
 import BookCover from "../Components/learn/BookCover";
@@ -30,6 +29,8 @@ import {
   startBookCheckout,
   verifyBookPayment,
 } from "../lib/learn";
+import { syncPendingPayments } from "../data/plans";
+import { isPaystackUrl, openPaystackPopup, preloadPaystack } from "../lib/paystackPopup";
 import {
   ensureReminderNotifications,
   reminderHelp,
@@ -41,13 +42,6 @@ const TABS = [
   { id: "explore", label: "Explore" },
   { id: "library", label: "My library" },
 ];
-
-const RESET = {
-  id: "communication-reset",
-  title: "The 7-Day Communication Reset",
-  description:
-    "Go from struggling to express your thoughts to communicating them clearly, confidently, and intentionally.",
-};
 
 const COMING_SOON = [
   {
@@ -117,7 +111,7 @@ function PriceLine({ product, prices, offerActive, currencies }) {
   );
 }
 
-function LaunchCard({ endsAt, offset, onEnded, bundlePrice }) {
+function LaunchCard({ endsAt, offset, onEnded }) {
   const [now, setNow] = useState(() => Date.now() + offset);
   useEffect(() => {
     const t = setInterval(() => setNow(Date.now() + offset), 1000);
@@ -138,29 +132,30 @@ function LaunchCard({ endsAt, offset, onEnded, bundlePrice }) {
   });
   return (
     <section className="lx-launch" aria-labelledby="lx-launch-title">
-      <span className="lx-launch-pill">Launch special</span>
-      <h2 id="lx-launch-title" className="lx-launch-title">
-        A little something to celebrate!
-      </h2>
-      <p className="lx-launch-big">20% off</p>
-      <p className="lx-launch-text">
-        Enjoy 20% off every book during our launch offer, or get both
-        playbooks for {bundlePrice} with The Language Upgrade.
-      </p>
-      <div className="lx-launch-divider" />
-      <p className="lx-launch-label">Offer ends in</p>
-      <div className="lx-timer" role="timer" aria-label={`Offer ends ${ends}`}>
-        {[
-          [t.days, "Days"],
-          [t.hours, "Hours"],
-          [t.minutes, "Minutes"],
-          [t.seconds, "Seconds"],
-        ].map(([v, label]) => (
-          <div className="lx-timer-box" key={label}>
-            <strong>{pad(v)}</strong>
-            <span>{label}</span>
-          </div>
-        ))}
+      <div className="lx-launch-head">
+        <span className="lx-launch-pill">Launch special</span>
+        <h2 id="lx-launch-title" className="lx-launch-title">
+          A little something to celebrate!
+        </h2>
+        <p className="lx-launch-text">
+          Enjoy <strong>20% off</strong> every book during our launch offer.
+        </p>
+      </div>
+      <div className="lx-launch-timer">
+        <p className="lx-launch-label">Offer ends in</p>
+        <div className="lx-timer" role="timer" aria-label={`Offer ends ${ends}`}>
+          {[
+            [t.days, "Days"],
+            [t.hours, "Hours"],
+            [t.minutes, "Mins"],
+            [t.seconds, "Secs"],
+          ].map(([v, label]) => (
+            <div className="lx-timer-box" key={label}>
+              <strong>{pad(v)}</strong>
+              <span>{label}</span>
+            </div>
+          ))}
+        </div>
       </div>
       <p className="lx-launch-note">
         Ends {ends}. Prices go back to normal after that.
@@ -255,6 +250,11 @@ export default function Learn() {
     // Loads from the server; state is set when the request finishes.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     refresh();
+    preloadPaystack();
+    // A book paid for earlier but not confirmed yet is added now.
+    syncPendingPayments().then((applied) => {
+      if (applied.some((p) => p.kind === "book")) refresh();
+    });
   }, [refresh]);
 
   // Back from Paystack: confirm the payment with the server.
@@ -347,8 +347,35 @@ export default function Learn() {
     setStartingCheckout(true);
     setCheckoutError("");
     try {
-      const r = await startBookCheckout(buying, currency);
-      window.location.assign(r.authorizationUrl);
+      const r = await startBookCheckout(buying, currency, true);
+      let result;
+      try {
+        if (!r.accessCode) throw Object.assign(new Error(), { code: "POPUP_UNAVAILABLE" });
+        result = await openPaystackPopup(r.accessCode, r.reference);
+      } catch (err) {
+        if (err.code !== "POPUP_UNAVAILABLE") throw err;
+        // Back-up: Paystack's own page, which returns to this same site.
+        const page = await startBookCheckout(buying, currency, false);
+        if (!isPaystackUrl(page.authorizationUrl)) throw new Error("Unexpected payment page.", { cause: err });
+        window.location.assign(page.authorizationUrl);
+        return;
+      }
+      setStartingCheckout(false);
+      setBuying(null);
+      if (result.status === "success") {
+        checkPayment(result.reference);
+        setTab("library");
+      } else {
+        // Closed the pop-up: a transfer may still land, so check quietly.
+        verifyBookPayment(result.reference)
+          .then((v) => {
+            if (v.payment.added) {
+              setPayment({ kind: "added", productId: v.payment.productId });
+              setData((d) => (d ? { ...d, library: v.library } : d));
+            }
+          })
+          .catch(() => {});
+      }
     } catch (e) {
       setCheckoutError(
         e.response?.data?.message || "Couldn’t start the payment. Please try again.",
@@ -485,10 +512,6 @@ export default function Learn() {
           endsAt={endsAt}
           offset={offset}
           onEnded={onOfferEnded}
-          bundlePrice={formatPrice(
-            (serverPrices["language-upgrade"]?.NGN || PRODUCTS["language-upgrade"].prices.NGN).now,
-            "NGN",
-          )}
         />
       )}
 
@@ -498,15 +521,27 @@ export default function Learn() {
             <span className="lx-featured-pill">
               <Sparkles size={13} aria-hidden="true" /> Featured for you
             </span>
-            <h2 id="lx-reset-title" className="lx-reset-title">{RESET.title}</h2>
-            <p className="lx-reset-text">{RESET.description}</p>
-            <NotifyButton
-              on={notifyOn.has(RESET.id)}
-              busy={busyNotify === RESET.id}
-              onClick={() => toggleNotify(RESET.id)}
+            <h2 id="lx-reset-title" className="lx-reset-title">{featured.title}</h2>
+            <p className="lx-reset-text">{featured.description}</p>
+            <PriceLine
+              product={featured}
+              prices={serverPrices[FEATURED_ID]}
+              offerActive={offerActive}
+              currencies={DISPLAY_CURRENCIES}
             />
+            {ownsAll(FEATURED_ID) ? (
+              <button type="button" className="lx-cta lx-cta-outline lx-reset-cta" onClick={() => read(FEATURED_ID)}>
+                <BookOpen size={16} aria-hidden="true" /> Read now
+              </button>
+            ) : (
+              <button type="button" className="lx-cta lx-reset-cta" onClick={() => openBuy(FEATURED_ID)}>
+                Buy access
+              </button>
+            )}
           </div>
-          <img src={heroImage} alt="" className="lx-reset-img" />
+          <div className="lx-reset-cover">
+            <BookCover id={FEATURED_ID} size="lg" />
+          </div>
         </section>
       )}
 
@@ -531,35 +566,9 @@ export default function Learn() {
       {showShop && (
         <section className="lx-section" aria-labelledby="lx-books-title">
           <div className="lx-section-head lx-section-head-col">
-            <h2 id="lx-books-title">Books</h2>
+            <h2 id="lx-books-title">Playbooks</h2>
             <p>Read at your own pace, on any device.</p>
           </div>
-
-          <article className="lx-featured">
-            <BookCover id={FEATURED_ID} size="lg" />
-            <div className="lx-featured-body">
-              <span className="lx-featured-pill">
-                <Sparkles size={13} aria-hidden="true" /> Featured book
-              </span>
-              <h3 className="lx-featured-title">{featured.title}</h3>
-              <p className="lx-book-text">{featured.description}</p>
-              <PriceLine
-                product={featured}
-                prices={serverPrices[FEATURED_ID]}
-                offerActive={offerActive}
-                currencies={DISPLAY_CURRENCIES}
-              />
-              {ownsAll(FEATURED_ID) ? (
-                <button type="button" className="lx-cta lx-cta-outline" onClick={() => read(FEATURED_ID)}>
-                  <BookOpen size={16} aria-hidden="true" /> Read now
-                </button>
-              ) : (
-                <button type="button" className="lx-cta" onClick={() => openBuy(FEATURED_ID)}>
-                  Buy access
-                </button>
-              )}
-            </div>
-          </article>
 
           <div className="lx-book-grid">{SHOP_ORDER.map(productCard)}</div>
         </section>
@@ -677,7 +686,7 @@ export default function Learn() {
               onClick={goToPayment}
               disabled={startingCheckout || data?.available === false}
             >
-              {startingCheckout ? "Opening secure payment…" : "Continue to payment"}
+              {startingCheckout ? "Opening secure payment…" : "Pay now"}
             </button>
             {data?.available === false && (
               <p className="lx-muted">Payments aren’t available right now. Please try again later.</p>

@@ -680,3 +680,62 @@
     flex-basis: 100%;
   }
 }
+
+/* ---------- Round 7 ---------- */
+
+/* Desktop: the Solo/Group tabs and everything under them line up with the
+   "Practice Time" heading on the left, instead of floating in the middle. */
+@media (min-width: 900px) {
+  .practice-page > .practice-tabs,
+  .practice-page > .practice-panel-intro,
+  .practice-page > .practice-group-panel,
+  .practice-page > .practice-select-layout {
+    align-self: flex-start;
+    margin-left: 0;
+    margin-right: auto;
+  }
+}
+
+/* "Ready to practise with others?": a smaller, quieter card. */
+.practice-others-card {
+  max-width: 360px;
+  margin-top: 12px;
+  padding: 12px;
+}
+
+.practice-others-head {
+  gap: 10px;
+}
+
+.practice-others-icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+}
+
+.practice-others-icon svg {
+  width: 16px;
+  height: 16px;
+}
+
+.practice-others-head > span:last-child {
+  gap: 2px;
+}
+
+.practice-others-title {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.practice-others-sub {
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.practice-others-btn {
+  gap: 8px;
+  margin-top: 10px;
+  padding: 8px 12px;
+  font-size: 13px;
+  color: var(--text-primary);
+}

@@ -66,7 +66,10 @@ export function ResearchIntro({ onBack, onReady }) {
         <p className="eyebrow practice-eyebrow rm-eyebrow">RESEARCH MODE</p>
       </div>
 
-      <h1 className="rm-title">Learn something new. Be able to explain it.</h1>
+      <h1 className="rm-title">
+        <span>Learn something new.</span>
+        <span>Be able to explain it.</span>
+      </h1>
       <p className="rm-subtitle">
         Build your knowledge, strengthen your ability to remember information
         and become better at communicating what you know.

@@ -2859,3 +2859,128 @@
   right: auto;
   left: calc(50% + 20px);
 }
+
+/* ---------- Round 7 ---------- */
+
+/* Call room: always rows of two. 2 = side by side; 4 = 2x2; any even number
+   fills rows of two. With an odd number the host sits alone on top, centred
+   and the same size as everyone else (3 = host on top, 2 below). */
+.gpc-people,
+.gpc-people.gpc-people-xl {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.gpc-people .gpc-person-host {
+  grid-column: auto;
+}
+
+.gpc-people-odd > .gpc-person:first-child {
+  grid-column: 1 / -1;
+  justify-self: center;
+  width: calc(50% - 3px);
+}
+
+@media (min-width: 720px) {
+  .gpc-people {
+    max-width: 560px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+
+/* Discussion prompt: the topic text is smaller than the label above it. */
+.gpc-discuss-head h2 {
+  font-size: 15px;
+}
+
+.gpc-discuss-box p {
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+.gpc-discuss-box span {
+  font-size: 12px;
+}
+
+/* Practise with Loquiex: a light, normal-weight placeholder. */
+#gpc-own-prompt::placeholder,
+.gpc-topic-input::placeholder {
+  color: var(--text-muted);
+  font-size: 14px;
+  font-weight: 400;
+  opacity: 0.75;
+}
+
+#gpc-own-prompt {
+  font-weight: 400;
+}
+
+/* Unlimited seats: still looks locked, but tapping it shows the upgrade. */
+.gpc-chip-seat.is-locked {
+  opacity: 0.55;
+  filter: blur(0.3px);
+  cursor: pointer;
+}
+
+.gpc-chip-seat.is-locked[aria-expanded="true"] {
+  opacity: 0.85;
+}
+
+.gpc-upsell {
+  display: flex;
+  gap: 10px;
+  margin: 0 0 16px;
+  padding: 12px 14px;
+  border: 1px solid var(--olive-primary);
+  border-radius: var(--radius-md);
+  background: rgba(100, 103, 66, 0.18);
+  color: var(--olive-bright);
+}
+
+.gpc-upsell > svg {
+  flex: 0 0 auto;
+  margin-top: 2px;
+}
+
+.gpc-upsell > div {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.gpc-upsell strong {
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.gpc-upsell span {
+  color: var(--text-secondary);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.gpc-upsell-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px;
+  margin-top: 6px;
+}
+
+.gpc-upsell-btn {
+  padding: 8px 14px;
+  border: none;
+  border-radius: 10px;
+  background: var(--olive-primary);
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.gpc-upsell-btn:hover {
+  background: var(--olive-bright);
+}

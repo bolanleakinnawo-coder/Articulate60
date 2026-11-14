@@ -183,7 +183,10 @@ export default function Home() {
 
   // Ranked by current streak; speaking time is the time spoken during that
   // streak (ties go to whoever spoke longer in their streak).
-  const activeLeaderboardEntries = leaderboard.streak || [];
+  // Only people who have actually practised (no 0-day, 0-second rows).
+  const activeLeaderboardEntries = (leaderboard.streak || []).filter(
+    (entry) => entry.currentStreak > 0 && (entry.streakSpeakingTimeSeconds ?? entry.speakingTimeSeconds) > 0,
+  );
 
   return (
     <div className="page">

@@ -244,8 +244,15 @@ async function buildLeaderboard() {
     // longer during that streak.
     const tieBreak = (metric) =>
       metric === "currentStreak" ? "streakSpeakingTimeSeconds" : null;
+    // Only members who have actually practised appear: a streak list entry
+    // needs a live streak with speaking time in it (no "0 days, 0 seconds").
+    const hasPractised = (entry, metric) =>
+      metric === "currentStreak"
+        ? entry.currentStreak > 0 && entry.streakSpeakingTimeSeconds > 0
+        : entry[metric] > 0 && entry.speakingTimeSeconds > 0;
     const rankBy = (metric) =>
-      [...entries]
+      entries
+        .filter((entry) => hasPractised(entry, metric))
         .sort(
           (left, right) =>
             right[metric] - left[metric] ||

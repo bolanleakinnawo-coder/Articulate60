@@ -7,7 +7,6 @@ import {
 } from "react-router-dom";
 import {
   ArrowLeft,
-  ArrowUpRight,
   AudioLines,
   CalendarClock,
   ChevronRight,
@@ -40,6 +39,7 @@ import {
   Users,
   Volume2,
   WifiOff,
+  Sparkles,
 } from "lucide-react";
 import {
   fetchGroupUsage,
@@ -101,20 +101,6 @@ const MINUTES = ["00", "05", "10", "15", "20", "25", "30", "35", "40", "45", "50
 function to24h(hour12, ampm) {
   const h = Number(hour12) % 12;
   return ampm === "pm" ? h + 12 : h;
-}
-
-// The member's own time zone, e.g. "West Africa Time" or "GMT+1".
-function localZoneName() {
-  try {
-    const part = new Intl.DateTimeFormat(undefined, {
-      timeZoneName: "long",
-    })
-      .formatToParts(new Date())
-      .find((p) => p.type === "timeZoneName");
-    return part?.value || "";
-  } catch {
-    return "";
-  }
 }
 
 // "9:00 pm" / "10:30 am" in the viewer's own time zone.
@@ -748,7 +734,7 @@ export function GroupPracticeTab() {
                 : "Start now or schedule one for later."}
             </span>
           </span>
-          <ArrowUpRight size={18} aria-hidden="true" />
+          <ChevronRight size={18} aria-hidden="true" />
         </button>
         <button
           type="button"
@@ -758,8 +744,8 @@ export function GroupPracticeTab() {
         >
           <KeyRound size={20} strokeWidth={1.8} aria-hidden="true" />
           <span className="gpt-action-text">
-            <strong>Join with a code</strong>
-            <span>Enter a code for a private group.</span>
+            <strong>Join a private group</strong>
+            <span>Enter a practice code to join an invited group.</span>
           </span>
           <ChevronRight size={18} aria-hidden="true" />
         </button>
@@ -949,6 +935,7 @@ export function GroupPracticeStart() {
   const [planAmPm, setPlanAmPm] = useState("pm");
   const [pushState, setPushState] = useState("");
   const unlimitedSeats = canHostUnlimited();
+  const [showUnlimitedUpsell, setShowUnlimitedUpsell] = useState(false);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [planned, setPlanned] = useState(null);
@@ -984,8 +971,12 @@ export function GroupPracticeStart() {
     };
   };
 
-  const submit = async (e) => {
-    e.preventDefault();
+  // "Start now" starts the practice straight away (it used to only select
+  // "now", so tapping it looked like nothing happened). "Schedule for later"
+  // opens the date and time fields as before.
+  const submit = async (e, whenOverride) => {
+    e?.preventDefault?.();
+    const whenNow = whenOverride || (usedUpToday ? "later" : when);
     setError("");
     if (mode === "host" && !topic.trim()) {
       setError("Type the topic you'd like to discuss.");
@@ -1135,20 +1126,45 @@ export function GroupPracticeStart() {
           ))}
           <button
             type="button"
-            className="gpc-chip gpc-chip-seat"
+            className={`gpc-chip gpc-chip-seat ${unlimitedSeats ? "" : "is-locked"}`}
             aria-pressed={seats === "unlimited"}
-            disabled={!unlimitedSeats}
-            title={
-              unlimitedSeats ? undefined : "Unlimited seats come with Loquiex Infinity"
+            aria-expanded={unlimitedSeats ? undefined : showUnlimitedUpsell}
+            onClick={() =>
+              unlimitedSeats ? setSeats("unlimited") : setShowUnlimitedUpsell((v) => !v)
             }
-            onClick={() => setSeats("unlimited")}
           >
             {!unlimitedSeats && <LockKeyhole size={12} aria-hidden="true" />}
             Unlimited
           </button>
         </div>
-        {!unlimitedSeats && (
-          <p className="gpc-seat-note">Unlimited seats come with Loquiex Infinity.</p>
+        {!unlimitedSeats && showUnlimitedUpsell && (
+          <div className="gpc-upsell" role="status">
+            <Sparkles size={16} aria-hidden="true" />
+            <div>
+              <strong>Upgrade to unlimited seats</strong>
+              <span>
+                Host calls with as many people as you like on Loquiex Infinity.
+              </span>
+              <div className="gpc-upsell-actions">
+                <button
+                  type="button"
+                  className="gpc-upsell-btn"
+                  onClick={() =>
+                    navigate("/app/membership", { state: { reason: "unlimited" } })
+                  }
+                >
+                  Upgrade to Infinity
+                </button>
+                <button
+                  type="button"
+                  className="gpc-link"
+                  onClick={() => setShowUnlimitedUpsell(false)}
+                >
+                  Not now
+                </button>
+              </div>
+            </div>
+          </div>
         )}
 
         <p className="gpc-field-label" id="gpc-how-label">
@@ -1296,7 +1312,10 @@ export function GroupPracticeStart() {
             aria-checked={whenNow === "now"}
             className="gpc-when-option"
             disabled={usedUpToday}
-            onClick={() => setWhen("now")}
+            onClick={() => {
+              setWhen("now");
+              submit(null, "now");
+            }}
           >
             Start now
           </button>
@@ -1310,6 +1329,13 @@ export function GroupPracticeStart() {
             Schedule for later
           </button>
         </div>
+
+        {usedUpToday && (
+          <p className="gpc-seat-note">
+            You&apos;ve used today&apos;s call time, so you can schedule a
+            practice for later.
+          </p>
+        )}
 
         {whenNow === "later" && (
           <div className="gpc-schedule">
@@ -1379,8 +1405,7 @@ export function GroupPracticeStart() {
             </div>
             <p className="gpc-zone-note">
               <Globe size={13} aria-hidden="true" />
-              In your time ({localZoneName() || "your time zone"}). Members in
-              other countries see it in their own time.
+              Times show in your local time
             </p>
           </div>
         )}
@@ -2017,7 +2042,7 @@ function LiveCall({ call, session, dismissed, onDismiss, onBack, onLeave }) {
       <section
         className={`gpc-people gpc-people-${
           members.length <= 2 ? "s" : members.length <= 4 ? "m" : members.length <= 6 ? "l" : "xl"
-        }`}
+        } ${sorted.length % 2 ? "gpc-people-odd" : "gpc-people-even"}`}
         aria-label="People in the call"
       >
         {sorted.map((m) => {

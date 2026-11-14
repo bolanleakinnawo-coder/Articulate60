@@ -965,3 +965,269 @@
     display: none;
   }
 }
+
+/* =====================================================
+   Round 7: pieces for Sheriff's restored wording
+   ===================================================== */
+.lp-media-card {
+  margin-top: 16px;
+}
+
+.lp-tiles-2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.lp-tiles-2 .lp-tile strong {
+  font-size: 28px;
+}
+
+.lp-tiles-2 .lp-tile span {
+  color: var(--olive-primary);
+  font-weight: 500;
+}
+
+@media (max-width: 380px) {
+  .lp-tiles.lp-tiles-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Sample review */
+.lp-review-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.lp-review-head .lp-pill-sm {
+  flex: 0 0 auto;
+  margin-bottom: 0;
+}
+
+.lp-review-score {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--lp-light-line);
+}
+
+.lp-review-score > strong {
+  color: var(--olive-primary);
+  font-size: 40px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.lp-review-score > div {
+  display: grid;
+  gap: 2px;
+}
+
+.lp-review-label {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.lp-review-rows {
+  display: grid;
+  gap: 4px;
+  padding-top: 14px;
+}
+
+.lp-review-rows .lp-card-eyebrow {
+  margin-top: 8px;
+}
+
+/* Milestone progress */
+.lp-progress-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 10px 0 8px;
+}
+
+.lp-progress {
+  height: 10px;
+  margin-bottom: 10px;
+  border-radius: 999px;
+  background: var(--lp-light-line);
+  overflow: hidden;
+}
+
+.lp-progress span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--olive-primary);
+}
+
+.lp-stat strong {
+  font-size: 22px;
+}
+
+/* Sample dashboard */
+.lp-board {
+  display: grid;
+  gap: 14px;
+  padding: 22px;
+  border-radius: var(--radius-lg);
+  background: var(--text-primary);
+  color: var(--bg-card);
+}
+
+.lp-board .lp-card-eyebrow {
+  color: var(--olive-primary);
+}
+
+.lp-board .lp-small {
+  color: #4f5144;
+}
+
+.lp-board-stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.lp-board-stats > div {
+  display: grid;
+  gap: 6px;
+  padding: 14px;
+  border-radius: var(--radius-md);
+  background: #e8e2d2;
+}
+
+.lp-board-stats span {
+  color: #4f5144;
+  font-size: 13px;
+}
+
+.lp-board-stats strong {
+  font-size: 22px;
+}
+
+.lp-board-list {
+  display: grid;
+  list-style: none;
+}
+
+.lp-board-list li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 0;
+  border-bottom: 1px solid #d5ceba;
+  font-size: 14px;
+}
+
+.lp-board-num {
+  color: var(--olive-primary);
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.lp-board-pts {
+  color: #4f5144;
+  font-size: 13px;
+}
+
+/* Bulleted lists */
+.lp-bullets,
+.lp-plan-bullets {
+  list-style: disc;
+  padding-left: 20px;
+}
+
+.lp-bullets {
+  display: grid;
+  gap: 12px;
+  margin-top: 18px;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.lp-plan-list.lp-plan-bullets {
+  padding-left: 20px;
+}
+
+.lp-plan-bullets li {
+  display: list-item;
+}
+
+/* Testimonial */
+.lp-quote {
+  margin: 18px 0 12px;
+}
+
+.lp-quote blockquote {
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.lp-quote figcaption {
+  margin-top: 10px;
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+/* Infinity card */
+.lp-plan-dark {
+  border-color: var(--olive-primary);
+  background: var(--olive-primary);
+}
+
+.lp-plan-dark .lp-small,
+.lp-plan-dark .lp-price span {
+  color: rgba(241, 236, 222, 0.86);
+}
+
+.lp-plan-dark .lp-plan-list {
+  border-top-color: rgba(241, 236, 222, 0.25);
+}
+
+.lp-plan-dark .lp-btn {
+  background: var(--text-primary);
+  border-color: var(--text-primary);
+  color: var(--bg-card);
+}
+
+.lp-plan .lp-small + .lp-btn-block {
+  margin-top: 16px;
+}
+
+.lp-table-note {
+  margin-top: 12px;
+}
+
+/* FAQs, all answers showing */
+.lp-faqs-open .lp-faq-item {
+  padding: 18px 0;
+  border-bottom: 1px solid var(--lp-light-line);
+}
+
+.lp-faqs-open .lp-faq-item .lp-body {
+  margin-top: 8px;
+}
+
+/* Final call to action */
+.lp-final .lp-btn-block {
+  margin: 22px 0 14px;
+  max-width: 420px;
+}
+
+/* Pills and card footers on the light cards stay readable. */
+.lp-light .lp-pill,
+.lp-board .lp-pill {
+  border-color: var(--olive-primary);
+  background: rgba(100, 103, 66, 0.16);
+  color: var(--olive-primary);
+}
+
+.lp-light .lp-share-foot {
+  color: var(--lp-light-soft);
+  border-top-color: var(--lp-light-line);
+}

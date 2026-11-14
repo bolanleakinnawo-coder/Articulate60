@@ -113,18 +113,19 @@ export default function ProfilePractices({
   };
 
   const smallCards = [
+    // Prompts and research first, then Yap mode (Sheriff, round 7).
+    {
+      key: "prompts",
+      icon: MessageSquareText,
+      value: promptCount,
+      label: "Prompts & research",
+    },
     { key: "yap", icon: Mic, value: yapCount, label: "Yap mode" },
     {
       key: "vocab",
       icon: BookOpen,
       value: vocabCount,
       label: "Vocabulary",
-    },
-    {
-      key: "prompts",
-      icon: MessageSquareText,
-      value: promptCount,
-      label: "Prompts & research",
     },
   ];
 
@@ -288,14 +289,14 @@ export default function ProfilePractices({
                   >
                     {isAnalysing ? (
                       <>
-                        <LoaderCircle size={16} className="pf-spin" /> Getting
+                        <LoaderCircle size={13} className="pf-spin" /> Getting
                         your feedback…
                       </>
                     ) : (
                       <>
-                        <Sparkles size={16} />
+                        <Sparkles size={13} />
                         {hasFeedback ? "See your feedback" : "Get your feedback"}
-                        <ChevronRight size={16} />
+                        <ChevronRight size={13} />
                       </>
                     )}
                   </button>

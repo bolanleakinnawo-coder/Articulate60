@@ -3,6 +3,7 @@ import { NavLink, Outlet } from "react-router-dom";
 import {
   LayoutDashboard,
   BellRing,
+  CreditCard,
   LockKeyhole,
   LogOut,
   Mail,
@@ -18,6 +19,7 @@ const ADMIN_SECTIONS = [
     label: "Testimonials",
     icon: MessageSquareQuote,
   },
+  { to: "/admin/payments", label: "Payments", icon: CreditCard },
   { to: "/admin/subscribers", label: "Email subscribers", icon: Mail },
   {
     to: "/admin/product-notifications",

@@ -26,6 +26,7 @@ const BookFile = require("../MODELS/BookFile");
 const LearnNotification = require("../MODELS/LearnNotification");
 const paystack = require("../services/paystack");
 const { settlePayment } = require("../services/billing");
+const { returnUrlFor } = require("../utils/returnUrl");
 const { enabledCurrencies } = require("../utils/plans");
 const {
   BOOKS,
@@ -124,7 +125,7 @@ router.post("/checkout", checkoutLimiter, async (req, res) => {
   const productId = String(req.body?.productId || "");
   const currency = String(req.body?.currency || "NGN").toUpperCase();
   const product = PRODUCTS[productId];
-  if (!product) return res.status(400).json({ message: "Choose a book." });
+  if (!product || product.retired) return res.status(400).json({ message: "Choose a book." });
   if (!enabledCurrencies().includes(currency)) {
     return res.status(400).json({ message: "That currency isn't available." });
   }
@@ -153,8 +154,8 @@ router.post("/checkout", checkoutLimiter, async (req, res) => {
       currency,
     });
 
-    const appUrl = (process.env.APP_URL || "").trim().replace(/\/+$/, "");
-    const back = appUrl ? `${appUrl}/app/learn` : null;
+    // Pop-up checkout needs no return address (see utils/returnUrl.js).
+    const back = req.body?.popup !== false ? null : returnUrlFor(req, "/app/learn");
     const tx = await paystack.initializeTransaction({
       email: user.email,
       amountMinor,
@@ -172,6 +173,7 @@ router.post("/checkout", checkoutLimiter, async (req, res) => {
 
     res.status(201).json({
       reference,
+      accessCode: tx.access_code,
       authorizationUrl: tx.authorization_url,
       amount: amountMinor / 100,
       currency,

@@ -40,8 +40,19 @@ const paymentSchema = new mongoose.Schema(
     appliedAt: { type: Date, default: null },
     planStartsAt: { type: Date, default: null },
     planExpiresAt: { type: Date, default: null },
+    // Last time the server asked Paystack about this payment (pending sweep).
+    lastCheckedAt: { type: Date, default: null },
+    // A second successful payment for the same plan or book by the same
+    // account soon after another one. Shown in Admin so it can be refunded.
+    possibleDuplicate: { type: Boolean, default: false },
+    duplicateOf: { type: String, default: "" },
+    // Set by Admin after refunding the payment in Paystack.
+    refundedAt: { type: Date, default: null },
   },
   { timestamps: true },
 );
+
+// Finding a member's unconfirmed payments quickly (app-open check).
+paymentSchema.index({ user: 1, status: 1, createdAt: -1 });
 
 module.exports = mongoose.model("Payment", paymentSchema);

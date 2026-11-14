@@ -12,6 +12,7 @@ import Profile from "../Pages/Profile";
 import AdminTestimonials from "../Pages/AdminTestimonials";
 import AdminOverview from "../Pages/AdminOverview";
 import AdminSubscribers from "../Pages/AdminSubscribers";
+import AdminPayments from "../Pages/AdminPayments";
 import AdminProductNotifications from "../Pages/AdminProductNotifications";
 import AdminLayout from "../Components/layout/AdminLayout";
 import Registration from "../Pages/Registration";
@@ -69,6 +70,7 @@ export default function AppRoutes() {
         <Route index element={<AdminOverview />} />
         <Route path="testimonials" element={<AdminTestimonials />} />
         <Route path="subscribers" element={<AdminSubscribers />} />
+        <Route path="payments" element={<AdminPayments />} />
         <Route
           path="product-notifications"
           element={<AdminProductNotifications />}

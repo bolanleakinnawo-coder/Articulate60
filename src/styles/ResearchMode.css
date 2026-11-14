@@ -609,3 +609,21 @@
     padding: 14px;
   }
 }
+
+/* ---------- Round 7 ---------- */
+/* Heading on two lines, and the four steps always 2 x 2 (phone to desktop). */
+.rm-title span {
+  display: block;
+}
+
+.rm-howto-grid,
+.rm-page .rm-howto-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+@media (min-width: 900px) {
+  .rm-howto-grid {
+    max-width: 760px;
+    margin: 0 auto;
+  }
+}

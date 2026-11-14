@@ -352,3 +352,246 @@
   opacity: 0.5;
   cursor: default;
 }
+
+/* ---------- Payments ---------- */
+
+.admin-payments {
+  display: grid;
+  align-content: start;
+  gap: 18px;
+  min-width: 0;
+}
+
+.admin-pay-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.admin-pay-stats > div {
+  display: grid;
+  gap: 2px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--bg-card);
+}
+
+.admin-pay-stats strong {
+  font-size: 22px;
+}
+
+.admin-pay-stats span {
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+.admin-pay-stats .is-alert {
+  border-color: #c9a35a;
+}
+
+.admin-pay-check {
+  display: grid;
+  gap: 8px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--bg-card);
+}
+
+.admin-pay-check label {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.admin-pay-check > p {
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.admin-pay-check > div {
+  display: flex;
+  gap: 8px;
+  min-width: 0;
+}
+
+.admin-pay-check input {
+  flex: 1;
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 14px;
+}
+
+.admin-pay-check button,
+.admin-pay-flag button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 14px;
+  border: 1px solid var(--olive-primary);
+  border-radius: 10px;
+  background: var(--olive-primary);
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.admin-pay-check button:disabled,
+.admin-pay-flag button:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.admin-pay-check-result {
+  color: var(--text-primary);
+  font-size: 13px;
+}
+
+.admin-pay-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.admin-pay-filters button {
+  padding: 7px 13px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-secondary);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.admin-pay-filters button.active {
+  border-color: var(--text-primary);
+  color: var(--text-primary);
+}
+
+.admin-pay-refresh {
+  margin-left: auto;
+}
+
+.admin-pay-list {
+  display: grid;
+  gap: 10px;
+}
+
+.admin-pay-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px 16px;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--bg-card);
+}
+
+.admin-pay-row.is-duplicate {
+  border-color: #c9a35a;
+}
+
+.admin-pay-main,
+.admin-pay-side {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.admin-pay-side {
+  justify-items: end;
+  text-align: right;
+}
+
+.admin-pay-main strong,
+.admin-pay-side strong {
+  color: var(--text-primary);
+  font-size: 14px;
+}
+
+.admin-pay-main span {
+  overflow-wrap: anywhere;
+}
+
+.admin-pay-ref {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+}
+
+.admin-pay-status {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--bg-secondary, #1c1d19);
+  color: var(--text-primary);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.admin-pay-status.is-success {
+  background: rgba(121, 119, 78, 0.35);
+}
+
+.admin-pay-status.is-flagged,
+.admin-pay-status.is-failed {
+  background: rgba(233, 155, 148, 0.18);
+  color: #e99b94;
+}
+
+.admin-pay-flag {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 8px 10px;
+  padding: 12px;
+  border-radius: 10px;
+  background: rgba(201, 163, 90, 0.1);
+  color: #e6c98b;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.admin-pay-flag p {
+  color: var(--text-primary);
+}
+
+.admin-pay-flag code {
+  overflow-wrap: anywhere;
+  font-size: 11px;
+}
+
+.admin-pay-flag button {
+  grid-column: 2;
+  justify-self: start;
+}
+
+.admin-pay-note {
+  grid-column: 1 / -1;
+  color: #e99b94;
+  font-size: 12px;
+}
+
+@media (max-width: 640px) {
+  .admin-pay-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .admin-pay-row {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-pay-side {
+    justify-items: start;
+    text-align: left;
+  }
+}

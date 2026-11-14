@@ -825,20 +825,6 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .lx-book-grid .lx-book:last-child {
-    grid-column: 1 / -1;
-  }
-
-  .lx-book-grid .lx-book:last-child {
-    flex-direction: row;
-    align-items: stretch;
-  }
-
-  .lx-book-grid .lx-book:last-child .lx-cover-md {
-    width: 38%;
-    height: auto;
-    min-height: 150px;
-  }
 }
 
 @media (max-width: 560px) {
@@ -904,16 +890,6 @@
   .lx-featured {
     flex-direction: column;
   }
-
-  .lx-book-grid .lx-book:last-child {
-    flex-direction: column;
-  }
-
-  .lx-book-grid .lx-book:last-child .lx-cover-md {
-    width: 100%;
-    min-height: 0;
-    height: 110px;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -925,5 +901,158 @@
   .lx-notify,
   .lx-bar span {
     transition: none;
+  }
+}
+
+/* ---------- Round 7 ---------- */
+
+/* Two playbooks side by side on every screen. */
+.lx-book-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+/* Featured for you: the featured guide, with its cover on the right. */
+.lx-reset {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.lx-reset-cover {
+  display: flex;
+  justify-content: center;
+}
+
+.lx-reset .lx-price {
+  margin-top: 0;
+}
+
+.lx-reset-cta {
+  margin-top: 4px;
+  min-width: 160px;
+}
+
+/* Launch special: a calm, compact strip instead of a big banner. */
+.lx-launch {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px 20px;
+  padding: 14px 18px;
+  background: var(--bg-card);
+}
+
+.lx-launch-head {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.lx-launch-pill {
+  padding: 3px 10px;
+  background: rgba(121, 119, 78, 0.22);
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.lx-launch-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.lx-launch-text {
+  font-size: 13px;
+}
+
+.lx-launch-text strong {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.lx-launch-timer {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+.lx-launch-label {
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.lx-timer {
+  grid-template-columns: repeat(4, 54px);
+  gap: 6px;
+}
+
+.lx-timer-box {
+  padding: 6px 2px 5px;
+  border-radius: 8px;
+}
+
+.lx-timer-box strong {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.lx-timer-box span {
+  font-size: 10px;
+}
+
+.lx-launch-note {
+  grid-column: 1 / -1;
+  font-size: 11px;
+}
+
+@media (max-width: 640px) {
+  .lx-launch {
+    grid-template-columns: 1fr;
+  }
+
+  .lx-launch-timer {
+    align-items: flex-start;
+  }
+
+  .lx-timer {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    max-width: 280px;
+  }
+}
+
+@media (max-width: 560px) {
+  .lx-reset {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .lx-reset-cover .lx-cover-lg {
+    width: 84px;
+    font-size: 9px;
+  }
+
+  .lx-reset-title {
+    font-size: 20px;
+  }
+
+  .lx-reset-cta {
+    min-width: 0;
+  }
+}
+
+@media (max-width: 380px) {
+  .lx-reset {
+    grid-template-columns: 1fr;
+  }
+
+  .lx-reset-cover {
+    display: none;
+  }
+
+  .lx-reset-cta {
+    width: 100%;
   }
 }

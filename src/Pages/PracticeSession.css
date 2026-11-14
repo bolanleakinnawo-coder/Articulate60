@@ -612,3 +612,27 @@
 .complete-home-btn + .sh-open-btn {
   margin-top: 10px;
 }
+
+/* Round 7: "Amazing" page is one centred column (about phone width) on every
+   screen; the cards and both buttons are exactly the same width. */
+.session-page.complete-page {
+  width: 100%;
+  max-width: 420px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.complete-page > .complete-stats,
+.complete-page > .complete-streak-card,
+.complete-page > .spin-jar-btn.complete-home-btn,
+.complete-page > .sh-open-btn {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: none;
+  margin-left: 0;
+  margin-right: 0;
+}
+
+.complete-page > .sh-open-btn {
+  display: flex;
+}

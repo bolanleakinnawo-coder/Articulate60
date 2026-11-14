@@ -8,8 +8,10 @@ export async function loadLearn() {
   return data;
 }
 
-export async function startBookCheckout(productId, currency) {
-  const { data } = await api.post("/api/learn/checkout", { productId, currency });
+// popup: true = Paystack's pop-up inside the app (normal). false = Paystack's
+// own page (back-up), which returns to this same site.
+export async function startBookCheckout(productId, currency, popup = true) {
+  const { data } = await api.post("/api/learn/checkout", { productId, currency, popup });
   return data;
 }
 

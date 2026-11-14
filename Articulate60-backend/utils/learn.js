@@ -39,7 +39,9 @@ const PRODUCTS = {
   "not-bad-at-speaking": { ...BOOKS["not-bad-at-speaking"], books: ["not-bad-at-speaking"] },
   "word-playbook": { ...BOOKS["word-playbook"], books: ["word-playbook"] },
   "grammar-playbook": { ...BOOKS["grammar-playbook"], books: ["grammar-playbook"] },
+  // No longer sold (round 7). Kept so earlier purchases still work.
   "language-upgrade": {
+    retired: true,
     title: "The Language Upgrade",
     shortTitle: "The Language Upgrade",
     price: { NGN: 7000, USD: 7 },
@@ -49,11 +51,10 @@ const PRODUCTS = {
 };
 
 const BOOK_IDS = Object.keys(BOOKS);
-const PRODUCT_IDS = Object.keys(PRODUCTS);
+const PRODUCT_IDS = Object.keys(PRODUCTS).filter((id) => !PRODUCTS[id].retired);
 
 // Coming-soon items members can ask to hear about (Notify me).
 const UPCOMING = {
-  "communication-reset": "The 7-Day Communication Reset",
   "what-do-i-say": "What Do I Say?",
   "what-do-i-do": "What Do I Do?",
 };
@@ -75,7 +76,7 @@ function offerActive(now = new Date()) {
 // What the member pays right now, in the smallest unit (kobo / cents).
 function priceMinorFor(productId, currency, now = new Date()) {
   const p = PRODUCTS[productId];
-  if (!p) return null;
+  if (!p || p.retired) return null;
   const table = offerActive(now) ? p.launch : p.price;
   const amount = table[currency];
   if (amount == null) return null;

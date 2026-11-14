@@ -1,7 +1,9 @@
 // Membership payments with Paystack.
 //
-//   POST /api/billing/checkout   { planId, periodId, currency }  -> { authorizationUrl, reference }
+//   POST /api/billing/checkout   { planId, periodId, currency, popup }
+//                                -> { accessCode, authorizationUrl, reference }
 //   POST /api/billing/verify     { reference }         -> { status, subscription }
+//   POST /api/billing/sync                             -> { applied, subscription }
 //   GET  /api/billing/me                               -> { subscription, payments }
 //   POST /api/billing/cancel                           -> { subscription }
 //   POST /api/billing/resume                           -> { subscription }
@@ -18,7 +20,8 @@ const authMiddleware = require("../middleware/auth");
 const User = require("../MODELS/User");
 const Payment = require("../MODELS/Payment");
 const paystack = require("../services/paystack");
-const { settlePayment } = require("../services/billing");
+const { settlePayment, settlePendingFor } = require("../services/billing");
+const { returnUrlFor } = require("../utils/returnUrl");
 const {
   BILLING_PERIODS,
   PAID_PLAN_IDS,
@@ -122,24 +125,29 @@ router.post("/checkout", authMiddleware, checkoutLimiter, async (req, res) => {
       currency,
     });
 
-    const appUrl = (process.env.APP_URL || "").trim().replace(/\/+$/, "");
+    // Pop-up checkout (the normal way) needs no return address. The back-up
+    // full-page checkout returns to the site the member is on.
+    const popup = req.body?.popup !== false;
+    const back = popup ? null : returnUrlFor(req, "/app/membership");
     const tx = await paystack.initializeTransaction({
       email: user.email,
       amountMinor,
       currency,
       reference,
-      callbackUrl: appUrl ? `${appUrl}/app/membership` : null,
+      callbackUrl: back,
       metadata: {
         userId: String(user._id),
+        kind: "plan",
         planId,
         periodId,
         currency,
-        cancel_action: appUrl ? `${appUrl}/app/membership` : undefined,
+        cancel_action: back || undefined,
       },
     });
 
     res.status(201).json({
       reference: payment.reference,
+      accessCode: tx.access_code,
       authorizationUrl: tx.authorization_url,
       amount: amountMinor / 100,
       currency,
@@ -179,6 +187,31 @@ router.post("/verify", authMiddleware, verifyLimiter, async (req, res) => {
     res
       .status(502)
       .json({ message: "Couldn't confirm the payment yet. Please try again." });
+  }
+});
+
+// POST /api/billing/sync — run when the app opens (and on Membership/Learn).
+// Checks this member's unconfirmed payments with Paystack and applies the
+// paid ones, so a payment always lands even if the pop-up was closed, the
+// phone lost signal, or the webhook didn't arrive.
+router.post("/sync", authMiddleware, verifyLimiter, async (req, res) => {
+  try {
+    const applied = await settlePendingFor(req.userId);
+    res.json({
+      applied: applied.map((p) => ({
+        reference: p.reference,
+        kind: p.kind,
+        planId: p.kind === "book" ? null : p.planId,
+        productId: p.kind === "book" ? p.productId : null,
+        amount: p.amountMinor / 100,
+        currency: p.currency,
+        planExpiresAt: p.planExpiresAt,
+      })),
+      subscription: await subscriptionFor(req.userId),
+    });
+  } catch (err) {
+    console.error("Payment sync failed:", err.message);
+    res.status(502).json({ message: "Couldn't check your payments right now." });
   }
 });
 

@@ -904,7 +904,7 @@ function PracticeSessionAttempt() {
       .join(" ");
 
     return (
-      <div className="page session-page">
+      <div className="page session-page complete-page">
         <div className="complete-icon">
           <Check size={56} strokeWidth={3} aria-hidden="true" />
         </div>

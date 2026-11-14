@@ -18,7 +18,7 @@ if (missingEnv.length) {
   ["R2_PUBLIC_URL", "saving recordings and profile photos"],
   ["DEEPGRAM_API_KEY", "AI feedback"],
   ["GEMINI_API_KEY", "AI feedback"],
-  ["APP_URL", "password reset links and Paystack return"],
+  ["APP_URL", "password reset links"],
   ["PAYSTACK_SECRET_KEY", "payments"],
 ].forEach(([name, feature]) => {
   if (!(process.env[name] || "").trim()) console.warn(`${name} is not set: ${feature} will not work.`);
@@ -97,6 +97,8 @@ initRealtime(server);
 if (setupPush()) startReminderJob();
 // Reminders for planned group practices (in-app always, phone when push is on).
 startScheduledPracticeJob();
+// Applies paid Paystack payments every few minutes even if a webhook is missed.
+require("./services/billing").startPendingPaymentSweep();
 
 server.listen(port, () => {
   console.log(`Server is running on port ${port}`);

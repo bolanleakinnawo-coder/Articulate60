@@ -12,6 +12,7 @@
 //   groupMinutesPerMonth                   group practice minutes
 
 import api from "../api/axios";
+import { isPaystackUrl, openPaystackPopup } from "../lib/paystackPopup";
 
 export const PLANS = [
   {
@@ -349,25 +350,65 @@ export function allowanceCycle(user = getStoredUser(), now = new Date()) {
 }
 
 // --- Paystack checkout ------------------------------------------------------
-// The app only sends WHICH plan and period; the server sets the price, starts
-// the Paystack payment and returns Paystack's secure checkout page.
+// The app only sends WHICH plan and period; the server sets the price and
+// starts the Paystack payment. Payment happens in Paystack's pop-up inside the
+// app, so the member never leaves Loquiex. If the pop-up can't open, Paystack's
+// own page is used instead and brings them back to this same site.
+// Whatever happens, the payment belongs to the account that started it, and
+// the server applies it (webhook, app-open check and a background check).
 const PENDING_KEY = "loquiex.pendingPayment";
 
+// Resolves { status: "success" | "closed", reference }, or leaves the page
+// (back-up full-page checkout).
 export async function startCheckout(planId, periodId, currency = "NGN") {
   const { data } = await api.post("/api/billing/checkout", {
     planId,
     periodId,
     currency,
+    popup: true,
   });
-  const url = new URL(data.authorizationUrl);
-  if (
-    url.protocol !== "https:" ||
-    !/(^|\.)paystack\.(co|com)$/.test(url.hostname)
-  ) {
-    throw new Error("Unexpected payment page.");
-  }
   writeStorage(PENDING_KEY, data.reference);
-  window.location.assign(url.toString());
+  try {
+    if (!data.accessCode) throw Object.assign(new Error(), { code: "POPUP_UNAVAILABLE" });
+    return await openPaystackPopup(data.accessCode, data.reference);
+  } catch (err) {
+    if (err.code !== "POPUP_UNAVAILABLE") throw err;
+    const { data: page } = await api.post("/api/billing/checkout", {
+      planId,
+      periodId,
+      currency,
+      popup: false,
+    });
+    if (!isPaystackUrl(page.authorizationUrl)) throw new Error("Unexpected payment page.", { cause: err });
+    writeStorage(PENDING_KEY, page.reference);
+    window.location.assign(page.authorizationUrl);
+    return new Promise(() => {}); // the browser is leaving for Paystack
+  }
+}
+
+// Asks the server to check this account's unconfirmed payments with
+// Paystack and apply any that went through. Returns the list applied.
+let syncing = null;
+export function syncPendingPayments() {
+  if (!getStoredUser()) return Promise.resolve([]);
+  if (syncing) return syncing;
+  syncing = api
+    .post("/api/billing/sync")
+    .then(({ data }) => {
+      if (data.subscription) {
+        saveStoredUser({ plan: data.subscription.planId, subscription: data.subscription });
+      }
+      if (data.applied?.length) {
+        writeStorage(PENDING_KEY, null);
+        window.dispatchEvent(new CustomEvent("loquiex:payments-applied", { detail: data.applied }));
+      }
+      return data.applied || [];
+    })
+    .catch(() => [])
+    .finally(() => {
+      syncing = null;
+    });
+  return syncing;
 }
 
 // A payment started in this browser that hasn't been confirmed yet.
