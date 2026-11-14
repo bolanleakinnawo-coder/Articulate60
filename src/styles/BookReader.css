@@ -1,0 +1,122 @@
+/* Book reader. Home palette; the page itself stays white like paper. */
+
+.br-page {
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+.br-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.br-back {
+  display: grid;
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: var(--bg-card);
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.br-head-text {
+  min-width: 0;
+}
+
+.br-head-text h1 {
+  margin: 0;
+  overflow: hidden;
+  color: var(--text-primary);
+  font-size: 22px;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.br-head-text p {
+  margin: 2px 0 0;
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.br-bar {
+  margin-top: -6px;
+}
+
+.br-sheet {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  min-height: 60vh;
+  touch-action: pan-y;
+}
+
+.br-sheet canvas {
+  display: block;
+  max-width: 100%;
+  border-radius: 6px;
+  background: #fff;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.35);
+  transition: opacity 0.15s ease;
+}
+
+.br-sheet canvas.is-rendering {
+  opacity: 0.6;
+}
+
+.br-nav {
+  position: sticky;
+  bottom: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: rgba(19, 21, 19, 0.94);
+  backdrop-filter: blur(8px);
+}
+
+.br-nav .lx-cta:disabled {
+  cursor: default;
+  opacity: 0.4;
+}
+
+.br-count {
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.br-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 48px 20px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.br-state p {
+  max-width: 44ch;
+  margin: 0;
+}
+
+@media (max-width: 760px) {
+  .br-nav {
+    bottom: calc(76px + env(safe-area-inset-bottom, 0px));
+  }
+}

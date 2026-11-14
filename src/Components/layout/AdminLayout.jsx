@@ -21,7 +21,7 @@ const ADMIN_SECTIONS = [
   { to: "/admin/subscribers", label: "Email subscribers", icon: Mail },
   {
     to: "/admin/product-notifications",
-    label: "Product notifications",
+    label: "Learn & books",
     icon: BellRing,
   },
 ];

@@ -1,67 +1,57 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import {
-  ArrowRight,
+  Bell,
+  BellRing,
   BookOpen,
   Check,
+  Library as LibraryIcon,
+  Loader2,
+  Sparkles,
   X,
-  Layers,
-  Mic,
-  Presentation,
-  Radio,
 } from "lucide-react";
-import api from "../api/axios";
 import heroImage from "../assets/learn-hero.jpeg";
-import auditImage from "../assets/audit.jpeg";
-import speakWithEaseImage from "../assets/speakwithease.jpeg";
 import whatDoISayImage from "../assets/whatdoisay.PNG";
 import whatDoIDoImage from "../assets/whatdoido.jpeg";
+import BookCover from "../Components/learn/BookCover";
+import {
+  BOOKS,
+  FEATURED_ID,
+  OFFER_FALLBACK_ENDS_AT,
+  PRODUCTS,
+  SHOP_ORDER,
+  formatPrice,
+  percentOff,
+} from "../data/learn";
+import {
+  loadLearn,
+  setNotifyMe,
+  splitTimeLeft,
+  startBookCheckout,
+  verifyBookPayment,
+} from "../lib/learn";
+import {
+  ensureReminderNotifications,
+  reminderHelp,
+} from "../lib/practiceReminders";
+import "../styles/Learn.css";
 
-/* ---------- Content (swap for API data later) ---------- */
-
-const CATEGORIES = [
+const TABS = [
   { id: "all", label: "All" },
-  { id: "instructor", label: "Instructor-led" },
-  { id: "self", label: "Self-paced" },
+  { id: "explore", label: "Explore" },
+  { id: "library", label: "My library" },
 ];
 
-// Subtitle shown under the chips (none for "All")
-const CATEGORY_SUBTITLES = {
-  all: null,
-  instructor: "Someone to guide you.",
-  self: "Learn at your own pace.",
-};
-
-const LIVE_SESSION = {
-  label: "Live",
+const RESET = {
+  id: "communication-reset",
   title: "The 7-Day Communication Reset",
   description:
     "Go from struggling to express your thoughts to communicating them clearly, confidently, and intentionally.",
-  cta: "Save My Spot",
-  image: heroImage,
-  imageAlt: "Two people having a conversation",
 };
 
-const UPCOMING = [
-  {
-    id: "communication-audit",
-    category: "instructor",
-    icon: Presentation,
-    title: "Communication Audit With Azimah",
-    description: "Understand what’s holding your communication back.",
-    image: auditImage,
-  },
-  {
-    id: "speak-with-ease",
-    category: "self",
-    icon: Layers,
-    title: "Speak With Ease Bundle",
-    description: "Make difficult communication moments easier to navigate.",
-    image: speakWithEaseImage,
-  },
+const COMING_SOON = [
   {
     id: "what-do-i-say",
-    category: "self",
-    icon: BookOpen,
     title: "What Do I Say?",
     description:
       "Find the right words when you’re not sure how to express yourself.",
@@ -69,268 +59,630 @@ const UPCOMING = [
   },
   {
     id: "what-do-i-do",
-    category: "self",
-    icon: Mic,
     title: "What Do I Do?",
     description: "Know what to do in difficult communication situations.",
     image: whatDoIDoImage,
   },
 ];
 
-/* ---------- Component ---------- */
+// Prices are shown in naira and dollars, as on the price list. Paystack
+// charges in naira unless dollar payments are switched on (PAYSTACK_USD_ENABLED).
+const DISPLAY_CURRENCIES = ["NGN", "USD"];
 
-export default function Learn({ onNavigate = () => {} }) {
-  const [category, setCategory] = useState("all");
-  const [notified, setNotified] = useState([]);
-  const [selectedProduct, setSelectedProduct] = useState(null);
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [submissionError, setSubmissionError] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
+const pad = (n) => String(n).padStart(2, "0");
+
+/* ---------- Small pieces ---------- */
+
+function NotifyButton({ on, busy, onClick, className = "" }) {
+  return (
+    <button
+      type="button"
+      className={`lx-notify ${on ? "is-on" : ""} ${className}`}
+      onClick={onClick}
+      disabled={busy}
+      aria-pressed={on}
+    >
+      {busy ? (
+        <Loader2 size={16} className="lx-spin" aria-hidden="true" />
+      ) : on ? (
+        <BellRing size={16} aria-hidden="true" />
+      ) : (
+        <Bell size={16} aria-hidden="true" />
+      )}
+      {on ? "We’ll notify you" : "Notify me"}
+    </button>
+  );
+}
+
+function PriceLine({ product, prices, offerActive, currencies }) {
+  const priceOf = (c) => prices?.[c] || product.prices[c];
+  const ngn = priceOf("NGN");
+  const discounted = offerActive && ngn.now < ngn.full;
+  return (
+    <div className="lx-price">
+      <span className="lx-price-now">
+        {currencies
+          .map((c) => formatPrice(offerActive ? priceOf(c).now : priceOf(c).full, c))
+          .join(" / ")}
+      </span>
+      {discounted && (
+        <>
+          <s className="lx-price-full">
+            {currencies.map((c) => formatPrice(priceOf(c).full, c)).join(" / ")}
+          </s>
+          <span className="lx-off">{percentOff(ngn.full, ngn.now)}% off</span>
+        </>
+      )}
+    </div>
+  );
+}
+
+function LaunchCard({ endsAt, offset, onEnded, bundlePrice }) {
+  const [now, setNow] = useState(() => Date.now() + offset);
+  useEffect(() => {
+    const t = setInterval(() => setNow(Date.now() + offset), 1000);
+    return () => clearInterval(t);
+  }, [offset]);
+  const left = new Date(endsAt).getTime() - now;
+  useEffect(() => {
+    if (left <= 0) onEnded();
+  }, [left, onEnded]);
+  if (left <= 0) return null;
+  const t = splitTimeLeft(left);
+  const ends = new Date(endsAt).toLocaleString("en-GB", {
+    day: "numeric",
+    month: "short",
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  });
+  return (
+    <section className="lx-launch" aria-labelledby="lx-launch-title">
+      <span className="lx-launch-pill">Launch special</span>
+      <h2 id="lx-launch-title" className="lx-launch-title">
+        A little something to celebrate!
+      </h2>
+      <p className="lx-launch-big">20% off</p>
+      <p className="lx-launch-text">
+        Enjoy 20% off every book during our launch offer, or get both
+        playbooks for {bundlePrice} with The Language Upgrade.
+      </p>
+      <div className="lx-launch-divider" />
+      <p className="lx-launch-label">Offer ends in</p>
+      <div className="lx-timer" role="timer" aria-label={`Offer ends ${ends}`}>
+        {[
+          [t.days, "Days"],
+          [t.hours, "Hours"],
+          [t.minutes, "Minutes"],
+          [t.seconds, "Seconds"],
+        ].map(([v, label]) => (
+          <div className="lx-timer-box" key={label}>
+            <strong>{pad(v)}</strong>
+            <span>{label}</span>
+          </div>
+        ))}
+      </div>
+      <p className="lx-launch-note">
+        Ends {ends}. Prices go back to normal after that.
+      </p>
+    </section>
+  );
+}
+
+function ProgressRow({ item, onRead }) {
+  const book = BOOKS[item.bookId];
+  if (!book) return null;
+  const started = item.furthestPage > 0;
+  return (
+    <article className="lx-progress-card">
+      <div className="lx-progress-top">
+        <BookCover id={item.bookId} size="sm" />
+        <div className="lx-progress-info">
+          <h3>{book.shortTitle}</h3>
+          <p>
+            {!item.ready
+              ? "Getting your book ready"
+              : item.completedAt
+                ? "Finished"
+                : `${item.percent}% completed`}
+          </p>
+          <div
+            className="lx-bar"
+            role="progressbar"
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-valuenow={item.percent}
+            aria-label={`${book.shortTitle} progress`}
+          >
+            <span style={{ width: `${item.percent}%` }} />
+          </div>
+        </div>
+      </div>
+      <button
+        type="button"
+        className="lx-cta lx-cta-block"
+        onClick={() => onRead(item.bookId)}
+      >
+        {item.completedAt ? "Read again" : started ? "Continue reading" : "Start reading"}
+      </button>
+    </article>
+  );
+}
+
+/* ---------- Page ---------- */
+
+export default function Learn() {
+  const navigate = useNavigate();
+  const [params, setParams] = useSearchParams();
+  const tab = TABS.some((t) => t.id === params.get("tab")) ? params.get("tab") : "all";
+  const returnRef = params.get("reference") || params.get("trxref");
+
+  const [data, setData] = useState(null);
+  const [loadError, setLoadError] = useState("");
+  const [offset, setOffset] = useState(0);
+  const [offerOver, setOfferOver] = useState(false);
+  const [busyNotify, setBusyNotify] = useState(null);
+  const [notifyHelp, setNotifyHelp] = useState("");
+  const [buying, setBuying] = useState(null); // product being bought
+  const [currency, setCurrency] = useState("NGN");
+  const [checkoutError, setCheckoutError] = useState("");
+  const [startingCheckout, setStartingCheckout] = useState(false);
+  const [payment, setPayment] = useState(returnRef ? { kind: "checking" } : null);
+
+  const setTab = (id) => {
+    const next = new URLSearchParams(params);
+    if (id === "all") next.delete("tab");
+    else next.set("tab", id);
+    next.delete("reference");
+    next.delete("trxref");
+    setParams(next, { replace: true });
+  };
+
+  const refresh = useCallback(async () => {
+    try {
+      const d = await loadLearn();
+      setOffset(new Date(d.offer.serverNow).getTime() - Date.now());
+      setData(d);
+      setLoadError("");
+    } catch (e) {
+      setLoadError(
+        e.response?.data?.message || "We couldn’t load Learn. Please try again.",
+      );
+    }
+  }, []);
 
   useEffect(() => {
-    if (!selectedProduct) return undefined;
+    // Loads from the server; state is set when the request finishes.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    refresh();
+  }, [refresh]);
 
-    const handleKeyDown = (event) => {
-      if (event.key === "Escape" && !isSubmitting) {
-        setSelectedProduct(null);
-        setSubmissionError("");
-      }
-    };
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [selectedProduct, isSubmitting]);
-
-  const showHero = category === "all" || category === "instructor";
-  const subtitle = CATEGORY_SUBTITLES[category];
-
-  const visibleItems = UPCOMING.filter(
-    (item) => category === "all" || item.category === category,
-  );
-
-  const openNotifyForm = (product) => {
-    setSelectedProduct(product);
-    setSubmissionError("");
-  };
-
-  const closeNotifyForm = () => {
-    if (isSubmitting) return;
-    setSelectedProduct(null);
-    setSubmissionError("");
-  };
-
-  const handleNotifySubmit = async (event) => {
-    event.preventDefault();
-    if (!selectedProduct || isSubmitting) return;
-
-    setSubmissionError("");
-    setIsSubmitting(true);
+  // Back from Paystack: confirm the payment with the server.
+  const checkPayment = useCallback(async (reference) => {
+    setPayment({ kind: "checking", reference });
     try {
-      await api.post("/api/learn-notifications", {
-        name,
-        email,
-        productId: selectedProduct.id,
+      const r = await verifyBookPayment(reference);
+      if (r.payment.added) {
+        setPayment({ kind: "added", productId: r.payment.productId });
+        setData((d) => (d ? { ...d, library: r.library } : d));
+      } else if (r.payment.status === "pending") {
+        setPayment({ kind: "pending", reference });
+      } else {
+        setPayment({ kind: "failed", reference });
+      }
+    } catch {
+      setPayment({ kind: "pending", reference });
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!returnRef) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    checkPayment(returnRef);
+    const next = new URLSearchParams(params);
+    next.delete("reference");
+    next.delete("trxref");
+    next.set("tab", "library");
+    setParams(next, { replace: true });
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const currencies = data?.currencies?.length ? data.currencies : ["NGN"];
+  const offerActive = data ? data.offer.active && !offerOver : true;
+  const endsAt = data?.offer.endsAt || OFFER_FALLBACK_ENDS_AT;
+  const library = useMemo(() => data?.library || [], [data]);
+  const owned = useMemo(() => new Set(library.map((i) => i.bookId)), [library]);
+  const notifyOn = useMemo(() => new Set(data?.notify || []), [data]);
+  const serverPrices = useMemo(
+    () => Object.fromEntries((data?.products || []).map((p) => [p.id, p.prices])),
+    [data],
+  );
+  const ownsAll = (productId) => PRODUCTS[productId].books.every((b) => owned.has(b));
+
+  const onOfferEnded = useCallback(() => {
+    setOfferOver(true);
+    refresh();
+  }, [refresh]);
+
+  const toggleNotify = async (productId) => {
+    if (busyNotify) return;
+    const turnOn = !notifyOn.has(productId);
+    setBusyNotify(productId);
+    setNotifyHelp("");
+    // Ask for phone notifications straight from the tap (Safari needs this).
+    const pushState = turnOn ? await ensureReminderNotifications() : "on";
+    try {
+      await setNotifyMe(productId, turnOn);
+      setData((d) => {
+        if (!d) return d;
+        const set = new Set(d.notify);
+        if (turnOn) set.add(productId);
+        else set.delete(productId);
+        return { ...d, notify: [...set] };
       });
-      setNotified((previous) => [...previous, selectedProduct.id]);
-      setSelectedProduct(null);
-      setName("");
-      setEmail("");
-    } catch (error) {
-      setSubmissionError(
-        error.response?.data?.message ||
-          "We couldn't save your request. Please try again.",
+      if (turnOn && pushState !== "on") {
+        setNotifyHelp(
+          `We’ll tell you in the app when it’s out. ${reminderHelp(pushState)}`.replace(
+            "to get the reminder",
+            "to hear about it on your phone",
+          ),
+        );
+      }
+    } catch (e) {
+      setNotifyHelp(
+        e.response?.data?.message || "We couldn’t save that. Please try again.",
       );
     } finally {
-      setIsSubmitting(false);
+      setBusyNotify(null);
     }
   };
 
+  const openBuy = (productId) => {
+    setCheckoutError("");
+    setCurrency(currencies.includes(currency) ? currency : "NGN");
+    setBuying(productId);
+  };
+
+  const goToPayment = async () => {
+    if (!buying || startingCheckout) return;
+    setStartingCheckout(true);
+    setCheckoutError("");
+    try {
+      const r = await startBookCheckout(buying, currency);
+      window.location.assign(r.authorizationUrl);
+    } catch (e) {
+      setCheckoutError(
+        e.response?.data?.message || "Couldn’t start the payment. Please try again.",
+      );
+      setStartingCheckout(false);
+    }
+  };
+
+  const read = (bookId) => navigate(`/app/learn/read/${bookId}`);
+
+  useEffect(() => {
+    if (!buying) return undefined;
+    const onKey = (e) => {
+      if (e.key === "Escape" && !startingCheckout) setBuying(null);
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [buying, startingCheckout]);
+
+  const showShop = tab !== "library";
+  const continueItems = library.filter((i) => !i.completedAt).slice(0, 3);
+
+  const productCard = (id) => {
+    const p = PRODUCTS[id];
+    const has = ownsAll(id);
+    const partly = !has && p.books.some((b) => owned.has(b));
+    return (
+      <article key={id} className="lx-book">
+        <BookCover id={id} size="md" />
+        <div className="lx-book-body">
+          {p.tagline && <span className="lx-tag">{p.tagline}</span>}
+          <h3 className="lx-book-title">{p.title}</h3>
+          <p className="lx-book-text">{p.description}</p>
+          <PriceLine
+            product={p}
+            prices={serverPrices[id]}
+            offerActive={offerActive}
+            currencies={DISPLAY_CURRENCIES}
+          />
+          {partly && (
+            <p className="lx-book-note">
+              You already have{" "}
+              {p.books.filter((b) => owned.has(b)).map((b) => BOOKS[b].shortTitle).join(", ")}.
+            </p>
+          )}
+          {has ? (
+            <button type="button" className="lx-cta lx-cta-outline" onClick={() => setTab("library")}>
+              <Check size={16} aria-hidden="true" /> In your library
+            </button>
+          ) : (
+            <button type="button" className="lx-cta" onClick={() => openBuy(id)}>
+              Buy access
+            </button>
+          )}
+        </div>
+      </article>
+    );
+  };
+
+  const featured = PRODUCTS[FEATURED_ID];
+  const buyingProduct = buying ? PRODUCTS[buying] : null;
+  const buyingPrice = buying
+    ? serverPrices[buying]?.[currency] || buyingProduct.prices[currency]
+    : null;
+
   return (
-    <div className="learn-content">
-      {/* Header */}
+    <div className="learn-content lx-page">
       <header className="learn-header">
         <h1 className="learn-title">Learn</h1>
-        <p className="learn-subtitle">
-          Build the skills to communicate better.
-        </p>
+        <p className="learn-subtitle">Build the skills to communicate better.</p>
       </header>
 
-      {/* Category filter */}
-      <div
-        className="learn-categories"
-        role="tablist"
-        aria-label="Learning type"
-      >
-        {CATEGORIES.map((c) => (
+      <div className="learn-categories" role="tablist" aria-label="Learn sections">
+        {TABS.map((t) => (
           <button
-            key={c.id}
+            key={t.id}
             role="tab"
-            aria-selected={category === c.id}
-            className={`learn-chip ${category === c.id ? "active" : ""}`}
-            onClick={() => setCategory(c.id)}
+            aria-selected={tab === t.id}
+            className={`learn-chip ${tab === t.id ? "active" : ""}`}
+            onClick={() => setTab(t.id)}
           >
-            {c.label}
+            {t.label}
           </button>
         ))}
       </div>
 
-      {/* Category subtitle */}
-      {subtitle && <p className="learn-category-subtitle">{subtitle}</p>}
+      {payment && (
+        <div className={`lx-banner lx-banner-${payment.kind}`} role="status">
+          {payment.kind === "checking" && (
+            <>
+              <Loader2 size={18} className="lx-spin" aria-hidden="true" />
+              <span>Confirming your payment…</span>
+            </>
+          )}
+          {payment.kind === "added" && (
+            <>
+              <Check size={18} aria-hidden="true" />
+              <span>
+                <strong>{PRODUCTS[payment.productId]?.title}</strong> is in your library.
+                Happy reading!
+              </span>
+            </>
+          )}
+          {payment.kind === "pending" && (
+            <>
+              <span>We haven’t received confirmation of your payment yet.</span>
+              <button type="button" className="lx-link" onClick={() => checkPayment(payment.reference)}>
+                Check again
+              </button>
+            </>
+          )}
+          {payment.kind === "failed" && (
+            <span>Your payment didn’t go through, so you weren’t charged. You can try again.</span>
+          )}
+          {payment.kind !== "checking" && (
+            <button type="button" className="lx-banner-close" aria-label="Dismiss" onClick={() => setPayment(null)}>
+              <X size={16} />
+            </button>
+          )}
+        </div>
+      )}
 
-      {/* Hero banner */}
-      {showHero && (
-        <section className="learn-hero" aria-labelledby="learn-hero-title">
-          <div className="learn-hero-main">
-            <span className="learn-badge">
-              <Radio size={14} aria-hidden="true" />
-              {LIVE_SESSION.label}
+      {loadError && (
+        <div className="lx-banner lx-banner-failed" role="alert">
+          <span>{loadError}</span>
+          <button type="button" className="lx-link" onClick={refresh}>
+            Try again
+          </button>
+        </div>
+      )}
+
+      {showShop && data && offerActive && (
+        <LaunchCard
+          endsAt={endsAt}
+          offset={offset}
+          onEnded={onOfferEnded}
+          bundlePrice={formatPrice(
+            (serverPrices["language-upgrade"]?.NGN || PRODUCTS["language-upgrade"].prices.NGN).now,
+            "NGN",
+          )}
+        />
+      )}
+
+      {showShop && (
+        <section className="lx-reset" aria-labelledby="lx-reset-title">
+          <div className="lx-reset-main">
+            <span className="lx-featured-pill">
+              <Sparkles size={13} aria-hidden="true" /> Featured for you
             </span>
-            <h2 id="learn-hero-title" className="learn-hero-title">
-              {LIVE_SESSION.title}
-            </h2>
-            <p className="learn-hero-text">{LIVE_SESSION.description}</p>
-            <button
-              className="learn-cta"
-              onClick={() => onNavigate("save-spot")}
-            >
-              {LIVE_SESSION.cta} <ArrowRight size={18} />
+            <h2 id="lx-reset-title" className="lx-reset-title">{RESET.title}</h2>
+            <p className="lx-reset-text">{RESET.description}</p>
+            <NotifyButton
+              on={notifyOn.has(RESET.id)}
+              busy={busyNotify === RESET.id}
+              onClick={() => toggleNotify(RESET.id)}
+            />
+          </div>
+          <img src={heroImage} alt="" className="lx-reset-img" />
+        </section>
+      )}
+
+      {notifyHelp && showShop && <p className="lx-help">{notifyHelp}</p>}
+
+      {tab === "all" && continueItems.length > 0 && (
+        <section className="lx-section">
+          <div className="lx-section-head">
+            <h2>Continue learning</h2>
+            <button type="button" className="lx-link" onClick={() => setTab("library")}>
+              My library
             </button>
           </div>
-
-          <div className="learn-hero-media">
-            {LIVE_SESSION.image ? (
-              <img
-                src={LIVE_SESSION.image}
-                alt={LIVE_SESSION.imageAlt}
-                className="learn-hero-img"
-              />
-            ) : (
-              <div className="learn-image-slot" aria-hidden="true" />
-            )}
+          <div className="lx-progress-grid">
+            {continueItems.map((item) => (
+              <ProgressRow key={item.bookId} item={item} onRead={read} />
+            ))}
           </div>
         </section>
       )}
 
-      {/* Next on Learn */}
-      {visibleItems.length > 0 && (
-        <section className="learn-section">
-          <div className="learn-section-head">
-            <h2>Next on Learn</h2>
+      {showShop && (
+        <section className="lx-section" aria-labelledby="lx-books-title">
+          <div className="lx-section-head lx-section-head-col">
+            <h2 id="lx-books-title">Books</h2>
+            <p>Read at your own pace, on any device.</p>
+          </div>
+
+          <article className="lx-featured">
+            <BookCover id={FEATURED_ID} size="lg" />
+            <div className="lx-featured-body">
+              <span className="lx-featured-pill">
+                <Sparkles size={13} aria-hidden="true" /> Featured book
+              </span>
+              <h3 className="lx-featured-title">{featured.title}</h3>
+              <p className="lx-book-text">{featured.description}</p>
+              <PriceLine
+                product={featured}
+                prices={serverPrices[FEATURED_ID]}
+                offerActive={offerActive}
+                currencies={DISPLAY_CURRENCIES}
+              />
+              {ownsAll(FEATURED_ID) ? (
+                <button type="button" className="lx-cta lx-cta-outline" onClick={() => read(FEATURED_ID)}>
+                  <BookOpen size={16} aria-hidden="true" /> Read now
+                </button>
+              ) : (
+                <button type="button" className="lx-cta" onClick={() => openBuy(FEATURED_ID)}>
+                  Buy access
+                </button>
+              )}
+            </div>
+          </article>
+
+          <div className="lx-book-grid">{SHOP_ORDER.map(productCard)}</div>
+        </section>
+      )}
+
+      {showShop && (
+        <section className="lx-section" aria-labelledby="lx-soon-title">
+          <div className="lx-section-head lx-section-head-col">
+            <h2 id="lx-soon-title">Next on Learn</h2>
             <p>More learning experiences are on the way.</p>
           </div>
-
-          <div className="learn-grid">
-            {visibleItems.map(
-              (product, index) => {
-                const { id, icon: Icon, title, description, image } = product;
-                const isNotified = notified.includes(id);
-                return (
-                  <article key={id} className="learn-card">
-                    <div
-                      className={`learn-card-media ${
-                        index % 2 === 0 ? "tone-a" : "tone-b"
-                      }`}
-                    >
-                      {image ? (
-                        <img src={image} alt="" className="learn-card-img" />
-                      ) : (
-                        <Icon size={26} aria-hidden="true" />
-                      )}
-                    </div>
-
-                    <span className="learn-card-tag">Coming soon</span>
-                    <h3 className="learn-card-title">{title}</h3>
-                    <p className="learn-card-text">{description}</p>
-
-                    <button
-                      className={`learn-notify ${isNotified ? "done" : ""}`}
-                      onClick={() => openNotifyForm(product)}
-                      disabled={isNotified}
-                    >
-                      {isNotified ? (
-                        <>
-                          <Check size={14} strokeWidth={3} /> We'll notify you
-                        </>
-                      ) : (
-                        "Notify me"
-                      )}
-                    </button>
-                  </article>
-                );
-              },
-            )}
+          <div className="lx-soon-grid">
+            {COMING_SOON.map((item) => (
+              <article key={item.id} className="lx-soon">
+                <div className="lx-soon-media">
+                  <img src={item.image} alt="" />
+                  <span className="lx-soon-label">Coming soon</span>
+                </div>
+                <h3 className="lx-book-title">{item.title}</h3>
+                <p className="lx-book-text">{item.description}</p>
+                <NotifyButton
+                  on={notifyOn.has(item.id)}
+                  busy={busyNotify === item.id}
+                  onClick={() => toggleNotify(item.id)}
+                  className="lx-notify-block"
+                />
+              </article>
+            ))}
           </div>
         </section>
       )}
 
-      {selectedProduct && (
+      {tab === "library" && (
+        <section className="lx-section" aria-labelledby="lx-lib-title">
+          <div className="lx-section-head lx-section-head-col">
+            <h2 id="lx-lib-title">My library</h2>
+            <p>Every book you’ve bought, and how far you’ve read.</p>
+          </div>
+          {!data && !loadError ? (
+            <p className="lx-muted" role="status">Loading your library…</p>
+          ) : library.length === 0 ? (
+            <div className="lx-empty">
+              <LibraryIcon size={28} aria-hidden="true" />
+              <h3>Your library is empty</h3>
+              <p>Books you buy will appear here, with your reading progress.</p>
+              <button type="button" className="lx-cta" onClick={() => setTab("explore")}>
+                Explore books
+              </button>
+            </div>
+          ) : (
+            <div className="lx-progress-grid">
+              {library.map((item) => (
+                <ProgressRow key={item.bookId} item={item} onRead={read} />
+              ))}
+            </div>
+          )}
+        </section>
+      )}
+
+      {buyingProduct && (
         <div
           className="learn-notify-backdrop"
-          onMouseDown={(event) => {
-            if (event.target === event.currentTarget) closeNotifyForm();
+          onMouseDown={(e) => {
+            if (e.target === e.currentTarget && !startingCheckout) setBuying(null);
           }}
         >
-          <section
-            className="learn-notify-dialog"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="learn-notify-title"
-          >
+          <section className="learn-notify-dialog lx-buy" role="dialog" aria-modal="true" aria-labelledby="lx-buy-title">
             <button
               className="learn-notify-close"
               type="button"
-              aria-label="Close notification form"
-              onClick={closeNotifyForm}
-              disabled={isSubmitting}
+              aria-label="Close"
+              onClick={() => setBuying(null)}
+              disabled={startingCheckout}
             >
               <X size={20} />
             </button>
-            <p className="learn-notify-eyebrow">Coming soon</p>
-            <h2 id="learn-notify-title">Get notified when it&apos;s ready</h2>
-            <p className="learn-notify-product">{selectedProduct.title}</p>
-            <p className="learn-notify-description">
-              Leave your details and we&apos;ll let you know when this learning
-              experience is available.
-            </p>
-            <form className="learn-notify-form" onSubmit={handleNotifySubmit}>
-              <label htmlFor="learn-notify-name">Name</label>
-              <input
-                id="learn-notify-name"
-                name="name"
-                autoComplete="name"
-                autoFocus
-                value={name}
-                onChange={(event) => setName(event.target.value)}
-                minLength={2}
-                maxLength={80}
-                required
-                disabled={isSubmitting}
-              />
-              <label htmlFor="learn-notify-email">Email</label>
-              <input
-                id="learn-notify-email"
-                name="email"
-                type="email"
-                autoComplete="email"
-                value={email}
-                onChange={(event) => setEmail(event.target.value)}
-                maxLength={254}
-                required
-                disabled={isSubmitting}
-              />
-              {submissionError && (
-                <p className="learn-notify-error" role="alert">
-                  {submissionError}
-                </p>
+            <div className="lx-buy-head">
+              <BookCover id={buying} size="sm" />
+              <div>
+                <h2 id="lx-buy-title">{buyingProduct.title}</h2>
+                {buyingProduct.tagline && <p className="lx-muted">{buyingProduct.tagline}</p>}
+              </div>
+            </div>
+            {currencies.length > 1 && (
+              <div className="lx-currency" role="radiogroup" aria-label="Pay in">
+                {currencies.map((c) => (
+                  <button
+                    key={c}
+                    type="button"
+                    role="radio"
+                    aria-checked={currency === c}
+                    className={`learn-chip ${currency === c ? "active" : ""}`}
+                    onClick={() => setCurrency(c)}
+                  >
+                    {c === "NGN" ? "Naira (₦)" : "Dollars ($)"}
+                  </button>
+                ))}
+              </div>
+            )}
+            <div className="lx-buy-total">
+              <span>You pay</span>
+              <strong>{formatPrice(offerActive ? buyingPrice.now : buyingPrice.full, currency)}</strong>
+              {offerActive && buyingPrice.now < buyingPrice.full && (
+                <s>{formatPrice(buyingPrice.full, currency)}</s>
               )}
-              <button
-                className="learn-notify-submit"
-                type="submit"
-                disabled={isSubmitting}
-              >
-                {isSubmitting ? "Submitting..." : "Submit"}
-              </button>
-            </form>
+            </div>
+            <p className="lx-muted">
+              One payment, yours to keep. It goes straight into My library and
+              you can read it on any device.
+            </p>
+            {checkoutError && <p className="learn-notify-error" role="alert">{checkoutError}</p>}
+            <button
+              type="button"
+              className="lx-cta lx-cta-block"
+              onClick={goToPayment}
+              disabled={startingCheckout || data?.available === false}
+            >
+              {startingCheckout ? "Opening secure payment…" : "Continue to payment"}
+            </button>
+            {data?.available === false && (
+              <p className="lx-muted">Payments aren’t available right now. Please try again later.</p>
+            )}
+            <p className="lx-secure">Secure payment by Paystack</p>
           </section>
         </div>
       )}

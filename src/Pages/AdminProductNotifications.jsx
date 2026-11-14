@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { BellRing } from "lucide-react";
 import api from "../api/axios";
+import AdminLearnBooks from "./AdminLearnBooks";
 import "./Admin.css";
 
 export default function AdminProductNotifications() {
@@ -35,9 +36,11 @@ export default function AdminProductNotifications() {
     <section className="admin-subscribers">
       <header className="admin-overview-header">
         <p className="admin-overview-eyebrow">Admin</p>
-        <h1>Product notifications</h1>
-        <p>People who asked to hear when a learning product is available.</p>
+        <h1>Learn</h1>
+        <p>Book files, sales, and people who asked to hear when something launches.</p>
       </header>
+
+      <AdminLearnBooks />
 
       {error && (
         <p className="admin-overview-error" role="alert">
@@ -81,6 +84,7 @@ export default function AdminProductNotifications() {
                     <strong>{notification.name}</strong>
                     <span>
                       {notification.productName} · {notification.email} ·
+                      {notification.notifiedAt ? " notified · " : ""}
                       {" submitted "}
                       {notification.createdAt
                         ? new Date(

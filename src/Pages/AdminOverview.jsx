@@ -87,7 +87,7 @@ export default function AdminOverview() {
           <span className="admin-overview-card-icon">
             <BellRing size={20} />
           </span>
-          <span className="admin-overview-card-label">Product notifications</span>
+          <span className="admin-overview-card-label">Learn &amp; books</span>
           <span className="admin-overview-card-caption">
             View people interested in upcoming learning products.
           </span>

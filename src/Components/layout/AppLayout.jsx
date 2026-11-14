@@ -2,6 +2,7 @@ import { Outlet } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import MobileNav from "./MobileNav";
 import CallBar from "./CallBar";
+import LearnNotice from "../learn/LearnNotice";
 
 export default function AppLayout() {
   return (
@@ -10,6 +11,7 @@ export default function AppLayout() {
 
       <main className="main-content">
         <CallBar />
+        <LearnNotice />
         <Outlet />
       </main>
 

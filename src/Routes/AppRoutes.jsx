@@ -1,6 +1,7 @@
+import { lazy, Suspense } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 
-import Landing from "../Pages/Landing";
+import LandingPage from "../Pages/LandingPage";
 import AppLayout from "../Components/layout/AppLayout";
 import Home from "../Pages/Home";
 import Practice from "../Pages/Practice";
@@ -33,11 +34,30 @@ import {
   GroupPracticeJoin,
 } from "../Pages/GroupPractice";
 
+// The book reader brings in the PDF library, so it only loads when opened.
+const BookReader = lazy(() => import("../Pages/BookReader"));
+
+// Signed in on this device? (Storage can be blocked in private mode.)
+function hasToken() {
+  try {
+    return Boolean(localStorage.getItem("token"));
+  } catch {
+    return false;
+  }
+}
+
+function VisitorLanding() {
+  const signedIn = hasToken();
+  return signedIn ? <Navigate to="/app/home" replace /> : <LandingPage />;
+}
+
 export default function AppRoutes() {
   return (
     <Routes>
-      <Route path="/" element={<Navigate to="/app/home" replace />} />
-      <Route path="/landingpage" element={<Landing />} />
+      {/* Visitors see the landing page; signed-in members go to the app. */}
+      <Route path="/" element={<VisitorLanding />} />
+      {/* Always shows the landing page, even when signed in (for previews). */}
+      <Route path="/landingpage" element={<LandingPage />} />
       <Route path="/welcome" element={<WelcomeIntro />} /> {/* NEW */}
       <Route path="/register" element={<Registration />} />
       <Route path="/ready" element={<ReadyIntro />} /> {/* NEW */}
@@ -67,6 +87,14 @@ export default function AppRoutes() {
           <Route path="library" element={<Library />} />
           <Route path="profile" element={<Profile />} />
           <Route path="learn" element={<Learn />} />
+          <Route
+            path="learn/read/:bookId"
+            element={
+              <Suspense fallback={null}>
+                <BookReader />
+              </Suspense>
+            }
+          />
 
           <Route path="practice/prepare" element={<PracticeSession />} />
           <Route path="practice/yap-session" element={<PracticeSession />} />

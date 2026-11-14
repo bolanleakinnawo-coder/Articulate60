@@ -187,7 +187,7 @@ router.get("/me", authMiddleware, async (req, res) => {
   try {
     const [subscription, payments] = await Promise.all([
       subscriptionFor(req.userId),
-      Payment.find({ user: req.userId, status: { $ne: "pending" } })
+      Payment.find({ user: req.userId, status: { $ne: "pending" }, kind: { $ne: "book" } })
         .sort({ createdAt: -1 })
         .limit(12),
     ]);

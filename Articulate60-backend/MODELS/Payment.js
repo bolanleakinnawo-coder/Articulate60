@@ -13,9 +13,14 @@ const paymentSchema = new mongoose.Schema(
     reference: { type: String, required: true, unique: true },
     provider: { type: String, default: "paystack" },
     mode: { type: String, enum: ["test", "live"], required: true },
-    planId: { type: String, required: true },
-    periodId: { type: String, required: true },
-    months: { type: Number, required: true },
+    // "plan" = membership, "book" = a Learn book or bundle (productId).
+    kind: { type: String, enum: ["plan", "book"], default: "plan" },
+    productId: { type: String, default: null },
+    // True when the launch price was charged.
+    launchPrice: { type: Boolean, default: false },
+    planId: { type: String, required: function () { return this.kind !== "book"; } },
+    periodId: { type: String, required: function () { return this.kind !== "book"; } },
+    months: { type: Number, required: function () { return this.kind !== "book"; } },
     // Smallest unit of the currency: kobo for NGN, cents for USD.
     amountMinor: { type: Number, required: true },
     currency: { type: String, enum: ["NGN", "USD"], required: true },

@@ -18,7 +18,7 @@ self.addEventListener("push", (event) => {
     renotify: true,
     data: { url: data.url || "/app/home" },
     actions:
-      data.kind === "group-scheduled"
+      data.kind === "group-scheduled" || data.kind === "learn"
         ? [{ action: "open", title: data.action || "Open Loquiex" }]
         : [
             { action: "open", title: data.action || "Practise today" },

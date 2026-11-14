@@ -19,6 +19,7 @@ const PasswordReset = require("../MODELS/PasswordReset");
 const WaitlistSignup = require("../MODELS/WaitlistSignup");
 const LearnNotification = require("../MODELS/LearnNotification");
 const ScheduledPractice = require("../MODELS/ScheduledPractice");
+const LibraryItem = require("../MODELS/LibraryItem");
 const { disconnectUser } = require("./realtime");
 
 function r2KeyFromUrl(url) {
@@ -94,6 +95,8 @@ async function deleteAccount(user) {
     PasswordReset.deleteMany({ user: userId }),
     WaitlistSignup.deleteMany({ email: user.email }),
     LearnNotification.deleteMany({ email: user.email }),
+    LearnNotification.deleteMany({ user: userId }),
+    LibraryItem.deleteMany({ user: userId }),
     ScheduledPractice.deleteMany({ host: userId }),
     ScheduledPractice.updateMany(
       { reminders: userId },

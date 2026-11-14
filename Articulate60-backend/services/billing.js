@@ -5,7 +5,9 @@
 const Payment = require("../MODELS/Payment");
 const User = require("../MODELS/User");
 const paystack = require("./paystack");
+const LibraryItem = require("../MODELS/LibraryItem");
 const { planIdOf, addMonths } = require("../utils/plans");
+const { PRODUCTS } = require("../utils/learn");
 
 const FAILED = { failed: "failed", abandoned: "abandoned", reversed: "failed" };
 
@@ -51,7 +53,8 @@ async function settlePayment(payment) {
     },
   );
 
-  const applied = await applyToUser(payment);
+  const applied =
+    payment.kind === "book" ? await addBooksToLibrary(payment) : await applyToUser(payment);
   if (applied?.accountDeleted) {
     console.error(`Payment ${payment.reference} paid after account deletion: refund it in Paystack.`);
     return Payment.findOneAndUpdate(
@@ -65,7 +68,7 @@ async function settlePayment(payment) {
     {
       $set: {
         appliedAt: payment.appliedAt || new Date(),
-        ...(applied ? { planStartsAt: applied.startsAt, planExpiresAt: applied.expiresAt } : {}),
+        ...(applied?.expiresAt ? { planStartsAt: applied.startsAt, planExpiresAt: applied.expiresAt } : {}),
       },
     },
     { returnDocument: "after" },
@@ -123,6 +126,33 @@ async function applyToUser(payment) {
     if (result.modifiedCount === 1) return { startsAt, expiresAt };
   }
   throw new Error(`Could not apply payment ${ref} (busy).`);
+}
+
+// Puts every book the payment covers into the member's library (a bundle
+// gives both playbooks). Books they already own keep their reading progress.
+async function addBooksToLibrary(payment) {
+  const exists = await User.exists({ _id: payment.user });
+  if (!exists) return { accountDeleted: true };
+  const product = PRODUCTS[payment.productId];
+  if (!product) throw new Error(`Unknown product ${payment.productId} on ${payment.reference}`);
+  await Promise.all(
+    product.books.map((bookId) =>
+      LibraryItem.updateOne(
+        { user: payment.user, bookId },
+        {
+          $setOnInsert: {
+            productId: payment.productId,
+            paymentRef: payment.reference,
+            purchasedAt: new Date(),
+          },
+        },
+        { upsert: true },
+      ).catch((err) => {
+        if (err.code !== 11000) throw err; // a parallel settle already added it
+      }),
+    ),
+  );
+  return { books: product.books };
 }
 
 module.exports = { settlePayment };

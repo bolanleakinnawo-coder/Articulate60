@@ -331,3 +331,24 @@
     justify-content: center;
   }
 }
+/* Learn: upload / announce buttons */
+.admin-learn-upload {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  padding: 8px 12px;
+  border: 1px solid var(--olive-primary);
+  border-radius: 10px;
+  background: var(--olive-primary);
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.admin-learn-upload:disabled {
+  opacity: 0.5;
+  cursor: default;
+}

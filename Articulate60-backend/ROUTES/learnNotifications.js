@@ -3,12 +3,8 @@ const LearnNotification = require("../MODELS/LearnNotification");
 
 const router = express.Router();
 
-const PRODUCTS = {
-  "communication-audit": "Communication Audit With Azimah",
-  "speak-with-ease": "Speak With Ease Bundle",
-  "what-do-i-say": "What Do I Say?",
-  "what-do-i-do": "What Do I Do?",
-};
+// Same coming-soon list as the in-app bell (utils/learn.js).
+const PRODUCTS = require("../utils/learn").UPCOMING;
 
 router.post("/", async (req, res) => {
   const { name, email, productId } = req.body || {};
