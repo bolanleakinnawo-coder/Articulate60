@@ -55,7 +55,7 @@ export const FAQS = [
     id: "group",
     question: "How does group practice work?",
     answer:
-      "Group practice lets members practise speaking together in an audio-only session. It's included with Loquiex Flourish and Loquiex Infinity, and the time you spend in a room with others counts towards your daily call time (1 hr 30 min a day on Loquiex Flourish, unlimited on Loquiex Infinity). Open Practice, choose Group Practice, then join a public practice, start your own, or enter a code for a private one. You can host your own topic or let Loquiex pick a category and prompts, and start now or schedule a practice for later (we remind you 5 minutes before). You stay in the call when you move to another tab. On iPhone, keep Loquiex open during a call: iPhone pauses apps in the background, and you rejoin automatically when you come back within 2 minutes.",
+      "Group practice lets members practise speaking together in an audio-only session. It's included with Loquiex Flourish and Loquiex Infinity, and the time you spend in a room with others counts towards your daily call time (1 hr 30 min a day on Loquiex Flourish, unlimited on Loquiex Infinity). Open Practice, choose Group Practice, then join a public practice, start your own, or enter a code for a private one. You can host your own topic or let Loquiex pick a category and prompts, and start now or schedule a practice for later (we remind you 5 minutes before). You stay in the call when you move to another tab.",
   },
   {
     id: "invite",

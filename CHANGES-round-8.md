@@ -59,6 +59,12 @@ Everything from round 7 is kept, including the in-app Paystack payments.
 - **Manage Membership:** the Renew, Upgrade and Compare plans icons now show on small phones too.
 - **Usage & Limits > This month > Group practice:** now works like the AI feedback card. It shows the call time left this month, how much of the monthly allowance is used (for example "46 min of 45 hr used") and a progress bar. Flourish's monthly allowance is 1 hr 30 min a day for 30 days, which is 45 hr. The Today tab is unchanged.
 
+## Third follow-up (same day)
+
+- **Group call:** the iPhone note under the call controls ("On iPhone, keep Loquiex open during the call… you'll rejoin automatically") is removed. Automatic rejoining still works as before.
+- **Learn, Featured for you:** once someone buys the featured guide, the next product they don't own yet takes its place in the Featured card, first Word Playbook and then Grammar Playbook. It uses the same card design, with that product's title, description and prices. The product in the Featured card isn't repeated under Playbooks. If they own everything, the guide stays in the Featured card with **Read now**.
+- **Help & support FAQ, "How does group practice work?":** the iPhone line at the end is removed too.
+
 ## Small fixes found along the way
 
 - Help & support said the reminder comes 10 minutes before a scheduled practice, but it comes 5 minutes before. This is now correct in the FAQ and on the invite page.

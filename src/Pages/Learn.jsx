@@ -451,7 +451,15 @@ export default function Learn() {
     );
   };
 
-  const featured = PRODUCTS[FEATURED_ID];
+  // Featured for you: the guide first. Once it's bought, the next product the
+  // member doesn't own yet takes its place (Word Playbook, then Grammar
+  // Playbook). If they own everything, the guide stays here with Read now.
+  const featuredId =
+    [FEATURED_ID, ...SHOP_ORDER].find((id) => !ownsAll(id)) || FEATURED_ID;
+  const featured = PRODUCTS[featuredId];
+  const featuredHeading =
+    featuredId === FEATURED_ID ? FEATURED_HEADING : featured.title;
+  const shopOrder = SHOP_ORDER.filter((id) => id !== featuredId);
   const buyingProduct = buying ? PRODUCTS[buying] : null;
   const buyingPrice = buying
     ? serverPrices[buying]?.[currency] || buyingProduct.prices[currency]
@@ -541,27 +549,27 @@ export default function Learn() {
               Featured for you
             </span>
             <h2 id="lx-reset-title" className="learn-hero-title">
-              {FEATURED_HEADING}
+              {featuredHeading}
             </h2>
             <p className="learn-hero-text">{featured.description}</p>
             <div className="lx-featured-hero-price">
               <PriceLine
                 product={featured}
-                prices={serverPrices[FEATURED_ID]}
+                prices={serverPrices[featuredId]}
                 offerActive={offerActive}
                 currencies={DISPLAY_CURRENCIES}
                 discountLabel={`${percentOff(
-                  (serverPrices[FEATURED_ID]?.NGN || featured.prices.NGN).full,
-                  (serverPrices[FEATURED_ID]?.NGN || featured.prices.NGN).now,
+                  (serverPrices[featuredId]?.NGN || featured.prices.NGN).full,
+                  (serverPrices[featuredId]?.NGN || featured.prices.NGN).now,
                 )}% discount:`}
               />
             </div>
-            {ownsAll(FEATURED_ID) ? (
-              <button type="button" className="learn-cta" onClick={() => read(FEATURED_ID)}>
+            {ownsAll(featuredId) ? (
+              <button type="button" className="learn-cta" onClick={() => read(featuredId)}>
                 Read now <ArrowRight size={18} />
               </button>
             ) : (
-              <button type="button" className="learn-cta" onClick={() => openBuy(FEATURED_ID)}>
+              <button type="button" className="learn-cta" onClick={() => openBuy(featuredId)}>
                 Buy Access <ArrowRight size={18} />
               </button>
             )}
@@ -597,7 +605,7 @@ export default function Learn() {
             <p>Read at your own pace, on any device.</p>
           </div>
 
-          <div className="lx-book-grid">{SHOP_ORDER.map(productCard)}</div>
+          <div className="lx-book-grid">{shopOrder.map(productCard)}</div>
         </section>
       )}
 

@@ -115,11 +115,6 @@ function formatTime12(d) {
     .replace(/\s?([ap])\.?m\.?/i, (_m, x) => ` ${x.toLowerCase()}m`);
 }
 
-const IS_IOS =
-  typeof navigator !== "undefined" &&
-  (/iPad|iPhone|iPod/.test(navigator.userAgent) ||
-    (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1));
-
 // Shows a code as "K7M 2QF" so it's easy to read out.
 function spacedCode(code = "") {
   return code.length === 6 ? `${code.slice(0, 3)} ${code.slice(3)}` : code;
@@ -2224,13 +2219,6 @@ function LiveCall({ call, session, dismissed, onDismiss, onBack, onLeave }) {
           <span>Leave</span>
         </button>
       </div>
-      {IS_IOS && (
-        <p className="gpc-note gpc-ios-note">
-          On iPhone, keep Loquiex open during the call. iPhone pauses apps in
-          the background, so others can&apos;t hear you while you&apos;re away.
-          Come back within 2 minutes and you&apos;ll rejoin automatically.
-        </p>
-      )}
     </div>
   );
 }
