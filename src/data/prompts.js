@@ -44,6 +44,13 @@ export const SPEAK_DURATIONS = [
 
 export const DEFAULT_SPEAK_SECONDS = 60;
 
+// Research Mode explains a topic in 30 sec, 45 sec or 1 min (no 2 min).
+export const RESEARCH_SPEAK_DURATIONS = [
+  { seconds: 30, label: "30 sec" },
+  { seconds: 45, label: "45 sec" },
+  { seconds: 60, label: "1 min" },
+];
+
 // "up to 30 seconds", "up to one minute", "up to two minutes"
 export function describeSpeakTime(seconds) {
   if (seconds < 60) return `${seconds} seconds`;

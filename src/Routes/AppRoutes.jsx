@@ -38,26 +38,13 @@ import {
 // The book reader brings in the PDF library, so it only loads when opened.
 const BookReader = lazy(() => import("../Pages/BookReader"));
 
-// Signed in on this device? (Storage can be blocked in private mode.)
-function hasToken() {
-  try {
-    return Boolean(localStorage.getItem("token"));
-  } catch {
-    return false;
-  }
-}
-
-function VisitorLanding() {
-  const signedIn = hasToken();
-  return signedIn ? <Navigate to="/app/home" replace /> : <LandingPage />;
-}
-
 export default function AppRoutes() {
   return (
     <Routes>
-      {/* Visitors see the landing page; signed-in members go to the app. */}
-      <Route path="/" element={<VisitorLanding />} />
-      {/* Always shows the landing page, even when signed in (for previews). */}
+      {/* The main link goes to the Home tab, as before (signed-out visitors
+          are sent to log in). The landing page is kept for later but nothing
+          links to it yet; it only shows at /landingpage. */}
+      <Route path="/" element={<Navigate to="/app/home" replace />} />
       <Route path="/landingpage" element={<LandingPage />} />
       <Route path="/welcome" element={<WelcomeIntro />} /> {/* NEW */}
       <Route path="/register" element={<Registration />} />

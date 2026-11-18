@@ -185,7 +185,9 @@ export default function Home() {
   // streak (ties go to whoever spoke longer in their streak).
   // Only people who have actually practised (no 0-day, 0-second rows).
   const activeLeaderboardEntries = (leaderboard.streak || []).filter(
-    (entry) => entry.currentStreak > 0 && (entry.streakSpeakingTimeSeconds ?? entry.speakingTimeSeconds) > 0,
+    (entry) =>
+      entry.currentStreak > 0 &&
+      (entry.streakSpeakingTimeSeconds ?? entry.speakingTimeSeconds) > 0,
   );
 
   return (
@@ -217,7 +219,7 @@ export default function Home() {
             <span>Today's Practice</span>
           </div>
 
-          <h2>Get a topic. Speak for up to 2 minutes.</h2>
+          <h2>Get a topic. Speak for up to 1 minute.</h2>
 
           <p>Build your ability to communicate clearly and confidently.</p>
 

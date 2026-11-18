@@ -14,6 +14,7 @@ import {
 import {
   LEVEL_META,
   DEFAULT_SPEAK_SECONDS,
+  RESEARCH_SPEAK_DURATIONS,
   describeSpeakTime,
 } from "../data/prompts";
 import { canUseAiFeedback, fetchAiAllowance } from "../data/plans";
@@ -110,9 +111,17 @@ function PracticeSessionAttempt() {
 
   const prepareTotal = isYap || isResearch ? 0 : levelInfo.prepareSeconds;
   // Chosen on the topic page (no prep) or on the preparation screen.
-  const [speakTotal, setSpeakTotal] = useState(
-    location.state?.speakSeconds || DEFAULT_SPEAK_SECONDS,
-  );
+  const [speakTotal, setSpeakTotal] = useState(() => {
+    const chosen = location.state?.speakSeconds || DEFAULT_SPEAK_SECONDS;
+    // Research Mode only offers 30 sec, 45 sec and 1 min.
+    if (
+      isResearch &&
+      !RESEARCH_SPEAK_DURATIONS.some((d) => d.seconds === chosen)
+    ) {
+      return 60;
+    }
+    return chosen;
+  });
 
   // Research Mode opens on a "get ready to explain" page (duration + I'm ready).
   const [phase, setPhase] = useState(
@@ -668,12 +677,13 @@ function PracticeSessionAttempt() {
             className="session-duration"
             value={speakTotal}
             onChange={setSpeakTotal}
+            options={RESEARCH_SPEAK_DURATIONS}
           />
 
           <div className="session-tips-card session-tips-card-compact">
             <p className="session-tips-title">Remember, {username}</p>
             <p className="session-tip-line">
-              Put your notes aside and explain what you&apos;ve learned without
+              Put your notes aside and explain what you&apos;ve learnt without
               reading from them, as if you&apos;re teaching a friend.
             </p>
           </div>
@@ -720,7 +730,7 @@ function PracticeSessionAttempt() {
         </div>
 
         <h1 className="session-speak-title">
-          {isResearch ? "Explain what you learned" : "Speak your response"}
+          {isResearch ? "Explain what you learnt" : "Speak your response"}
         </h1>
         <p className="session-speak-subtitle">
           {isRequestingMic

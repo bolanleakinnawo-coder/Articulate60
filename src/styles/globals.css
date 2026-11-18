@@ -127,6 +127,12 @@ a {
   }
 }
 
+/* Round 9: the Loquiex logo on the splash screen is a bit bigger. The image
+   has wide transparent edges, so it is scaled up rather than widened. */
+.navigation-splash .navigation-splash-logo {
+  transform: scale(1.35);
+}
+
 @keyframes navigation-splash-appear {
   from {
     opacity: 0;

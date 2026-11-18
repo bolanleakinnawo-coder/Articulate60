@@ -934,7 +934,7 @@ export default function FeedbackReport({
     nextSkill.action ||
     analysis.topTip ||
     opportunity.technique ||
-    "Answer the same question again and use what you learned here.";
+    "Answer the same question again and use what you learnt here.";
 
   return (
     <div className="page session-page fb-page">

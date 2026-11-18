@@ -50,8 +50,8 @@ const TOOLKIT = [
   },
   {
     icon: Brain,
-    title: "Test what you've learned.",
-    text: "Put your notes aside and explain what you've learned without reading from them.",
+    title: "Test what you've learnt.",
+    text: "Put your notes aside and explain what you've learnt without reading from them.",
   },
 ];
 
@@ -393,7 +393,7 @@ export function ResearchWorkspace({
           <div className="rm-toolkit">
             <p className="rm-toolkit-head">
               <NotebookPen size={20} strokeWidth={1.8} />
-              Your research toolkit
+              <span className="rm-toolkit-head-text">Your research toolkit</span>
             </p>
             {TOOLKIT.map(({ icon: Icon, title, text }, i) => (
               <div className="rm-toolkit-item" key={title}>
