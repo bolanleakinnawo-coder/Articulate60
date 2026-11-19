@@ -969,8 +969,20 @@ export function GroupPracticeTab() {
       ))}
     </div>
   );
+  // Round 13 (Sheriff): your own planned practices sit first in Upcoming
+  // (with Start now), then other people's.
+  const upcomingCount = planned.mine.length + upcoming.length;
   const upcomingList = (
     <div className="gpt-rooms">
+      {planned.mine.map((item) => (
+        <PlannedCard
+          key={item.id}
+          item={item}
+          busy={busyId === item.id}
+          onStart={startPlanned}
+          onCancel={cancelPlanned}
+        />
+      ))}
       {upcoming.map((item) => (
         <PlannedCard
           key={item.id}
@@ -1059,29 +1071,6 @@ export function GroupPracticeTab() {
         </button>
       </div>
 
-      {planned.mine.length > 0 && (
-        <section aria-labelledby="gpt-mine-title" className="gpt-section">
-          <h3 className="gpt-section-title" id="gpt-mine-title">
-            Your planned practices
-          </h3>
-          <p className="gpt-section-sub">
-            We&apos;ll remind you {REMIND_BEFORE_MIN} minutes before. Start
-            whenever you&apos;re ready.
-          </p>
-          <div className="gpt-rooms">
-            {planned.mine.map((item) => (
-              <PlannedCard
-                key={item.id}
-                item={item}
-                busy={busyId === item.id}
-                onStart={startPlanned}
-                onCancel={cancelPlanned}
-              />
-            ))}
-          </div>
-        </section>
-      )}
-
       {/* Round 13 (Sheriff): "Find a practice" with All / Upcoming / Live /
           Team tabs (Team only for team members). All lists team calls first,
           then live calls, then upcoming. The All / Open seats / Nearly full
@@ -1156,7 +1145,7 @@ export function GroupPracticeTab() {
                   </>
                 )
               )}
-              {upcoming.length > 0 && (
+              {upcomingCount > 0 && (
                 <>
                   <p className="gpt-list-group">Upcoming</p>
                   {upcomingList}
@@ -1164,7 +1153,7 @@ export function GroupPracticeTab() {
               )}
               {connection === "connected" &&
                 rooms.length === 0 &&
-                upcoming.length === 0 &&
+                upcomingCount === 0 &&
                 !(inTeam && teamCount > 0) && (
                   <div className="gpc-empty gpt-empty">
                     <span className="gpt-empty-icon" aria-hidden="true">
@@ -1209,7 +1198,7 @@ export function GroupPracticeTab() {
             ))}
 
           {listTab === "upcoming" &&
-            (upcoming.length > 0 ? (
+            (upcomingCount > 0 ? (
               upcomingList
             ) : (
               <div className="gpc-empty gpt-empty">
