@@ -238,3 +238,18 @@
     font-size: 13px;
   }
 }
+
+/* Round 10 (Sheriff, 2026-11-19): smaller "Active until" and its date. */
+.mc-until .mc-eyebrow {
+  font-size: 10px;
+}
+
+.mc-until strong {
+  font-size: 12.5px;
+}
+
+@media (max-width: 380px) {
+  .mc-until strong {
+    font-size: 12px;
+  }
+}

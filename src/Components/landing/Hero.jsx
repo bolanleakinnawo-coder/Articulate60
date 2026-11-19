@@ -61,7 +61,7 @@ const Hero = () => {
             <div className="float-card practice-card">
               <p className="practice-label">Today's Practice</p>
               <div className="practice-info">
-                <span>2 min · Level 2</span>
+                <span>1 min · Level 2</span>
                 <span className="practice-tag">Story Telling</span>
                 <span className="mic-icon">🎙️</span>
               </div>

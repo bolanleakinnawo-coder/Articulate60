@@ -52,7 +52,7 @@ export function getInviteLink(_user = getStoredUser()) {
 }
 
 export function getShareCaption(user) {
-  return `I just finished a speaking practice on Loquiex. I'm using it to improve my communication skills. Join me: ${getInviteLink(user)}`;
+  return `I just had another speaking practice on Loquiex. What are you waiting for?😂 Let’s practice together: ${getInviteLink(user)}`;
 }
 
 // ---------- helpers ----------

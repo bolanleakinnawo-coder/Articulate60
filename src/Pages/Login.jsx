@@ -132,7 +132,7 @@ function Login() {
         </form>
 
         <p className="login-switch">
-          Don't have an account? <Link to="/register">Sign up</Link>
+          Don't have an account? <Link to="/register" state={location.state}>Sign up</Link>
         </p>
       </div>
     </main>

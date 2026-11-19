@@ -573,7 +573,6 @@
   opacity: 0.55;
 }
 
-
 .gpc-allowance-inline {
   margin: 14px 0 0;
   color: var(--text-secondary);
@@ -626,7 +625,6 @@
   font-size: 14px;
 }
 
-
 @media (max-width: 520px) {
   .gpc-card {
     padding: 16px;
@@ -651,7 +649,6 @@
     width: 56px;
     height: 56px;
   }
-
 }
 
 /* ---------- Join with a code / private calls ---------- */
@@ -1706,7 +1703,9 @@
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   background: var(--bg-secondary);
-  transition: border-color 0.2s ease, background 0.2s ease;
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease;
 }
 
 .gpc-mode[data-selected="true"] {
@@ -1762,7 +1761,9 @@
 
 .gpc-mode-head[aria-checked="true"] .gpc-radio {
   border-color: var(--text-primary);
-  box-shadow: inset 0 0 0 4px var(--bg-card), inset 0 0 0 10px var(--text-primary);
+  box-shadow:
+    inset 0 0 0 4px var(--bg-card),
+    inset 0 0 0 10px var(--text-primary);
 }
 
 .gpc-mode-body {
@@ -3123,7 +3124,9 @@
 
 .gpt-action:not(.gpt-action-primary) {
   border-color: rgba(121, 119, 78, 0.55);
-  background: linear-gradient(0deg, rgba(100, 103, 66, 0.1), rgba(100, 103, 66, 0.1)), var(--bg-card);
+  background:
+    linear-gradient(0deg, rgba(100, 103, 66, 0.1), rgba(100, 103, 66, 0.1)),
+    var(--bg-card);
 }
 
 /* Live / upcoming / scheduled call cards: smaller topic and details. */
@@ -3234,4 +3237,552 @@
   .cts {
     margin-left: auto;
   }
+}
+
+/* ======================================================================
+   Group tab redesign (2026-11-19): practice option picker, call time
+   ring, "different voices" card with Continue, Find a practice header.
+   Brand tokens only.
+   ====================================================================== */
+.gpt-choose-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.gpt-select {
+  position: relative;
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  padding: 12px 44px 12px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--bg-card);
+  cursor: pointer;
+  transition: border-color 0.2s ease;
+}
+
+.gpt-select:hover,
+.gpt-select:focus-within {
+  border-color: var(--olive-bright);
+}
+
+.gpt-select-label {
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.gpt-select-input {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  border: none;
+  background: transparent;
+  color: var(--text-primary);
+  font: inherit;
+  /* 16px so phones don't zoom in when the picker opens. */
+  font-size: 16px;
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  appearance: none;
+  cursor: pointer;
+}
+
+.gpt-select-input:focus {
+  outline: none;
+}
+
+.gpt-select-input option {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+.gpt-select-icon {
+  position: absolute;
+  right: 16px;
+  bottom: 14px;
+  color: var(--text-secondary);
+  pointer-events: none;
+}
+
+/* Call time ring */
+.cts.cts-ring {
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding-top: 0;
+  text-align: center;
+}
+
+.cts-dial {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 88px;
+  height: 88px;
+}
+
+.cts-dial svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.cts-track,
+.cts-fill {
+  fill: none;
+  stroke-width: 5;
+}
+
+.cts-track {
+  stroke: var(--border);
+}
+
+.cts-fill {
+  stroke: var(--olive-bright);
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.6s ease;
+}
+
+.cts.is-low .cts-fill {
+  stroke: var(--accent-gold);
+}
+
+.cts.is-out .cts-fill {
+  stroke: var(--text-muted);
+}
+
+.cts-dial-text {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: var(--text-primary);
+  line-height: 1.1;
+}
+
+.cts-dial-text strong {
+  font-size: 22px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.cts-dial-text span {
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.cts.is-out .cts-dial-text strong {
+  color: var(--text-muted);
+}
+
+.cts-ring-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  color: var(--text-secondary);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.cts-ring-label .cts-info {
+  width: 20px;
+  height: 20px;
+  margin: 0;
+}
+
+/* "Different voices" card */
+.gpt-voices {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: var(--bg-card);
+}
+
+.gpt-voices-lead,
+.gpt-voices-foot {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.gpt-voices-foot {
+  text-align: center;
+}
+
+.gpt-voices-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.gpt-voice {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--bg-secondary);
+}
+
+.gpt-voice-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.gpt-voice-avatar {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--text-primary);
+  color: var(--bg-primary);
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.gpt-voice-2 .gpt-voice-avatar {
+  background: var(--olive-bright);
+  color: var(--text-primary);
+}
+
+.gpt-voice-who {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.gpt-voice-who strong {
+  overflow: hidden;
+  color: var(--text-primary);
+  font-size: 15px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.gpt-voice-who span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.gpt-voice-who svg {
+  color: var(--olive-bright);
+}
+
+/* Speaking signal: the bars rise and fall, the second speaker half a beat
+   behind the first. Still for members who prefer less motion. */
+.gpt-wave {
+  display: flex;
+  box-sizing: content-box;
+  align-items: center;
+  gap: 4px;
+  height: 22px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.gpt-wave i {
+  display: block;
+  width: 3px;
+  height: var(--h);
+  border-radius: 3px;
+  background: var(--olive-bright);
+  transform-origin: center;
+  animation: gpt-wave 1.1s ease-in-out infinite;
+  animation-delay: calc(var(--i) * -0.13s);
+}
+
+.gpt-voice-2 .gpt-wave i {
+  animation-delay: calc(var(--i) * -0.13s - 0.55s);
+}
+
+@keyframes gpt-wave {
+  0%,
+  100% {
+    transform: scaleY(0.4);
+  }
+
+  50% {
+    transform: scaleY(1.15);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gpt-wave i {
+    animation: none;
+  }
+}
+
+.gpt-voice-quote {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.gpt-choose-note {
+  margin: -4px 0 0;
+  color: var(--accent-gold);
+  font-size: 13px;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.gpt-continue {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 52px;
+  padding: 0 48px;
+  border: none;
+  border-radius: var(--radius-lg);
+  background: var(--olive-primary);
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.gpt-continue svg {
+  position: absolute;
+  right: 18px;
+}
+
+.gpt-continue:hover:not(:disabled) {
+  background: var(--olive-bright);
+}
+
+.gpt-continue:focus-visible {
+  outline: 2px solid var(--text-primary);
+  outline-offset: 2px;
+}
+
+.gpt-continue:disabled {
+  background: var(--bg-secondary);
+  color: var(--text-muted);
+  cursor: not-allowed;
+}
+
+/* Find a practice: title on the left, View all on the right. */
+.gpt-find-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.gpt-view-all {
+  flex: 0 0 auto;
+  margin-top: 2px;
+  padding: 2px 0;
+  border: none;
+  background: none;
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.gpt-view-all:hover {
+  color: var(--olive-bright);
+}
+
+.gpt-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.gpt-empty-icon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  margin-bottom: 6px;
+  border-radius: 50%;
+  background: rgba(100, 103, 66, 0.22);
+  color: var(--olive-bright);
+}
+
+.gpt-empty strong {
+  color: var(--text-primary);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.gpt-empty span:last-child {
+  font-size: 13px;
+}
+
+@media (max-width: 380px) {
+  .gpt-choose-row {
+    gap: 10px;
+  }
+
+  .gpt-select {
+    padding: 10px 36px 10px 12px;
+  }
+
+  .gpt-select-icon {
+    right: 12px;
+  }
+
+  .cts-dial {
+    width: 76px;
+    height: 76px;
+  }
+
+  .cts-dial-text strong {
+    font-size: 19px;
+  }
+
+  .gpt-voices {
+    padding: 12px;
+  }
+
+  .gpt-voice {
+    padding: 12px;
+  }
+
+  .gpt-voice-avatar {
+    width: 34px;
+    height: 34px;
+    font-size: 14px;
+  }
+
+  .gpt-voice-quote {
+    font-size: 13px;
+  }
+}
+
+/* ======================================================================
+   Round 10 (Sheriff, 2026-11-19): Group tab lobby sizes.
+   Smaller heading, subtext and "Choose how you want to practise";
+   smaller call time ring so it sits on the same row as the picker;
+   smaller "Speaking" label, mic icon and quote bubbles.
+   ====================================================================== */
+.gpt-intro .practice-panel-title {
+  font-size: 19px;
+}
+
+.gpt-intro .practice-panel-sub {
+  font-size: 13px;
+}
+
+.gpt-choose-row {
+  align-items: center;
+}
+
+.gpt-select-input {
+  font-size: 14px;
+}
+
+.cts.cts-ring {
+  flex: 0 0 auto;
+  gap: 3px;
+}
+
+.cts-dial {
+  width: 52px;
+  height: 52px;
+}
+
+.cts-dial-text strong {
+  font-size: 14px;
+}
+
+.cts-dial-text span {
+  font-size: 10px;
+}
+
+.cts-ring-label {
+  font-size: 11px;
+}
+
+.cts-ring-label .cts-info {
+  width: 16px;
+  height: 16px;
+}
+
+.cts-ring-label .cts-info svg {
+  width: 12px;
+  height: 12px;
+}
+
+.gpt-voice-who span {
+  gap: 3px;
+  font-size: 11px;
+}
+
+.gpt-voice-quote {
+  font-size: 13px;
+}
+
+@media (max-width: 380px) {
+  .cts-dial {
+    width: 48px;
+    height: 48px;
+  }
+
+  .cts-dial-text strong {
+    font-size: 13px;
+  }
+
+  .gpt-voice-quote {
+    font-size: 12px;
+  }
+}
+
+/* Round 10: "Practice as a team" start page note. */
+.gpc-team-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 0 0 16px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.gpc-team-note svg {
+  flex: 0 0 auto;
+  margin-top: 2px;
+  color: var(--olive-bright);
 }

@@ -181,7 +181,27 @@ function accountDeletedEmail({ name }) {
   };
 }
 
+// Team plans (round 10): an invitation from a Team Admin.
+function teamInviteEmail({ adminName, teamName, planName, url }) {
+  const team = teamName || "a Loquiex team";
+  return {
+    subject: `You've been invited to join ${team} on Loquiex`,
+    html: layout({
+      heading: "You've been invited!",
+      paragraphs: [
+        `${escapeHtml(adminName || "Your Team Admin")} invited you to join ${escapeHtml(team)} on Loquiex.`,
+        `Team plan: ${escapeHtml(planName)}. Your subscription cost is covered by the team.`,
+      ],
+      button: { label: "Accept invitation", url },
+      footer:
+        "Already have a Loquiex account? Sign in to join your team. If you weren't expecting this, you can ignore this email.",
+    }),
+    text: `${adminName || "Your Team Admin"} invited you to join ${team} on Loquiex.\nTeam plan: ${planName}. Your subscription cost is covered by the team.\n\nAccept invitation: ${url}`,
+  };
+}
+
 module.exports = {
+  teamInviteEmail,
   sendEmail,
   isConfigured,
   passwordResetEmail,

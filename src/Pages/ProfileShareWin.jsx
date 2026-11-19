@@ -35,7 +35,9 @@ export default function ProfileShareWin({ user, onBack }) {
         setWins(Array.isArray(response.data) ? response.data : []);
         setLoadState("ready");
       })
-      .catch(() => setLoadState((state) => (state === "ready" ? state : "error")));
+      .catch(() =>
+        setLoadState((state) => (state === "ready" ? state : "error")),
+      );
   }, []);
 
   useEffect(() => {
@@ -96,7 +98,9 @@ export default function ProfileShareWin({ user, onBack }) {
           <Trophy size={26} />
         </span>
         <span className="pf-win-hero-text">
-          <h2>What&apos;s a communication win you&apos;re celebrating today?</h2>
+          <h2>
+            What&apos;s a communication win you&apos;re celebrating today?
+          </h2>
           <p>Big or small, tell us about the moment.</p>
         </span>
       </section>
@@ -131,15 +135,13 @@ export default function ProfileShareWin({ user, onBack }) {
         </button>
       </form>
 
-      <section className="pf-panel pf-win-note">
-        <p className="pf-panel-title">
-          <ShieldCheck size={20} /> Keeping our community thoughtful
-        </p>
-        <p className="pf-panel-text">
-          Every submission is reviewed to keep the community encouraging and
-          free from spam.
-        </p>
-      </section>
+      <p className="pf-win-note">
+        <ShieldCheck size={16} aria-hidden="true" />
+        <span>
+          <strong>Keeping our community thoughtful.</strong> Every submission is
+          reviewed to keep the community encouraging and free from spam.
+        </span>
+      </p>
 
       <h2 className="pf-stats-title">Your recent wins</h2>
       <div className="pf-chips" role="tablist">
@@ -156,7 +158,9 @@ export default function ProfileShareWin({ user, onBack }) {
         ))}
       </div>
 
-      {loadState === "loading" && <p className="pf-empty">Loading your wins…</p>}
+      {loadState === "loading" && (
+        <p className="pf-empty">Loading your wins…</p>
+      )}
       {loadState === "error" && (
         <p className="pf-empty">
           We couldn&apos;t load your wins right now.{" "}
@@ -211,7 +215,11 @@ function formatWhen(date) {
   yesterday.setDate(today.getDate() - 1);
   // 12-hour clock, "9:40 am".
   const time = d
-    .toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true })
+    .toLocaleTimeString("en-US", {
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    })
     .replace(/\s?AM$/i, " am")
     .replace(/\s?PM$/i, " pm");
   let day;

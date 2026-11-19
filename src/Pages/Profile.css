@@ -1283,20 +1283,26 @@
   cursor: not-allowed;
 }
 
-.pf-win-note .pf-panel-title {
+/* Small note under the Share button (no box). */
+.pf-win-note {
   display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 17px;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 13px;
+  line-height: 1.5;
 }
 
-.pf-win-note .pf-panel-title svg {
+.pf-win-note svg {
   flex: 0 0 auto;
+  margin-top: 2px;
   color: var(--pf-accent);
 }
 
-.pf-win-note .pf-panel-text {
-  margin: 0;
+.pf-win-note strong {
+  color: var(--text-primary);
+  font-weight: 600;
 }
 
 .pf-chips {
@@ -1495,7 +1501,6 @@
 .pf-stats-head h2,
 .pf-stats-title,
 .pf-panel-title,
-.pf-win-note .pf-panel-title,
 .pf-win-label,
 .profile-edit-form-header h2,
 .pf-usage-title {
@@ -3785,6 +3790,29 @@
   margin: 0;
 }
 
+/* Hero card uses the membership card's olive wash (MembershipCard.css,
+   Round 7 .mc-card), with a smaller question and subtext. */
+.pf-win-hero {
+  background:
+    linear-gradient(
+      135deg,
+      rgba(100, 103, 66, 0.28),
+      rgba(100, 103, 66, 0.06) 70%
+    ),
+    var(--bg-card);
+}
+
+.pf-win-hero-text h2 {
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.pf-win-hero-text p {
+  font-size: 13px;
+  line-height: 1.45;
+}
+
 @media (max-width: 360px) {
   .pf-win-hero {
     gap: 10px;
@@ -3796,7 +3824,7 @@
   }
 
   .pf-win-hero-text h2 {
-    font-size: 18px;
+    font-size: 16px;
   }
 }
 
@@ -3825,4 +3853,44 @@
     width: 12px;
     height: 12px;
   }
+}
+
+/* Round 10 (Sheriff, 2026-11-19): smaller avatar circle so it balances with
+   the name. The letter keeps its size. */
+.pf-hero-avatar {
+  width: 52px;
+  height: 52px;
+}
+
+@media (max-width: 360px) {
+  .pf-hero-avatar {
+    width: 46px;
+    height: 46px;
+  }
+}
+
+/* Round 10: "My Team" row on Manage Membership. */
+.pf-team-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.pf-team-link:hover {
+  border-color: var(--olive-bright);
+}
+
+.pf-team-link .pf-row-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.pf-team-link .pf-row-chev {
+  flex: 0 0 auto;
+  color: var(--text-secondary);
 }

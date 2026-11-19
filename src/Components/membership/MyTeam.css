@@ -1,0 +1,525 @@
+/* Round 10: My Team (Team Dashboard), "Your team is ready!", "Invite your
+   team" and "You've been invited!". Loquiex brand tokens only. */
+.mt-page {
+  width: 100%;
+  max-width: 560px;
+  margin: 0 auto;
+}
+
+.mt-card {
+  display: grid;
+  gap: 12px;
+  width: 100%;
+  padding: 20px 18px;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: var(--pf-card, var(--bg-card));
+  box-sizing: border-box;
+}
+
+.mt-center {
+  justify-items: center;
+  text-align: center;
+}
+
+.mt-center > * {
+  width: 100%;
+}
+
+.mt-center > .mt-hero-icon {
+  width: auto;
+}
+
+.mt-center > .mt-ok {
+  width: 54px;
+}
+
+.mt-ok {
+  display: grid;
+  place-items: center;
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  background: rgba(100, 103, 66, 0.28);
+  color: var(--text-primary);
+}
+
+.mt-hero-icon {
+  color: var(--text-primary);
+}
+
+.mt-title {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 22px;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.mt-sub {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.mt-muted {
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.mt-team-name {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.mt-rows {
+  display: grid;
+  gap: 10px;
+  margin: 4px 0;
+  padding: 14px 16px;
+  border-radius: var(--radius-lg);
+  background: var(--bg-secondary);
+  text-align: left;
+}
+
+.mt-rows > div {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.mt-rows dt {
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.mt-rows dd {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 15px;
+  font-weight: 600;
+  text-align: right;
+}
+
+.mt-rows-flat {
+  margin: 0;
+  padding: 0;
+  background: none;
+}
+
+.mt-plan {
+  display: grid;
+  gap: 4px;
+  padding: 16px;
+  border-radius: var(--radius-lg);
+  background: var(--bg-secondary);
+}
+
+.mt-plan .mt-rows-flat {
+  margin-top: 10px;
+}
+
+.mt-label {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.mt-plan-name {
+  margin: 2px 0 0;
+  color: var(--text-primary);
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.mt-plan-price {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin: 4px 0 0;
+}
+
+.mt-plan-price strong {
+  color: var(--text-primary);
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.mt-plan-price span {
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.mt-section {
+  margin: 8px 0 0;
+  color: var(--text-primary);
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.mt-box {
+  display: grid;
+  gap: 10px;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--bg-secondary);
+}
+
+.mt-box-title {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.mt-box-text {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.mt-member {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 0 10px;
+  border-bottom: 1px solid var(--border);
+}
+
+.mt-member > svg {
+  flex: 0 0 auto;
+  color: var(--olive-bright);
+}
+
+.mt-avatar {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--olive-primary);
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 700;
+  object-fit: cover;
+}
+
+.mt-avatar-invite {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-secondary);
+}
+
+.mt-member-text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.mt-member-text strong {
+  overflow: hidden;
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mt-member-text span {
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+.mt-status {
+  flex: 0 0 auto;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: rgba(100, 103, 66, 0.32);
+  color: var(--text-primary);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.mt-status-pending {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-secondary);
+}
+
+.mt-empty {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.mt-primary,
+.mt-outline,
+.mt-cancel {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 46px;
+  padding: 0 16px;
+  border-radius: var(--radius-md);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+.mt-primary {
+  border: 0;
+  background: var(--olive-primary);
+  color: var(--text-primary);
+}
+
+.mt-primary:hover:not(:disabled) {
+  background: var(--olive-bright);
+}
+
+.mt-outline {
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-primary);
+}
+
+.mt-outline:hover:not(:disabled) {
+  border-color: var(--olive-bright);
+}
+
+.mt-cancel {
+  border: 1px solid #7a3a33;
+  background: #3a1f1d;
+  color: #f0b4ad;
+}
+
+.mt-cancel:hover:not(:disabled) {
+  border-color: #b5554a;
+  background: #4a2420;
+}
+
+.mt-primary:disabled,
+.mt-outline:disabled,
+.mt-cancel:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.mt-input {
+  width: 100%;
+  min-height: 46px;
+  padding: 0 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 16px;
+  box-sizing: border-box;
+}
+
+.mt-input::placeholder {
+  color: var(--text-muted);
+}
+
+.mt-input:focus {
+  border-color: var(--olive-bright);
+  outline: none;
+}
+
+.mt-rename {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.mt-small {
+  flex: 0 0 auto;
+  min-height: 40px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: var(--radius-md);
+  background: var(--olive-primary);
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.mt-ghost {
+  border: 1px solid var(--border);
+  background: transparent;
+}
+
+.mt-icon-btn {
+  display: inline-grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.mt-icon-btn:hover {
+  border-color: var(--olive-bright);
+  color: var(--text-primary);
+}
+
+.mt-remove:hover {
+  border-color: #b5554a;
+  color: #f0b4ad;
+}
+
+.mt-confirm {
+  display: inline-flex;
+  flex: 0 0 auto;
+  gap: 12px;
+}
+
+.mt-link {
+  padding: 4px 0;
+  border: 0;
+  background: none;
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.mt-link:disabled {
+  color: var(--text-muted);
+  cursor: default;
+}
+
+.mt-danger {
+  color: #f0b4ad;
+}
+
+.mt-revoke {
+  justify-self: center;
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+.mt-live {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--olive-bright);
+  border-radius: var(--radius-lg);
+  background: rgba(100, 103, 66, 0.22);
+  color: var(--text-primary);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.mt-live > span {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.mt-live strong {
+  font-size: 14px;
+}
+
+.mt-live span span {
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+.mt-note,
+.mt-foot {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.mt-foot {
+  text-align: center;
+}
+
+.mt-error {
+  margin: 0;
+  color: #f0b4ad;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.mt-success {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 13px;
+}
+
+.mt-signin {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.mt-signin button {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text-primary);
+  font: inherit;
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+@media (max-width: 360px) {
+  .mt-card {
+    padding: 16px 14px;
+  }
+
+  .mt-box,
+  .mt-plan,
+  .mt-rows {
+    padding: 12px;
+  }
+
+  .mt-title {
+    font-size: 20px;
+  }
+}
+
+/* Public invite page (no app menu around it). */
+.mt-join-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: 24px 16px;
+  background: var(--bg-primary);
+  box-sizing: border-box;
+}
+
+.mt-join-page .mt-page {
+  padding: 0;
+}

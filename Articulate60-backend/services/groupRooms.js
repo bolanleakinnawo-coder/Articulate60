@@ -274,6 +274,8 @@ async function loadMember(userId) {
     profileImageUrl: 1,
     plan: 1,
     planExpiresAt: 1,
+    teamPlan: 1,
+    teamPlanExpiresAt: 1,
     timeZone: 1,
     groupMinutes: 1,
   });
@@ -342,7 +344,7 @@ function addToRoom(socket, room, user, summary) {
 function errorMessage(code) {
   switch (code) {
     case "no-plan":
-      return "Group practice comes with Loquiex Flourish and Infinity.";
+      return "Group practice comes with Loquiex Bloom, Flourish and Infinity.";
     case "time-up":
       return "You've used all your group call time for today. It resets at midnight.";
     case "full":
@@ -437,7 +439,13 @@ function registerGroupHandlers(socket) {
         code: newCode(settings.code),
         private: settings.private === true,
         // The host picks how many seats (2 up to the server limit).
-        max: unlimited ? UNLIMITED_MAX : seatCount(settings.max),
+        // Capped by the host's plan (Bloom 2, Flourish 6; round 10).
+        max: unlimited
+          ? UNLIMITED_MAX
+          : Math.min(
+              seatCount(settings.max),
+              limitsFor(access.user).maxSeats || MAX_MEMBERS,
+            ),
         unlimited,
         mode,
         topic,
@@ -458,10 +466,25 @@ function registerGroupHandlers(socket) {
         planned.code = room.code;
         await planned.save();
       }
+      // "Practice as a team" (round 10): a private room for the host's team.
+      // Team members are told (in the app and by phone notification).
+      let team = null;
+      if (settings.team === true && !planned) {
+        const Team = require("../MODELS/Team");
+        team = await Team.findOne({ "members.user": userId }).lean();
+        if (team && team.expiresAt && new Date(team.expiresAt) > new Date()) {
+          room.private = true;
+          room.teamId = String(team._id);
+          room.teamName = team.name || "";
+        } else {
+          team = null;
+        }
+      }
       rooms.set(room.id, room);
       codes.set(room.code, room.id);
       const joined = addToRoom(socket, room, access.user, access.summary);
       ack?.({ ok: true, ...joined, usage: usagePayload(access.summary) });
+      if (team) notifyTeam(team, room, access.user, userId);
     } catch (err) {
       console.error("group:create", err);
       fail(ack, "error");
@@ -623,6 +646,64 @@ async function chargeMinutes() {
 }
 
 let ticking = false;
+// Tells everyone else in the team that a team practice has started.
+function notifyTeam(team, room, host, hostId) {
+  const hostName = host.fullName || host.username || "A team member";
+  const url = `/app/group-practice/join/${room.code}`;
+  const others = team.members
+    .map((m) => String(m.user))
+    .filter((id) => id !== String(hostId));
+  const { emitToUser } = require("./realtime");
+  const { pushReady, sendPushToUser } = require("./push");
+  for (const id of others) {
+    try {
+      emitToUser(id, "team:practice", {
+        code: room.code,
+        hostName,
+        teamName: room.teamName,
+        url,
+      });
+    } catch (err) {
+      console.error("Team practice notice failed:", err.message);
+    }
+  }
+  if (!pushReady()) return;
+  User.find({ _id: { $in: others } }, { pushSubscriptions: 1 })
+    .then((users) =>
+      Promise.all(
+        users.map((u) =>
+          sendPushToUser(u, {
+            title: `${hostName} started a team practice`,
+            body: room.teamName
+              ? `Join ${room.teamName} in Group Practice now.`
+              : "Join your team in Group Practice now.",
+            url,
+            tag: `team-practice-${room.code}`,
+            kind: "group-scheduled",
+            action: "Join now",
+          }),
+        ),
+      ),
+    )
+    .catch((err) => console.error("Team practice push failed:", err.message));
+}
+
+// The team's practice that is on right now, if any (for My Team).
+function teamLiveRoom(teamId) {
+  for (const room of rooms.values()) {
+    if (room.teamId && room.teamId === String(teamId) && room.members.size > 0) {
+      const host = room.members.get(room.hostId);
+      return {
+        code: room.code,
+        hostName: host?.name || "",
+        members: room.members.size,
+        max: room.max,
+      };
+    }
+  }
+  return null;
+}
+
 function initGroupRooms(server) {
   io = server;
   setInterval(async () => {
@@ -646,5 +727,6 @@ module.exports = {
   CODE_LENGTH,
   registerGroupHandlers,
   openRooms,
+  teamLiveRoom,
   MAX_MEMBERS,
 };

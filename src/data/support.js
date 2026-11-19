@@ -25,13 +25,13 @@ export const FAQS = [
     id: "subscription",
     question: "What is included in my subscription?",
     answer:
-      "Your plan sets your monthly AI feedback allowance (with a daily limit) and, on Loquiex Flourish and Loquiex Infinity, your daily group call time. Loquiex Bloom doesn't include group practice. Visit Usage & Limits in your profile to check your allowance.",
+      "Your plan sets your monthly AI feedback allowance (with a daily limit) and, your daily group call time (45 min a day on Loquiex Bloom, 1 hr 30 min on Loquiex Flourish, unlimited on Loquiex Infinity). Visit Usage & Limits in your profile to check your allowance.",
   },
   {
     id: "free",
     question: "Can I practise without a subscription?",
     answer:
-      "Yes. Loquiex Free includes unlimited personal practice and a 3-day free trial of AI feedback (up to 3 a day). After the trial, AI feedback comes with Loquiex Bloom, Flourish and Infinity. Group practice comes with Loquiex Flourish and Loquiex Infinity.",
+      "Yes. Loquiex Free includes unlimited personal practice and a 3-day free trial of AI feedback (up to 3 a day). After the trial, AI feedback comes with Loquiex Bloom, Flourish and Infinity. Group practice comes with Loquiex Bloom, Flourish and Infinity.",
   },
   {
     id: "change-cancel",
@@ -55,7 +55,7 @@ export const FAQS = [
     id: "group",
     question: "How does group practice work?",
     answer:
-      "Group practice lets members practise speaking together in an audio-only session. It's included with Loquiex Flourish and Loquiex Infinity, and the time you spend in a room with others counts towards your daily call time (1 hr 30 min a day on Loquiex Flourish, unlimited on Loquiex Infinity). Open Practice, choose Group Practice, then join a public practice, start your own, or enter a code for a private one. You can host your own topic or let Loquiex pick a category and prompts, and start now or schedule a practice for later (we remind you 5 minutes before). You stay in the call when you move to another tab.",
+      "Group practice lets members practise speaking together in an audio-only session. It's included with Loquiex Bloom, Flourish and Infinity, and the time you spend in a room with others counts towards your daily call time (45 min a day on Loquiex Bloom, 1 hr 30 min on Loquiex Flourish, unlimited on Loquiex Infinity). Open Practice, choose Group Practice, then join a public practice, start your own, or enter a code for a private one. You can host your own topic or let Loquiex pick a category and prompts, and start now or schedule a practice for later (we remind you 5 minutes before). You stay in the call when you move to another tab.",
   },
   {
     id: "invite",

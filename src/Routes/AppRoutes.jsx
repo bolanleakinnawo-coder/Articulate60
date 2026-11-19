@@ -26,6 +26,15 @@ import WelcomeIntro from "../Pages/WelcomeIntro"; // NEW
 import ReadyIntro from "../Pages/ReadyIntro"; // NEW
 import Waitlist from "../Pages/Waitlist";
 import Membership from "../Pages/Membership";
+import TeamJoin from "../Pages/TeamJoin";
+import MyTeam from "../Pages/MyTeam";
+import { useParams } from "react-router-dom";
+
+// Old invite links (/app/team/join/CODE) go to the public invite page.
+function OldTeamInvite() {
+  const { code } = useParams();
+  return <Navigate to={`/team/join/${code}`} replace />;
+}
 import HelpSupport from "../Pages/HelpSupport";
 import {
   GroupPracticeIntro,
@@ -51,6 +60,7 @@ export default function AppRoutes() {
       <Route path="/ready" element={<ReadyIntro />} /> {/* NEW */}
       <Route path="/waitlist" element={<Waitlist />} />
       <Route path="/login" element={<Login />} />
+      <Route path="/team/join/:code" element={<TeamJoin />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/admin" element={<AdminLayout />}>
@@ -92,6 +102,8 @@ export default function AppRoutes() {
             element={<PracticeSession />}
           />
           <Route path="membership" element={<Membership />} />
+          <Route path="team" element={<MyTeam />} />
+          <Route path="team/join/:code" element={<OldTeamInvite />} />
           <Route path="help" element={<HelpSupport />} />
           <Route path="group-practice" element={<GroupPracticeIntro />} />
           <Route path="group-practice/room" element={<GroupPracticeRoom />} />

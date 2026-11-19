@@ -4,6 +4,10 @@
 
 export const OFFER_FALLBACK_ENDS_AT = "2026-12-01T23:59:59+01:00";
 
+// Until this moment the Learn tab shows the "Coming soon" countdown instead
+// of the shop (Lagos time). The shop appears on its own once it passes.
+export const LEARN_LAUNCH_AT = "2026-12-19T00:00:00+01:00";
+
 export const PRODUCTS = {
   "not-bad-at-speaking": {
     id: "not-bad-at-speaking",

@@ -89,6 +89,10 @@ async function deleteAccount(user) {
     { $set: { status: "abandoned", flagReason: "account deleted" } },
   );
 
+  // Team plans: leave the team (an admin's team closes; members keep the
+  // plan until the date already paid for).
+  await require("./team").onAccountDeleted(userId);
+
   await Promise.all([
     Recording.deleteMany({ user: userId }),
     Testimonial.deleteMany({ user: userId }),

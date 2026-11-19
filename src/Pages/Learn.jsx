@@ -13,6 +13,7 @@ import {
 import whatDoISayImage from "../assets/whatdoisay.PNG";
 import whatDoIDoImage from "../assets/whatdoido.jpeg";
 import BookCover from "../Components/learn/BookCover";
+import LearnComingSoon from "../Components/learn/LearnComingSoon";
 import {
   BOOKS,
   FEATURED_ID,
@@ -23,6 +24,7 @@ import {
   percentOff,
 } from "../data/learn";
 import {
+  isLearnLaunched,
   loadLearn,
   setNotifyMe,
   splitTimeLeft,
@@ -31,7 +33,11 @@ import {
 } from "../lib/learn";
 import heroImage from "../assets/learn-hero.jpeg";
 import { syncPendingPayments } from "../data/plans";
-import { isPaystackUrl, openPaystackPopup, preloadPaystack } from "../lib/paystackPopup";
+import {
+  isPaystackUrl,
+  openPaystackPopup,
+  preloadPaystack,
+} from "../lib/paystackPopup";
 import {
   ensureReminderNotifications,
   reminderHelp,
@@ -94,11 +100,19 @@ function NotifyButton({ on, busy, onClick, className = "" }) {
 
 // Round 8: full price first, then the launch price (Sheriff's order).
 // The featured guide reads "20% discount: ₦9,600 / $9.6".
-function PriceLine({ product, prices, offerActive, currencies, discountLabel }) {
+function PriceLine({
+  product,
+  prices,
+  offerActive,
+  currencies,
+  discountLabel,
+}) {
   const priceOf = (c) => prices?.[c] || product.prices[c];
   const ngn = priceOf("NGN");
   const discounted = offerActive && ngn.now < ngn.full;
-  const full = currencies.map((c) => formatPrice(priceOf(c).full, c)).join(" / ");
+  const full = currencies
+    .map((c) => formatPrice(priceOf(c).full, c))
+    .join(" / ");
   const now = currencies.map((c) => formatPrice(priceOf(c).now, c)).join(" / ");
   if (!discounted) {
     return (
@@ -112,7 +126,9 @@ function PriceLine({ product, prices, offerActive, currencies, discountLabel }) 
       <s className="lx-price-full">{full}</s>
       <span className="lx-price-row">
         <span className="lx-price-now">
-          {discountLabel && <span className="lx-price-label">{discountLabel} </span>}
+          {discountLabel && (
+            <span className="lx-price-label">{discountLabel} </span>
+          )}
           {now}
         </span>
         {!discountLabel && (
@@ -159,7 +175,11 @@ function LaunchCard({ endsAt, offset, onEnded }) {
       </div>
       <div className="lx-launch-timer">
         <p className="lx-launch-label">Offer ends in</p>
-        <div className="lx-timer" role="timer" aria-label={`Offer ends ${ends}`}>
+        <div
+          className="lx-timer"
+          role="timer"
+          aria-label={`Offer ends ${ends}`}
+        >
           {[
             [t.days, "Days"],
             [t.hours, "Hours"],
@@ -214,7 +234,11 @@ function ProgressRow({ item, onRead }) {
         className="lx-cta lx-cta-block"
         onClick={() => onRead(item.bookId)}
       >
-        {item.completedAt ? "Read again" : started ? "Continue reading" : "Start reading"}
+        {item.completedAt
+          ? "Read again"
+          : started
+            ? "Continue reading"
+            : "Start reading"}
       </button>
     </article>
   );
@@ -222,10 +246,21 @@ function ProgressRow({ item, onRead }) {
 
 /* ---------- Page ---------- */
 
+// Before launch day the Learn tab shows only the countdown; the shop (and
+// its server calls) start once LEARN_LAUNCH_AT has passed.
 export default function Learn() {
+  const [launched, setLaunched] = useState(isLearnLaunched);
+  const onLaunch = useCallback(() => setLaunched(true), []);
+  if (!launched) return <LearnComingSoon onLaunch={onLaunch} />;
+  return <LearnShop />;
+}
+
+function LearnShop() {
   const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
-  const tab = TABS.some((t) => t.id === params.get("tab")) ? params.get("tab") : "all";
+  const tab = TABS.some((t) => t.id === params.get("tab"))
+    ? params.get("tab")
+    : "all";
   const returnRef = params.get("reference") || params.get("trxref");
 
   const [data, setData] = useState(null);
@@ -238,7 +273,9 @@ export default function Learn() {
   const [currency, setCurrency] = useState("NGN");
   const [checkoutError, setCheckoutError] = useState("");
   const [startingCheckout, setStartingCheckout] = useState(false);
-  const [payment, setPayment] = useState(returnRef ? { kind: "checking" } : null);
+  const [payment, setPayment] = useState(
+    returnRef ? { kind: "checking" } : null,
+  );
 
   const setTab = (id) => {
     const next = new URLSearchParams(params);
@@ -257,7 +294,8 @@ export default function Learn() {
       setLoadError("");
     } catch (e) {
       setLoadError(
-        e.response?.data?.message || "We couldn’t load Learn. Please try again.",
+        e.response?.data?.message ||
+          "We couldn’t load Learn. Please try again.",
       );
     }
   }, []);
@@ -309,10 +347,12 @@ export default function Learn() {
   const owned = useMemo(() => new Set(library.map((i) => i.bookId)), [library]);
   const notifyOn = useMemo(() => new Set(data?.notify || []), [data]);
   const serverPrices = useMemo(
-    () => Object.fromEntries((data?.products || []).map((p) => [p.id, p.prices])),
+    () =>
+      Object.fromEntries((data?.products || []).map((p) => [p.id, p.prices])),
     [data],
   );
-  const ownsAll = (productId) => PRODUCTS[productId].books.every((b) => owned.has(b));
+  const ownsAll = (productId) =>
+    PRODUCTS[productId].books.every((b) => owned.has(b));
 
   const onOfferEnded = useCallback(() => {
     setOfferOver(true);
@@ -366,13 +406,15 @@ export default function Learn() {
       const r = await startBookCheckout(buying, currency, true);
       let result;
       try {
-        if (!r.accessCode) throw Object.assign(new Error(), { code: "POPUP_UNAVAILABLE" });
+        if (!r.accessCode)
+          throw Object.assign(new Error(), { code: "POPUP_UNAVAILABLE" });
         result = await openPaystackPopup(r.accessCode, r.reference);
       } catch (err) {
         if (err.code !== "POPUP_UNAVAILABLE") throw err;
         // Back-up: Paystack's own page, which returns to this same site.
         const page = await startBookCheckout(buying, currency, false);
-        if (!isPaystackUrl(page.authorizationUrl)) throw new Error("Unexpected payment page.", { cause: err });
+        if (!isPaystackUrl(page.authorizationUrl))
+          throw new Error("Unexpected payment page.", { cause: err });
         window.location.assign(page.authorizationUrl);
         return;
       }
@@ -394,7 +436,8 @@ export default function Learn() {
       }
     } catch (e) {
       setCheckoutError(
-        e.response?.data?.message || "Couldn’t start the payment. Please try again.",
+        e.response?.data?.message ||
+          "Couldn’t start the payment. Please try again.",
       );
       setStartingCheckout(false);
     }
@@ -434,15 +477,27 @@ export default function Learn() {
           {partly && (
             <p className="lx-book-note">
               You already have{" "}
-              {p.books.filter((b) => owned.has(b)).map((b) => BOOKS[b].shortTitle).join(", ")}.
+              {p.books
+                .filter((b) => owned.has(b))
+                .map((b) => BOOKS[b].shortTitle)
+                .join(", ")}
+              .
             </p>
           )}
           {has ? (
-            <button type="button" className="lx-cta lx-cta-outline" onClick={() => setTab("library")}>
+            <button
+              type="button"
+              className="lx-cta lx-cta-outline"
+              onClick={() => setTab("library")}
+            >
               <Check size={16} aria-hidden="true" /> In your library
             </button>
           ) : (
-            <button type="button" className="lx-cta" onClick={() => openBuy(id)}>
+            <button
+              type="button"
+              className="lx-cta"
+              onClick={() => openBuy(id)}
+            >
               Buy Access
             </button>
           )}
@@ -469,10 +524,16 @@ export default function Learn() {
     <div className="learn-content lx-page">
       <header className="learn-header">
         <h1 className="learn-title">Learn</h1>
-        <p className="learn-subtitle">Build the skills to communicate better.</p>
+        <p className="learn-subtitle">
+          Build the skills to communicate better.
+        </p>
       </header>
 
-      <div className="learn-categories" role="tablist" aria-label="Learn sections">
+      <div
+        className="learn-categories"
+        role="tablist"
+        aria-label="Learn sections"
+      >
         {TABS.map((t) => (
           <button
             key={t.id}
@@ -498,24 +559,36 @@ export default function Learn() {
             <>
               <Check size={18} aria-hidden="true" />
               <span>
-                <strong>{PRODUCTS[payment.productId]?.title}</strong> is in your library.
-                Happy reading!
+                <strong>{PRODUCTS[payment.productId]?.title}</strong> is in your
+                library. Happy reading!
               </span>
             </>
           )}
           {payment.kind === "pending" && (
             <>
               <span>We haven’t received confirmation of your payment yet.</span>
-              <button type="button" className="lx-link" onClick={() => checkPayment(payment.reference)}>
+              <button
+                type="button"
+                className="lx-link"
+                onClick={() => checkPayment(payment.reference)}
+              >
                 Check again
               </button>
             </>
           )}
           {payment.kind === "failed" && (
-            <span>Your payment didn’t go through, so you weren’t charged. You can try again.</span>
+            <span>
+              Your payment didn’t go through, so you weren’t charged. You can
+              try again.
+            </span>
           )}
           {payment.kind !== "checking" && (
-            <button type="button" className="lx-banner-close" aria-label="Dismiss" onClick={() => setPayment(null)}>
+            <button
+              type="button"
+              className="lx-banner-close"
+              aria-label="Dismiss"
+              onClick={() => setPayment(null)}
+            >
               <X size={16} />
             </button>
           )}
@@ -532,17 +605,16 @@ export default function Learn() {
       )}
 
       {showShop && data && offerActive && (
-        <LaunchCard
-          endsAt={endsAt}
-          offset={offset}
-          onEnded={onOfferEnded}
-        />
+        <LaunchCard endsAt={endsAt} offset={offset} onEnded={onOfferEnded} />
       )}
 
       {showShop && (
         // Featured for you: the original Learn card design (the one used for
         // the 7-day communication reset), with Sheriff's text (round 8).
-        <section className="learn-hero lx-featured-hero" aria-labelledby="lx-reset-title">
+        <section
+          className="learn-hero lx-featured-hero"
+          aria-labelledby="lx-reset-title"
+        >
           <div className="learn-hero-main">
             <span className="learn-badge">
               <Sparkles size={14} aria-hidden="true" />
@@ -565,11 +637,19 @@ export default function Learn() {
               />
             </div>
             {ownsAll(featuredId) ? (
-              <button type="button" className="learn-cta" onClick={() => read(featuredId)}>
+              <button
+                type="button"
+                className="learn-cta"
+                onClick={() => read(featuredId)}
+              >
                 Read now <ArrowRight size={18} />
               </button>
             ) : (
-              <button type="button" className="learn-cta" onClick={() => openBuy(featuredId)}>
+              <button
+                type="button"
+                className="learn-cta"
+                onClick={() => openBuy(featuredId)}
+              >
                 Buy Access <ArrowRight size={18} />
               </button>
             )}
@@ -586,7 +666,11 @@ export default function Learn() {
         <section className="lx-section">
           <div className="lx-section-head">
             <h2>Continue learning</h2>
-            <button type="button" className="lx-link" onClick={() => setTab("library")}>
+            <button
+              type="button"
+              className="lx-link"
+              onClick={() => setTab("library")}
+            >
               My Learning
             </button>
           </div>
@@ -643,13 +727,19 @@ export default function Learn() {
             <p>Everything you've unlocked, in one place.</p>
           </div>
           {!data && !loadError ? (
-            <p className="lx-muted" role="status">Loading My Learning…</p>
+            <p className="lx-muted" role="status">
+              Loading My Learning…
+            </p>
           ) : library.length === 0 ? (
             <div className="lx-empty">
               <LibraryIcon size={28} aria-hidden="true" />
               <h3>Your learning journey starts here</h3>
               <p>Access everything you've purchased, started or completed.</p>
-              <button type="button" className="lx-cta" onClick={() => setTab("all")}>
+              <button
+                type="button"
+                className="lx-cta"
+                onClick={() => setTab("all")}
+              >
                 Explore Learn
               </button>
             </div>
@@ -667,10 +757,16 @@ export default function Learn() {
         <div
           className="learn-notify-backdrop"
           onMouseDown={(e) => {
-            if (e.target === e.currentTarget && !startingCheckout) setBuying(null);
+            if (e.target === e.currentTarget && !startingCheckout)
+              setBuying(null);
           }}
         >
-          <section className="learn-notify-dialog lx-buy" role="dialog" aria-modal="true" aria-labelledby="lx-buy-title">
+          <section
+            className="learn-notify-dialog lx-buy"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="lx-buy-title"
+          >
             <button
               className="learn-notify-close"
               type="button"
@@ -684,11 +780,17 @@ export default function Learn() {
               <BookCover id={buying} size="sm" />
               <div>
                 <h2 id="lx-buy-title">{buyingProduct.title}</h2>
-                {buyingProduct.tagline && <p className="lx-muted">{buyingProduct.tagline}</p>}
+                {buyingProduct.tagline && (
+                  <p className="lx-muted">{buyingProduct.tagline}</p>
+                )}
               </div>
             </div>
             {currencies.length > 1 && (
-              <div className="lx-currency" role="radiogroup" aria-label="Pay in">
+              <div
+                className="lx-currency"
+                role="radiogroup"
+                aria-label="Pay in"
+              >
                 {currencies.map((c) => (
                   <button
                     key={c}
@@ -705,7 +807,12 @@ export default function Learn() {
             )}
             <div className="lx-buy-total">
               <span>You pay</span>
-              <strong>{formatPrice(offerActive ? buyingPrice.now : buyingPrice.full, currency)}</strong>
+              <strong>
+                {formatPrice(
+                  offerActive ? buyingPrice.now : buyingPrice.full,
+                  currency,
+                )}
+              </strong>
               {offerActive && buyingPrice.now < buyingPrice.full && (
                 <s>{formatPrice(buyingPrice.full, currency)}</s>
               )}
@@ -714,7 +821,11 @@ export default function Learn() {
               One payment, yours to keep. It goes straight into My Learning and
               you can read it on any device.
             </p>
-            {checkoutError && <p className="learn-notify-error" role="alert">{checkoutError}</p>}
+            {checkoutError && (
+              <p className="learn-notify-error" role="alert">
+                {checkoutError}
+              </p>
+            )}
             <button
               type="button"
               className="lx-cta lx-cta-block"
@@ -724,7 +835,9 @@ export default function Learn() {
               {startingCheckout ? "Opening secure payment…" : "Pay now"}
             </button>
             {data?.available === false && (
-              <p className="lx-muted">Payments aren’t available right now. Please try again later.</p>
+              <p className="lx-muted">
+                Payments aren’t available right now. Please try again later.
+              </p>
             )}
             <p className="lx-secure">Secure payment by Paystack</p>
           </section>

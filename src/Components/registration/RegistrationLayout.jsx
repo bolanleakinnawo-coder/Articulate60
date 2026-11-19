@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
 import StepIndicator from "./StepIndicator";
 import StepOne from "./StepOne";
@@ -18,6 +18,7 @@ function RegistrationLayout() {
   const [accountError, setAccountError] = useState(null);
   const submitInProgress = useRef(false);
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [formData, setFormData] = useState({
     fullName: "",
@@ -87,7 +88,11 @@ function RegistrationLayout() {
       const response = await axios.post(`${API_URL}/user/signup`, payload);
       localStorage.setItem("token", response.data.token);
       localStorage.setItem("user", JSON.stringify(response.data.user));
-      navigate("/app/home", { replace: true });
+      // A team invite link opened while signed out comes back here (round 10).
+      const from = location.state?.from;
+      const back =
+        from?.pathname?.startsWith("/team/join/") ? from.pathname : "/app/home";
+      navigate(back, { replace: true });
     } catch (error) {
       console.error(error);
       const message = error.response?.data?.message || "";

@@ -46,7 +46,7 @@ async function addMinutes(userId, timeZone, minutes = 1) {
   const user = await User.findByIdAndUpdate(
     userId,
     { $inc: { [`groupMinutes.${today}`]: minutes } },
-    { new: true, projection: { groupMinutes: 1, plan: 1, planExpiresAt: 1, timeZone: 1 } },
+    { new: true, projection: { groupMinutes: 1, plan: 1, planExpiresAt: 1, teamPlan: 1, teamPlanExpiresAt: 1, timeZone: 1 } },
   );
   return user ? summarise(user) : null;
 }

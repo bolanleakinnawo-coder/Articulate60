@@ -8,6 +8,8 @@ const paystack = require("./paystack");
 const LibraryItem = require("../MODELS/LibraryItem");
 const { planIdOf, addMonths } = require("../utils/plans");
 const { PRODUCTS } = require("../utils/learn");
+const { TEAM_PLANS } = require("../utils/plans");
+const { applyTeamPayment } = require("./team");
 
 const FAILED = { failed: "failed", abandoned: "abandoned", reversed: "failed" };
 
@@ -54,7 +56,11 @@ async function settlePayment(payment) {
   );
 
   const applied =
-    payment.kind === "book" ? await addBooksToLibrary(payment) : await applyToUser(payment);
+    payment.kind === "book"
+      ? await addBooksToLibrary(payment)
+      : TEAM_PLANS[payment.planId]
+        ? await applyTeamPayment(payment)
+        : await applyToUser(payment);
   if (applied?.accountDeleted) {
     console.error(`Payment ${payment.reference} paid after account deletion: refund it in Paystack.`);
     return Payment.findOneAndUpdate(

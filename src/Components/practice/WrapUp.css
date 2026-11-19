@@ -625,3 +625,35 @@
 .wrap-back {
   padding-top: 0;
 }
+
+/* Round 10 (Sheriff, 2026-11-19): smaller "Would you like detailed
+   feedback?", its subtext and the "What you'll get" box. */
+.wrap-heading {
+  font-size: 16px;
+}
+
+.wrap-text {
+  font-size: 13px;
+}
+
+.wrap-benefits h3 {
+  font-size: 14.5px;
+}
+
+.wrap-benefits-intro {
+  font-size: 13px;
+}
+
+.wrap-benefits ul {
+  gap: 8px;
+}
+
+.wrap-benefits li {
+  font-size: 13px;
+}
+
+.wrap-benefits li svg {
+  width: 16px;
+  height: 16px;
+  margin-top: 1px;
+}

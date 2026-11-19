@@ -92,6 +92,8 @@ router.get("/usage", authMiddleware, async (req, res) => {
     const user = await User.findById(req.userId, {
       plan: 1,
       planExpiresAt: 1,
+      teamPlan: 1,
+      teamPlanExpiresAt: 1,
       timeZone: 1,
       groupMinutes: 1,
     });
@@ -169,11 +171,13 @@ router.post("/scheduled", authMiddleware, async (req, res) => {
       username: 1,
       plan: 1,
       planExpiresAt: 1,
+      teamPlan: 1,
+      teamPlanExpiresAt: 1,
     });
     if (!user) return res.status(404).json({ message: "User not found." });
     if (!hasGroupPractice(user))
       return res.status(403).json({
-        message: "Group practice comes with Loquiex Flourish and Infinity.",
+        message: "Group practice comes with Loquiex Bloom, Flourish and Infinity.",
         code: "no-plan",
       });
 
@@ -215,7 +219,10 @@ router.post("/scheduled", authMiddleware, async (req, res) => {
       });
     const max = wantsUnlimited
       ? 0
-      : Math.min(6, Math.max(2, Math.floor(Number(body.max)) || 4));
+      : Math.min(
+          limitsFor(user).maxSeats || 6,
+          Math.max(2, Math.floor(Number(body.max)) || 4),
+        );
     const doc = await ScheduledPractice.create({
       host: req.userId,
       hostName: user.fullName || user.username || "Member",

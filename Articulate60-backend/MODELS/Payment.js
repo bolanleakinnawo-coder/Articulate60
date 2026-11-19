@@ -16,6 +16,8 @@ const paymentSchema = new mongoose.Schema(
     // "plan" = membership, "book" = a Learn book or bundle (productId).
     kind: { type: String, enum: ["plan", "book"], default: "plan" },
     productId: { type: String, default: null },
+    // Team plans (round 10): the name given on "Create your team".
+    teamName: { type: String, default: "" },
     // True when the launch price was charged.
     launchPrice: { type: Boolean, default: false },
     planId: { type: String, required: function () { return this.kind !== "book"; } },

@@ -153,7 +153,17 @@ router.post("/run-reminders", async (req, res) => {
     return res.status(401).json({ message: "Not allowed." });
   }
   try {
-    res.json(await runReminders());
+    // Round 10: also sends the 5-minute group practice reminders, so a cron
+    // that wakes a sleeping server catches those too.
+    const { remindDue } = require("../services/scheduledPractice");
+    const [streak, group] = await Promise.all([
+      runReminders(),
+      remindDue().catch((err) => {
+        console.error("Group practice reminders failed:", err);
+        return null;
+      }),
+    ]);
+    res.json({ ...(streak || {}), groupReminders: group });
   } catch (err) {
     console.error("Reminder run failed:", err);
     res.status(500).json({ message: "Reminder run failed." });

@@ -1,8 +1,7 @@
 import { SPEAK_DURATIONS } from "../../data/prompts";
 import "../../styles/PracticeExtras.css";
 
-// "Choose your speaking duration": 30 sec, 1 min or 2 min by default.
-// Research Mode passes its own options (30 sec, 45 sec, 1 min).
+// "Choose your speaking duration": 30 sec, 45 sec or 1 min.
 export default function DurationPicker({
   value,
   onChange,

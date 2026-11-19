@@ -24,7 +24,7 @@ const STEPS = [
     number: "03",
     icon: Mic,
     title: "SPEAK",
-    desc: "Speak for 1-3 minutes (based on your level).",
+    desc: "Speak for 30 seconds, 45 seconds or 1 minute.",
   },
   {
     number: "04",

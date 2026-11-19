@@ -787,8 +787,9 @@ export default function Practice() {
                       Ready to practise with others?
                     </span>
                     <span className="practice-others-sub">
-                      Put your skills to the test in real conversations and
-                      build confidence together.
+                      Put your skills to the test in real conversations
+                      <br />
+                      and build confidence together.
                     </span>
                   </span>
                 </div>

@@ -32,49 +32,55 @@ export const PLANS = [
       "Your recordings and streaks",
     ],
   },
+  // Round 10 (Sheriff, 2026-11-19): new prices and features, word for word
+  // from the Individual Plans page.
   {
     id: "bloom",
     name: "Loquiex Bloom",
     tagline: "Build a consistent practice habit.",
-    priceNaira: 4900,
+    priceNaira: 6800,
     limits: {
       aiFeedbackPerMonth: 150,
       aiFeedbackPerDay: 5,
-      groupMinutesPerMonth: 0,
+      groupMinutesPerMonth: 1350,
+      groupMinutesPerDay: 45,
+      maxSeats: 2,
     },
     features: [
-      "150 AI feedback sessions/month · up to 5/day",
-      "Unlimited personal practice",
-      "Earn subscription credits for every qualifying paid referral",
+      "Spin the Jar, Yap Mode and Research Mode",
+      "5 AI feedback sessions daily",
+      "Unlimited personal speaking practice, with or without AI feedback",
+      "Group Practice: 2 participants total, including the host",
+      "45 minutes of Group Practice daily",
     ],
   },
   {
     id: "flourish",
     name: "Loquiex Flourish",
     tagline: "More room to practise and improve.",
-    priceNaira: 8000,
-    badge: "More practice",
+    priceNaira: 12500,
+    badge: "Recommended",
     limits: {
       aiFeedbackPerMonth: 360,
       aiFeedbackPerDay: 12,
       groupMinutesPerMonth: 2700,
       // Enforced daily by the server (utils/plans.js groupMinutesPerDay).
       groupMinutesPerDay: 90,
+      maxSeats: 6,
     },
     features: [
-      "360 AI feedback sessions/month · up to 12/day",
-      "1 hr 30 min of group practice calls every day",
-      "Unlimited personal practice",
-      "Earn subscription credits for every qualifying paid referral",
-      "Withdraw eligible referral rewards directly to your bank account",
-      "Get discounts on Learn resources designed to help you learn communication and improve your communication skills",
+      "Everything in Bloom",
+      "12 AI feedback sessions daily",
+      "Group Practice: up to 6 participants total, including the host",
+      "1 hour 30 minutes of Group Practice daily",
+      "Discounts on Loquiex Learn resources",
     ],
   },
   {
     id: "infinity",
     name: "Loquiex Infinity",
     tagline: "Practise without set usage limits.",
-    priceNaira: 29800,
+    priceNaira: 25000,
     limits: {
       aiFeedbackPerMonth: null,
       aiFeedbackPerDay: null,
@@ -83,12 +89,57 @@ export const PLANS = [
       unlimitedSeats: true,
     },
     features: [
+      "Everything in Flourish",
       "Unlimited AI feedback",
-      "Unlimited group practice and participants",
-      "Unlimited personal practice",
-      "Earn subscription credits for every qualifying paid referral",
-      "Withdraw eligible referral rewards directly to your bank account",
-      "Get discounts on Learn resources designed to help you learn communication and improve your communication skills",
+      "Unlimited Group Practice sessions and participants",
+    ],
+  },
+];
+
+// Team plans (round 10): the Team Admin pays once for up to 5 members (the
+// admin included). Every member gets the base plan's own allowance. Words
+// are Sheriff's, from the Team Plans page.
+export const TEAM_MAX_MEMBERS = 5;
+export const TEAM_PLANS = [
+  {
+    id: "bloom-team",
+    base: "bloom",
+    name: "Loquiex Bloom Team",
+    priceNaira: 24500,
+    features: [
+      "Up to 5 members, including the Team Admin",
+      "Spin the Jar, Yap Mode and Research Mode",
+      "5 AI feedback sessions per member daily",
+      "Unlimited personal speaking practice per member, with or without AI feedback",
+      "Group Practice: 2 participants total, including the host",
+      "45 minutes of Group Practice daily per member",
+      "Team member and invitation management",
+    ],
+  },
+  {
+    id: "flourish-team",
+    base: "flourish",
+    name: "Loquiex Flourish Team",
+    priceNaira: 49500,
+    badge: "Recommended",
+    features: [
+      "Everything in Bloom Team",
+      "12 AI feedback sessions per member daily",
+      "Group Practice: up to 6 participants total, including the host",
+      "1 hour 30 minutes of Group Practice daily per member",
+      "Discounts on Loquiex Learn resources",
+    ],
+  },
+  {
+    id: "infinity-team",
+    base: "infinity",
+    name: "Loquiex Infinity Team",
+    priceNaira: 99500,
+    features: [
+      "Everything in Flourish Team",
+      "Unlimited AI feedback per member",
+      "Unlimited personal speaking practice",
+      "Unlimited Group Practice sessions and participants",
     ],
   },
 ];
@@ -146,11 +197,36 @@ export const BILLING_PERIODS = [
 // Monthly prices per currency (display only). The server charges from its
 // own table in Articulate60-backend/utils/plans.js and sends it to Manage
 // Membership, which uses the server's numbers when it has them.
-// USD: Bloom $4. Flourish and Infinity are placeholders until decided.
+// Round 10 (Sheriff, 2026-11-19): new individual and team prices.
 export const PRICES = {
-  NGN: { bloom: 4900, flourish: 8000, infinity: 29800 },
-  USD: { bloom: 4, flourish: 7, infinity: 24 },
+  NGN: {
+    bloom: 6800,
+    flourish: 12500,
+    infinity: 25000,
+    "bloom-team": 24500,
+    "flourish-team": 49500,
+    "infinity-team": 99500,
+  },
+  USD: {
+    bloom: 6.8,
+    flourish: 12.5,
+    infinity: 25,
+    "bloom-team": 24.5,
+    "flourish-team": 49.5,
+    "infinity-team": 99.5,
+  },
 };
+
+// The server's price table on top of this one, currency by currency, so a
+// price the server doesn't send (e.g. team plans on an older server) still
+// shows instead of ₦0.
+export function mergePrices(server = {}) {
+  const out = {};
+  for (const c of new Set([...Object.keys(PRICES), ...Object.keys(server || {})])) {
+    out[c] = { ...(PRICES[c] || {}), ...((server || {})[c] || {}) };
+  }
+  return out;
+}
 
 export const CURRENCIES = [
   { id: "NGN", label: "Naira (₦)" },
@@ -268,9 +344,17 @@ export function isPaidPlan(user) {
   return getPlanId(user) !== "free";
 }
 
-// Group practice is only on plans with group minutes (Flourish, Infinity).
+// Group practice is on every paid plan (Bloom included from round 10).
 export function hasGroupPractice(user) {
   return getPlan(user).limits.groupMinutesPerMonth !== 0;
+}
+
+// Most people (host included) in a call this member hosts: Bloom 2,
+// Flourish 6, Infinity unlimited (null).
+export function maxHostSeats(user) {
+  const limits = getPlan(user).limits;
+  if (limits.unlimitedSeats) return null;
+  return limits.maxSeats || 6;
 }
 
 // Infinity hosts may open calls with "Unlimited" seats.
@@ -298,6 +382,9 @@ export function getSubscription(user = getStoredUser()) {
     startedAt: sub.startedAt || null,
     expiresAt: sub.expiresAt || null,
     cancelledAt: sub.cancelledAt || null,
+    // "team" when the plan comes from a team plan (no cancel, the Team
+    // Admin renews it).
+    source: sub.source || "own",
   };
 }
 
@@ -360,12 +447,13 @@ const PENDING_KEY = "loquiex.pendingPayment";
 
 // Resolves { status: "success" | "closed", reference }, or leaves the page
 // (back-up full-page checkout).
-export async function startCheckout(planId, periodId, currency = "NGN") {
+export async function startCheckout(planId, periodId, currency = "NGN", extra = {}) {
   const { data } = await api.post("/api/billing/checkout", {
     planId,
     periodId,
     currency,
     popup: true,
+    ...extra,
   });
   writeStorage(PENDING_KEY, data.reference);
   try {
@@ -378,6 +466,7 @@ export async function startCheckout(planId, periodId, currency = "NGN") {
       periodId,
       currency,
       popup: false,
+      ...extra,
     });
     if (!isPaystackUrl(page.authorizationUrl)) throw new Error("Unexpected payment page.", { cause: err });
     writeStorage(PENDING_KEY, page.reference);

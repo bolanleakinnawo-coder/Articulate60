@@ -28,7 +28,9 @@ export default function MembershipCard({
   const plan = getPlan(user);
   const sub = getSubscription(user);
   const isPaid = plan.id !== "free";
-  const shortName = plan.name.replace(/^Loquiex\s+/i, "");
+  const fromTeam = isPaid && sub?.source === "team";
+  // A plan from a team shows as "Flourish Team" (round 10).
+  const shortName = `${plan.name.replace(/^Loquiex\s+/i, "")}${fromTeam ? " Team" : ""}`;
 
   let price = "₦0";
   let priceUnit = "Free plan";
@@ -43,6 +45,10 @@ export default function MembershipCard({
       BILLING_PERIODS.find((p) => p.id === sub?.periodId) || BILLING_PERIODS[0];
     price = formatMoney(priceFor(plan, period.id, currency, prices), currency);
     priceUnit = period.months === 1 ? "/ month" : `/ ${period.months} months`;
+    if (fromTeam) {
+      price = "";
+      priceUnit = "Team plan";
+    }
     const expires = sub?.expiresAt ? new Date(sub.expiresAt) : null;
     const started = sub?.startedAt ? new Date(sub.startedAt) : null;
     label = sub?.cancelledAt ? "Cancelled, ends on" : "Active until";
@@ -89,7 +95,7 @@ export default function MembershipCard({
       </span>
       <span className="mc-plan">{shortName}</span>
       <span className="mc-price">
-        {isPaid ? `${price} ${priceUnit}` : priceUnit}
+        {isPaid && price ? `${price} ${priceUnit}` : priceUnit}
       </span>
       {label ? (
         <>

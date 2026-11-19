@@ -22,9 +22,11 @@ const Payment = require("../MODELS/Payment");
 const paystack = require("../services/paystack");
 const { settlePayment, settlePendingFor } = require("../services/billing");
 const { returnUrlFor } = require("../utils/returnUrl");
+const { teamOf } = require("../services/team");
 const {
   BILLING_PERIODS,
-  PAID_PLAN_IDS,
+  PURCHASABLE_PLAN_IDS,
+  TEAM_PLANS,
   PRICES,
   enabledCurrencies,
   priceMinorFor,
@@ -69,6 +71,10 @@ async function subscriptionFor(userId) {
     planStartedAt: 1,
     planPeriodId: 1,
     planCancelledAt: 1,
+    team: 1,
+    teamPlan: 1,
+    teamPlanStartedAt: 1,
+    teamPlanExpiresAt: 1,
     createdAt: 1,
   });
   return user ? subscriptionOf(user) : null;
@@ -95,7 +101,7 @@ router.post("/checkout", authMiddleware, checkoutLimiter, async (req, res) => {
   const planId = String(req.body?.planId || "");
   const periodId = String(req.body?.periodId || "");
   const currency = String(req.body?.currency || "NGN").toUpperCase();
-  if (!PAID_PLAN_IDS.includes(planId) || !BILLING_PERIODS[periodId]) {
+  if (!PURCHASABLE_PLAN_IDS.includes(planId) || !BILLING_PERIODS[periodId]) {
     return res
       .status(400)
       .json({ message: "Choose a plan and billing period." });
@@ -112,6 +118,17 @@ router.post("/checkout", authMiddleware, checkoutLimiter, async (req, res) => {
   try {
     const user = await User.findById(req.userId, { email: 1 });
     if (!user) return res.status(404).json({ message: "User not found." });
+    // Team plans: a member of someone else's team leaves it before starting
+    // their own team.
+    if (TEAM_PLANS[planId]) {
+      const current = await teamOf(user._id);
+      if (current && String(current.admin) !== String(user._id)) {
+        return res.status(409).json({
+          message:
+            "You're in someone else's team. Leave it first to start your own team.",
+        });
+      }
+    }
 
     const reference = `LQX-${crypto.randomBytes(12).toString("hex")}`;
     const payment = await Payment.create({
@@ -123,6 +140,9 @@ router.post("/checkout", authMiddleware, checkoutLimiter, async (req, res) => {
       months: BILLING_PERIODS[periodId].months,
       amountMinor,
       currency,
+      teamName: TEAM_PLANS[planId]
+        ? String(req.body?.teamName || "").trim().slice(0, 60)
+        : "",
     });
 
     // Pop-up checkout (the normal way) needs no return address. The back-up

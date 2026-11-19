@@ -1,0 +1,443 @@
+/* Round 10 (Sheriff, 2026-11-19): subscription type, Individual Plans and
+   Team Plans. Loquiex brand tokens only (Home tab colours), same type scale
+   as Home / Learn / Practice. */
+.sp-panel {
+  width: 100%;
+  padding: 18px;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: var(--pf-card, var(--bg-card));
+  box-sizing: border-box;
+}
+
+.sp-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 12px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text-secondary);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.sp-back:hover {
+  color: var(--text-primary);
+}
+
+.sp-title {
+  margin: 0 0 6px;
+  color: var(--text-primary);
+  font-size: 22px;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.sp-sub {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.sp-title-center,
+.sp-sub-center {
+  text-align: center;
+}
+
+/* Choose your subscription */
+.sp-types {
+  display: grid;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.sp-type {
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--bg-secondary);
+}
+
+.sp-type-name {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 8px;
+  color: var(--text-primary);
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.sp-type-name svg {
+  flex: 0 0 auto;
+  color: var(--olive-bright);
+}
+
+.sp-type-text {
+  margin: 0 0 14px;
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.sp-continue {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 46px;
+  border: 0;
+  border-radius: var(--radius-md);
+  background: var(--olive-primary);
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.sp-continue:hover {
+  background: var(--olive-bright);
+}
+
+/* How it works */
+.sp-how {
+  display: grid;
+  gap: 14px;
+  margin-top: 16px;
+  padding: 16px;
+  border-radius: var(--radius-lg);
+  background: var(--bg-secondary);
+}
+
+.sp-how-title {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.sp-how-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.sp-how-item svg {
+  flex: 0 0 auto;
+  margin-top: 1px;
+  color: var(--olive-bright);
+}
+
+.sp-how-item > span {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.sp-how-item strong {
+  color: var(--text-primary);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.sp-how-item > span > span {
+  color: var(--text-secondary);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.sp-divider {
+  height: 1px;
+  margin: 18px 0 16px;
+  background: var(--border);
+}
+
+.sp-section-title {
+  margin: 0 0 12px;
+  color: var(--text-primary);
+  font-size: 16px;
+  font-weight: 600;
+}
+
+/* Plan cards */
+.sp-plans {
+  display: grid;
+  gap: 12px;
+}
+
+.sp-plan {
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--bg-secondary);
+}
+
+.sp-plan.is-current {
+  border-color: var(--olive-bright);
+}
+
+.sp-plan.is-selected {
+  border-color: var(--olive-bright);
+  box-shadow: 0 0 0 1px var(--olive-bright) inset;
+}
+
+.sp-plan-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.sp-plan-name {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.sp-badge,
+.sp-chip-muted {
+  flex: 0 0 auto;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.sp-badge {
+  background: rgba(100, 103, 66, 0.32);
+  color: var(--text-primary);
+}
+
+.sp-chip-muted {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-primary);
+}
+
+.sp-price {
+  margin: 14px 0 0;
+  color: var(--text-primary);
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+
+.sp-price-usd {
+  margin: 4px 0 0;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.sp-per-person {
+  margin: 10px 0 0;
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.sp-features {
+  display: grid;
+  gap: 10px;
+  margin: 14px 0 16px;
+  padding: 14px 0 0;
+  border-top: 1px solid var(--border);
+  list-style: none;
+}
+
+.sp-features li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  color: var(--text-primary);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.sp-features svg {
+  flex: 0 0 auto;
+  margin-top: 1px;
+  color: var(--olive-bright);
+}
+
+.sp-choose {
+  width: 100%;
+  min-height: 46px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.sp-choose:hover:not(:disabled) {
+  border-color: var(--olive-bright);
+}
+
+.sp-choose.is-selected {
+  border-color: var(--olive-primary);
+  background: var(--olive-primary);
+}
+
+.sp-choose:disabled {
+  color: var(--text-muted);
+  cursor: default;
+}
+
+.sp-foot {
+  margin: 16px 0 0;
+  color: var(--text-secondary);
+  font-size: 13px;
+  line-height: 1.5;
+  text-align: center;
+}
+
+/* Desktop: the two subscription types and the plans sit side by side. */
+@media (min-width: 900px) {
+  .sp-types {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .sp-type {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .sp-type .sp-continue {
+    margin-top: auto;
+  }
+
+  .sp-plans {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    align-items: stretch;
+  }
+
+  .sp-plan {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .sp-plan .sp-choose {
+    margin-top: auto;
+  }
+}
+
+@media (max-width: 380px) {
+  .sp-panel {
+    padding: 14px;
+  }
+
+  .sp-title {
+    font-size: 20px;
+  }
+
+  .sp-plan,
+  .sp-type,
+  .sp-how {
+    padding: 14px;
+  }
+
+  .sp-price {
+    font-size: 25px;
+  }
+}
+
+/* Create your team */
+.sp-create {
+  display: grid;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.sp-field-label {
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.sp-input {
+  width: 100%;
+  min-height: 48px;
+  padding: 0 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  font: inherit;
+  /* 16px so phones don't zoom in on the field. */
+  font-size: 16px;
+  box-sizing: border-box;
+}
+
+.sp-input::placeholder {
+  color: var(--text-muted);
+}
+
+.sp-input:focus {
+  border-color: var(--olive-bright);
+  outline: none;
+}
+
+.sp-selected {
+  margin: 6px 0;
+  padding: 14px 16px;
+  border-radius: var(--radius-lg);
+  background: var(--bg-secondary);
+}
+
+.sp-selected-label {
+  margin: 0 0 6px;
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.sp-selected-name {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.sp-selected-price {
+  margin: 2px 0 0;
+  color: var(--text-primary);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.sp-selected-note {
+  margin: 6px 0 0;
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.sp-error {
+  margin: 0;
+  color: #f0b4ad;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.sp-continue:disabled {
+  opacity: 0.7;
+  cursor: default;
+}

@@ -12,21 +12,23 @@ import {
   ReceiptText,
   RefreshCw,
   Sparkles,
+  Users,
+  ChevronRight,
 } from "lucide-react";
 import {
   BILLING_PERIODS,
   CURRENCIES,
   PAID_PLANS,
   PLANS,
+  TEAM_PLANS,
   formatMoney,
   getPlan,
   getStoredUser,
   cancelPlan,
   getSubscription,
   groupPracticePlanNames,
-  monthlyPrice,
   pendingPaymentReference,
-  PRICES,
+  mergePrices,
   priceFor,
   refreshPlanFromServer,
   resumePlan,
@@ -36,6 +38,8 @@ import {
 } from "../data/plans";
 import { preloadPaystack } from "../lib/paystackPopup";
 import MembershipCard from "../Components/MembershipCard";
+import SubscriptionPicker from "../Components/membership/SubscriptionPicker";
+import { getMyTeam } from "../lib/team";
 import "./Profile.css";
 
 const REASONS = {
@@ -91,27 +95,44 @@ export default function Membership() {
   const [confirmCancel, setConfirmCancel] = useState(false);
   const [cancelBusy, setCancelBusy] = useState(false);
   const [cancelError, setCancelError] = useState("");
+  // Round 10: "Choose your subscription" -> Individual Plans / Team Plans.
+  const [view, setView] = useState(
+    reason === "team"
+      ? "team"
+      : reason === "group" || reason === "unlimited" || reason === "feedback"
+        ? "individual"
+        : "choose",
+  );
+  const [team, setTeam] = useState(null); // GET /api/team/me
+  const [teamName, setTeamName] = useState("");
+  const teamRef = useRef(null);
   const compareRef = useRef(null);
   const billingRef = useRef(null);
   const totalRef = useRef(null);
 
-  const selected = PAID_PLANS.find((p) => p.id === selectedId) || PAID_PLANS[0];
+  const ALL_PLANS = [...PAID_PLANS, ...TEAM_PLANS];
+  const selected = ALL_PLANS.find((p) => p.id === selectedId) || PAID_PLANS[0];
+  const selectedIsTeam = TEAM_PLANS.some((p) => p.id === selected.id);
+  const teamAdmin = team?.role === "admin";
+  const teamPlanId = teamAdmin ? team.planId : null;
   const isPaid = plan.id !== "free";
-  const cancelled = isPaid && Boolean(sub?.cancelledAt);
+  const cancelled = isPaid && sub?.source !== "team" && Boolean(sub?.cancelledAt);
   const shortName = plan.name.replace(/^Loquiex\s+/, "");
   // The next plan up, for "Upgrade" (none on the top plan).
   const upgradeTo = PAID_PLANS[PAID_PLANS.findIndex((p) => p.id === plan.id) + 1];
   const selectedPeriod = BILLING_PERIODS.find((p) => p.id === periodId);
-  const renewing = isPaid && selected.id === plan.id;
+  const renewing = selectedIsTeam
+    ? Boolean(teamAdmin && team.active && selected.id === team.planId)
+    : isPaid && sub?.source !== "team" && selected.id === plan.id;
+  const fromTeam = sub?.source === "team";
   const lastPayment = billing?.payments?.find((p) => p.status === "success");
   // Currencies the server accepts right now, and its prices.
   const currencies = CURRENCIES.filter((c) =>
     (billing?.currencies || ["NGN"]).includes(c.id),
   );
   const payCurrency = currencies.some((c) => c.id === currency) ? currency : "NGN";
-  const prices = { ...PRICES, ...(billing?.prices || {}) };
+  const prices = mergePrices(billing?.prices);
   const money = (amount) => formatMoney(amount, payCurrency);
-  const monthly = (p) => monthlyPrice(p, payCurrency, prices);
   const total = (p, period) => priceFor(p, period, payCurrency, prices);
   const reasonText =
     typeof REASONS[reason] === "function" ? REASONS[reason]() : REASONS[reason];
@@ -165,6 +186,13 @@ export default function Membership() {
         setVersion((v) => v + 1);
       });
     load();
+    getMyTeam()
+      .then((t) => {
+        if (!alive) return;
+        setTeam(t);
+        if (t?.role === "admin" && t.name) setTeamName(t.name);
+      })
+      .catch(() => {});
     syncPendingPayments().then((applied) => {
       if (alive && applied.length) load();
     });
@@ -179,9 +207,17 @@ export default function Membership() {
     try {
       const data = await verifyPayment(reference);
       const status = data.payment.status;
-      const paidPlan = PLANS.find((p) => p.id === data.payment.planId);
+      const paidPlan = [...PLANS, ...TEAM_PLANS].find((p) => p.id === data.payment.planId);
+      if (TEAM_PLANS.some((p) => p.id === data.payment.planId)) {
+        getMyTeam().then(setTeam).catch(() => {});
+      }
       setVersion((v) => v + 1);
       refreshPlanFromServer().then((d) => d && setBilling(d));
+      if (status === "success" && paidPlan?.base) {
+        // Team plan paid: "Your team is ready!" on My Team.
+        navigate("/app/team?ready=1", { replace: true });
+        return;
+      }
       if (status === "success") {
         setDone({ kind: "joined", plan: paidPlan, payment: data.payment, reference });
       } else if (status === "pending") {
@@ -211,6 +247,29 @@ export default function Membership() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Team plans are paid monthly from "Create your team" (round 10).
+  const teamCheckout = async () => {
+    if (!teamName.trim() && !team?.name) {
+      setPayError("Give your team a name.");
+      return;
+    }
+    setPayError("");
+    setPaying(true);
+    try {
+      const result = await startCheckout(selected.id, "monthly", "NGN", {
+        teamName: teamName.trim() || team?.name || "",
+      });
+      setPaying(false);
+      check(result.reference, { quiet: result.status !== "success" });
+    } catch (err) {
+      setPaying(false);
+      setPayError(
+        err.response?.data?.message ||
+          "Couldn't open the payment. Check your connection and try again.",
+      );
+    }
+  };
+
   const checkout = async () => {
     setPayError("");
     setPaying(true);
@@ -237,7 +296,8 @@ export default function Membership() {
     const groupNext =
       reason === "group" &&
       done.kind === "joined" &&
-      done.plan?.limits.groupMinutesPerMonth !== 0;
+      done.plan?.limits &&
+      done.plan.limits.groupMinutesPerMonth !== 0;
     const checking = done.kind === "checking";
     const Icon =
       done.kind === "joined" ? Sparkles : done.kind === "failed" ? CircleAlert : LoaderCircle;
@@ -270,7 +330,18 @@ export default function Membership() {
           </span>
           <h1>{title}</h1>
           <p className="pf-panel-text">{text}</p>
-          {done.kind === "joined" && (
+          {done.kind === "joined" && done.plan?.base && (
+            <button
+              className="profile-save-button pf-wide-button"
+              onClick={() => {
+                setDone(null);
+                requestAnimationFrame(() => scrollTo(teamRef));
+              }}
+            >
+              Invite your team
+            </button>
+          )}
+          {done.kind === "joined" && !done.plan?.base && (
             <button
               className="profile-save-button pf-wide-button"
               onClick={() =>
@@ -337,11 +408,12 @@ export default function Membership() {
       {/* Plan options (round 8 follow-up): one compact row. Cancel plan
           stays on its own at the very end of the page. */}
       <div className="pf-plan-actions pf-plan-actions-compact">
-        {isPaid && (
+        {isPaid && !fromTeam && (
           <button
             type="button"
             className="pf-plan-action is-primary"
             onClick={() => {
+              setView("individual");
               setSelectedId(plan.id);
               setPeriodId(sub?.periodId || "monthly");
               scrollTo(billingRef);
@@ -356,8 +428,9 @@ export default function Membership() {
             type="button"
             className={`pf-plan-action ${isPaid ? "is-secondary" : "is-primary"}`}
             onClick={() => {
+              setView("individual");
               setSelectedId(upgradeTo.id);
-              scrollTo(billingRef);
+              scrollTo(compareRef);
             }}
           >
             <CircleArrowUp size={14} aria-hidden="true" />
@@ -367,72 +440,75 @@ export default function Membership() {
         <button
           type="button"
           className="pf-plan-action is-secondary"
-          onClick={() => scrollTo(compareRef)}
+          onClick={() => {
+            setView("choose");
+            scrollTo(compareRef);
+          }}
         >
           <LayoutList size={14} aria-hidden="true" />
           Compare plans
         </button>
       </div>
 
-      {/* Compare plans */}
+      {/* Your team (round 10) */}
+      {team && (
+        <button
+          type="button"
+          ref={teamRef}
+          className="pf-panel pf-team-link"
+          onClick={() => navigate("/app/team")}
+        >
+          <span className="pf-row-icon">
+            <Users size={18} />
+          </span>
+          <span className="pf-row-text">
+            <strong>My Team</strong>
+            <span>
+              {team.name || team.planName} · {team.members.length} / {team.maxMembers} members
+            </span>
+          </span>
+          <ChevronRight size={18} className="pf-row-chev" />
+        </button>
+      )}
+
+      {/* Round 10: Choose your subscription -> Individual / Team plans. */}
       <div ref={compareRef} className="pf-scroll-target">
-        <h2 className="pf-stats-title">Compare plans</h2>
-        <p className="pf-stats-sub pf-allowance-sub">
-          Choose the membership that fits your practice goals.
-        </p>
+        <SubscriptionPicker
+          view={view}
+          onView={(v) => {
+            setView(v);
+            requestAnimationFrame(() => scrollTo(compareRef));
+          }}
+          prices={prices}
+          currentPlanId={
+            view === "team" ? teamPlanId : fromTeam ? null : plan.id
+          }
+          selectedId={selectedId}
+          onChoose={(id) => {
+            setSelectedId(id);
+            setPayError("");
+            if (TEAM_PLANS.some((p) => p.id === id)) {
+              setView("create");
+              requestAnimationFrame(() => scrollTo(compareRef));
+            } else {
+              scrollTo(billingRef);
+            }
+          }}
+          teamName={teamName || ""}
+          onTeamName={setTeamName}
+          onPay={teamCheckout}
+          paying={paying}
+          payError={view === "create" ? payError : ""}
+        />
       </div>
 
-      {PAID_PLANS.map((p) => {
-        const isCurrent = p.id === plan.id;
-        const isSelected = p.id === selectedId && !isCurrent;
-        return (
-          <section
-            key={p.id}
-            className={`pf-panel pf-compare ${isCurrent ? "is-current" : ""} ${
-              isSelected ? "is-selected" : ""
-            }`}
-          >
-            <div className="pf-compare-head">
-              <p className="pf-compare-name">{p.name}</p>
-              {isCurrent ? (
-                <span className="pf-chip-muted">Current plan</span>
-              ) : (
-                p.badge && <span className="pf-active-badge">{p.badge}</span>
-              )}
-            </div>
-            <p className="pf-panel-text pf-compare-tagline">{p.tagline}</p>
-            <p className="pf-price pf-price-sm">
-              <strong>{money(monthly(p))}</strong>
-              <span>/ month</span>
-            </p>
-            <ul className="pf-features">
-              {p.features.map((f) => (
-                <li key={f}>
-                  <CircleCheck size={18} />
-                  <span>{f}</span>
-                </li>
-              ))}
-            </ul>
-            <button
-              className="pf-outline-button"
-              disabled={isCurrent}
-              onClick={() => {
-                setSelectedId(p.id);
-                scrollTo(billingRef);
-              }}
-            >
-              {isCurrent
-                ? "Your current plan"
-                : isSelected
-                  ? `${p.name.replace(/^Loquiex\s+/, "")} selected`
-                  : `Choose ${p.name.replace(/^Loquiex\s+/, "")}`}
-            </button>
-          </section>
-        );
-      })}
-
-      {/* Billing preferences */}
-      <section ref={billingRef} className="pf-panel pf-scroll-target">
+      {/* Billing preferences (individual plans; team plans pay from
+          "Create your team"). */}
+      <section
+        ref={billingRef}
+        className="pf-panel pf-scroll-target"
+        hidden={selectedIsTeam}
+      >
         <p className="pf-panel-title">Billing preferences</p>
         <p className="pf-panel-text">
           Choose how often you want to pay and save on longer membership
@@ -513,9 +589,15 @@ export default function Membership() {
           <strong>{money(total(selected, periodId))}</strong>
         </p>
         <p className="pf-stats-note pf-total-note">
-          {renewing
+          {selectedIsTeam
+            ? renewing
+              ? `Adds ${selectedPeriod.months === 1 ? "1 month" : `${selectedPeriod.months} months`} to your team plan.`
+              : teamAdmin
+                ? `${selected.name} starts today for everyone in your team.`
+                : "You become the Team Admin and can invite up to four other members as soon as the payment is confirmed."
+            : renewing
             ? `Adds ${selectedPeriod.months === 1 ? "1 month" : `${selectedPeriod.months} months`} to your current plan.`
-            : isPaid
+            : isPaid && !fromTeam
               ? `${selected.name} starts today and replaces ${plan.name}. Time left on ${plan.name} isn't carried over.`
               : "Your plan starts as soon as the payment is confirmed."}{" "}
           No automatic renewal: you choose when to pay again.
@@ -569,12 +651,14 @@ export default function Membership() {
             </div>
             <div>
               <dt>Billing</dt>
-              <dd>{isPaid ? currentPeriod.label : "No billing"}</dd>
+              <dd>{fromTeam ? "Team plan" : isPaid ? currentPeriod.label : "No billing"}</dd>
             </div>
             <div>
               <dt>Price</dt>
               <dd>
-                {isPaid
+                {fromTeam
+                  ? "Included in your team plan"
+                  : isPaid
                   ? `${money(total(plan, currentPeriod.id))} every ${
                       currentPeriod.months === 1
                         ? "month"
@@ -599,7 +683,11 @@ export default function Membership() {
               <div>
                 <dt>Renewal</dt>
                 <dd>
-                  {cancelled
+                  {fromTeam
+                    ? teamAdmin
+                      ? "Doesn't renew automatically. Renew your team plan any time before it ends."
+                      : "Your Team Admin renews the team plan."
+                    : cancelled
                     ? `Cancelled. Ends on ${sub?.expiresAt ? formatDate(sub.expiresAt) : "its end date"}`
                     : "Doesn't renew automatically. Renew any time before it ends."}
                 </dd>
@@ -623,7 +711,7 @@ export default function Membership() {
       </section>
 
       {/* Cancel plan: alone at the very end of the page, in red. */}
-      {isPaid && !cancelled && (
+      {isPaid && !cancelled && !fromTeam && (
         <section className="pf-panel pf-cancel-panel">
           <p className="pf-panel-title">Cancel plan</p>
           <p className="pf-panel-text">

@@ -1,4 +1,5 @@
 import api from "../api/axios";
+import { LEARN_LAUNCH_AT } from "../data/learn";
 
 // Learn shop, library and reading progress. See
 // Articulate60-backend/ROUTES/learn.js for what each call returns.
@@ -43,6 +44,11 @@ export async function setNotifyMe(productId, on) {
 
 // Time left until `endsAt`, using the server's clock (so a wrong phone clock
 // can't stretch or end the offer early).
+// True once the Learn shop has launched (see LEARN_LAUNCH_AT).
+export function isLearnLaunched() {
+  return Date.now() >= new Date(LEARN_LAUNCH_AT).getTime();
+}
+
 export function splitTimeLeft(ms) {
   const s = Math.max(0, Math.floor(ms / 1000));
   return {

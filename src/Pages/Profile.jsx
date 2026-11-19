@@ -27,7 +27,7 @@ import ProfilePractices from "./ProfilePractices";
 import ProfileUsage from "./ProfileUsage";
 import ProfileNotifications from "./ProfileNotifications";
 import {
-  PRICES,
+  mergePrices,
   getPlan,
   getStoredUser as getSavedUser,
   refreshPlanFromServer,
@@ -353,7 +353,8 @@ export default function Profile({ user }) {
                   category: { id: "", title: r.category },
                   prompt: r.topic,
                   isYap: r.category === "Yap Mode",
-                  speakSeconds: r.durationSeconds > 60 ? 120 : 60,
+                  speakSeconds:
+                    r.durationSeconds > 45 ? 60 : r.durationSeconds > 30 ? 45 : 30,
                 },
               },
             )
@@ -849,7 +850,7 @@ export default function Profile({ user }) {
         <MembershipCard
           user={profileUser}
           currency={lastPaidCurrency}
-          prices={{ ...PRICES, ...(billing?.prices || {}) }}
+          prices={mergePrices(billing?.prices)}
           onClick={() =>
             navigate("/app/membership", { state: { from: "profile" } })
           }

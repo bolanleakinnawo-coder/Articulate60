@@ -86,6 +86,7 @@ app.use("/api/testimonials", require("./ROUTES/testimonials"));
 app.use("/api/push", require("./ROUTES/push"));
 app.use("/api/group", require("./ROUTES/group"));
 app.use("/api/billing", require("./ROUTES/billing"));
+app.use("/api/team", require("./ROUTES/team"));
 connectDB().then(() => {
   // Moves older mixed-case usernames to lowercase (fast indexed sign-in).
   require("./utils/usernames").lowercaseLegacyUsernames();

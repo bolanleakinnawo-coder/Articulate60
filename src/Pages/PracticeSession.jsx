@@ -113,11 +113,8 @@ function PracticeSessionAttempt() {
   // Chosen on the topic page (no prep) or on the preparation screen.
   const [speakTotal, setSpeakTotal] = useState(() => {
     const chosen = location.state?.speakSeconds || DEFAULT_SPEAK_SECONDS;
-    // Research Mode only offers 30 sec, 45 sec and 1 min.
-    if (
-      isResearch &&
-      !RESEARCH_SPEAK_DURATIONS.some((d) => d.seconds === chosen)
-    ) {
+    // Only 30 sec, 45 sec and 1 min are offered (round 10, everywhere).
+    if (!RESEARCH_SPEAK_DURATIONS.some((d) => d.seconds === chosen)) {
       return 60;
     }
     return chosen;

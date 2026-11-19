@@ -31,7 +31,7 @@ const { computeMetrics } = require("../utils/speechMetrics");
 const { analyzeSpeech, isBusy } = require("../services/analyzer");
 
 // Keep the audio in memory just long enough to push it to R2 — never
-// touches disk. 15MB cap guards against abuse; a 2-minute recording
+// touches disk. 15MB cap guards against abuse; a 1-minute recording
 // is nowhere near this.
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -395,7 +395,7 @@ async function aiUsedToday(req, user, excludeId = null) {
 router.get("/ai-allowance", authMiddleware, async (req, res) => {
   try {
     const user = await User.findById(req.userId).select(
-      "plan planExpiresAt createdAt timeZone",
+      "plan planExpiresAt teamPlan teamPlanExpiresAt createdAt timeZone",
     );
     if (!user) return res.status(404).json({ message: "User not found." });
 
@@ -445,7 +445,7 @@ router.post(
       }
 
       const user = await User.findById(req.userId).select(
-        "plan planExpiresAt createdAt timeZone",
+        "plan planExpiresAt teamPlan teamPlanExpiresAt createdAt timeZone",
       );
 
       // Finished results can always be read again.

@@ -760,3 +760,17 @@
     text-align: left;
   }
 }
+
+/* Round 10 (Sheriff, 2026-11-19): "Ready to practise with others?" card.
+   Smaller subtext ("and" starts the second line) and the button centred. */
+.practice-others-sub {
+  font-size: 11.5px;
+}
+
+.practice-others-btn {
+  display: flex;
+  width: fit-content;
+  max-width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+}

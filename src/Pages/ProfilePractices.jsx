@@ -113,12 +113,12 @@ export default function ProfilePractices({
   };
 
   const smallCards = [
-    // Prompts and research first, then Yap mode (Sheriff, round 7).
+    // Jar and research first, then Yap mode (Sheriff, round 7).
     {
       key: "prompts",
       icon: MessageSquareText,
       value: promptCount,
-      label: "Prompts & research",
+      label: "Jar and research",
     },
     { key: "yap", icon: Mic, value: yapCount, label: "Yap mode" },
     {
