@@ -25,7 +25,19 @@ api.interceptors.request.use((config) => {
 
 // A wrong or missing admin key sends the admin panel back to its key screen.
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    // The server renews a sign-in that is more than a day old, so members
+    // who keep using Loquiex stay signed in (round 10).
+    const fresh = response.headers?.["x-refreshed-token"];
+    if (fresh && localStorage.getItem("token")) {
+      try {
+        localStorage.setItem("token", fresh);
+      } catch {
+        // Storage blocked: the current token keeps working until it ends.
+      }
+    }
+    return response;
+  },
   (error) => {
     const code = error.response?.data?.code;
     if (code === "ADMIN_KEY") {

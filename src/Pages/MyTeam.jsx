@@ -144,8 +144,8 @@ export default function MyTeam() {
 
   return (
     <div className="profile-content mt-page">
-      <button className="pf-back pf-back-link" onClick={() => navigate("/app/membership")}>
-        <ArrowLeft size={18} /> Manage Membership
+      <button className="pf-back pf-back-link" onClick={() => navigate("/app/profile")}>
+        <ArrowLeft size={18} /> Profile
       </button>
       <Dashboard
         team={team}

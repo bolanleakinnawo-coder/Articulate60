@@ -261,6 +261,7 @@ router.post("/signup", signupLimiter, handleProfilePhotoUpload, async (req, res)
     const newUser = await User.create({
       fullName: fullName.trim(),
       username: normalizedUsername,
+      displayUsername: username.trim(),
       email: email.trim().toLowerCase(),
       phoneNumber: typeof phoneNumber === "string" ? phoneNumber.trim() : "",
       password: hashedPassword,
@@ -285,7 +286,7 @@ router.post("/signup", signupLimiter, handleProfilePhotoUpload, async (req, res)
       user: {
         id: newUser._id,
         fullName: newUser.fullName,
-        username: newUser.username,
+        username: newUser.displayUsername || newUser.username,
         email: newUser.email,
         profileImageUrl: newUser.profileImageUrl,
         createdAt: newUser.createdAt,
@@ -359,7 +360,7 @@ router.post("/login", loginLimiter, async (req, res) => {
       user: {
         id: user._id,
         fullName: user.fullName,
-        username: user.username,
+        username: user.displayUsername || user.username,
         email: user.email,
         profileImageUrl: user.profileImageUrl,
         createdAt: user.createdAt,
@@ -444,6 +445,7 @@ router.put(
 
       req.user.fullName = fullName.trim();
       req.user.username = normalizedUsername;
+      req.user.displayUsername = username.trim();
       req.user.email = normalizedEmail;
       if (req.file) {
         const extension = PROFILE_IMAGE_EXTENSIONS[req.file.mimetype];
@@ -482,7 +484,7 @@ router.put(
         user: {
           id: req.user._id,
           fullName: req.user.fullName,
-          username: req.user.username,
+          username: req.user.displayUsername || req.user.username,
           email: req.user.email,
           profileImageUrl: req.user.profileImageUrl,
           createdAt: req.user.createdAt,

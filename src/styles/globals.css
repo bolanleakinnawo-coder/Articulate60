@@ -133,6 +133,11 @@ a {
   transform: scale(1.35);
 }
 
+/* Round 10 (Sheriff, 2026-11-19): the logo sits a bit higher. */
+.navigation-splash .navigation-splash-logo {
+  transform: translateY(-7vh) scale(1.35);
+}
+
 @keyframes navigation-splash-appear {
   from {
     opacity: 0;
@@ -4742,4 +4747,11 @@ a {
 
 .login-switch .auth-back-link:hover {
   color: var(--text-primary);
+}
+
+/* Round 10 batch 3: shown if the recent practice can't play. */
+.activity-item p.activity-play-error {
+  margin-top: 6px;
+  color: #f0b4ad;
+  font-size: 12px;
 }

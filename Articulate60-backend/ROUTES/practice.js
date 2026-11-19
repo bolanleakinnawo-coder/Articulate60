@@ -1,6 +1,10 @@
 const express = require("express");
 const multer = require("multer");
-const { PutObjectCommand, GetObjectCommand } = require("@aws-sdk/client-s3");
+const {
+  PutObjectCommand,
+  GetObjectCommand,
+  DeleteObjectCommand,
+} = require("@aws-sdk/client-s3");
 const mongoose = require("mongoose");
 const rateLimit = require("express-rate-limit");
 const { randomUUID } = require("crypto");
@@ -29,6 +33,7 @@ const { emitToUser } = require("../services/realtime");
 const { transcribeAudio } = require("../services/deepgram");
 const { computeMetrics } = require("../utils/speechMetrics");
 const { analyzeSpeech, isBusy } = require("../services/analyzer");
+const { toM4a, isPlayableEverywhere } = require("../services/audioConvert");
 
 // Keep the audio in memory just long enough to push it to R2 — never
 // touches disk. 15MB cap guards against abuse; a 1-minute recording
@@ -67,14 +72,31 @@ router.post(
           .json({ message: "topic, level, and durationSeconds are required." });
       }
 
-      const key = `recordings/${req.userId}/${randomUUID()}.webm`;
+      // Keep every recording as .m4a so it plays in every browser,
+      // including iPhone Safari, which can't play webm. If converting
+      // fails, the original file is kept so nothing is lost.
+      let body = req.file.buffer;
+      let contentType = req.file.mimetype || "audio/webm";
+      let ext = "webm";
+      if (isPlayableEverywhere(contentType)) {
+        ext = "m4a";
+      } else {
+        try {
+          body = await toM4a(req.file.buffer);
+          contentType = "audio/mp4";
+          ext = "m4a";
+        } catch (err) {
+          console.error("Recording conversion failed, keeping original:", err.message);
+        }
+      }
+      const key = `recordings/${req.userId}/${randomUUID()}.${ext}`;
 
       await r2.send(
         new PutObjectCommand({
           Bucket: process.env.R2_BUCKET_NAME,
           Key: key,
-          Body: req.file.buffer,
-          ContentType: req.file.mimetype || "audio/webm",
+          Body: body,
+          ContentType: contentType,
         }),
       );
 
@@ -199,12 +221,15 @@ async function buildLeaderboard() {
     const users = await User.find({
       _id: { $in: statsByUser.map((stats) => stats._id) },
     })
-      .select("username profileImageUrl")
+      .select("username displayUsername profileImageUrl")
       .lean();
     const usersById = new Map(
       users.map((user) => [
         user._id.toString(),
-        { username: user.username, profileImageUrl: user.profileImageUrl },
+        {
+          username: user.displayUsername || user.username,
+          profileImageUrl: user.profileImageUrl,
+        },
       ]),
     );
 
@@ -326,6 +351,76 @@ router.get("/recordings", authMiddleware, async (req, res) => {
 // member's own time zone (sent by the app in the X-Time-Zone header).
 // Returns { current, longest, needsPracticeToday, state, restoreDeadline,
 // restoreMsLeft, daysSincePractice, lastPracticeDay, today, timeZone }.
+// POST /api/practice/recordings/:id/playable
+// Older recordings were saved as webm, which iPhone Safari can't play.
+// This converts one to .m4a (once), points the recording at the new file
+// and returns its URL. Already playable recordings are returned as they are.
+const converting = new Map();
+router.post("/recordings/:id/playable", authMiddleware, async (req, res) => {
+  try {
+    if (!mongoose.isValidObjectId(req.params.id)) {
+      return res.status(404).json({ message: "Recording not found." });
+    }
+    const recording = await Recording.findOne({
+      _id: req.params.id,
+      user: req.userId,
+    });
+    if (!recording) {
+      return res.status(404).json({ message: "Recording not found." });
+    }
+    if (isPlayableEverywhere("", recording.audioUrl)) {
+      return res.json({ audioUrl: recording.audioUrl });
+    }
+
+    const id = String(recording._id);
+    if (!converting.has(id)) {
+      const job = (async () => {
+        const oldKey = r2KeyFromUrl(recording.audioUrl);
+        const object = await r2.send(
+          new GetObjectCommand({ Bucket: process.env.R2_BUCKET_NAME, Key: oldKey }),
+        );
+        const original = Buffer.from(await object.Body.transformToByteArray());
+        const newKey = oldKey.replace(/\.[a-z0-9]+$/i, "") + ".m4a";
+        if (isPlayableEverywhere(object.ContentType)) {
+          // Saved as mp4 already, just under a .webm name: copy it across.
+          await r2.send(
+            new PutObjectCommand({
+              Bucket: process.env.R2_BUCKET_NAME,
+              Key: newKey,
+              Body: original,
+              ContentType: "audio/mp4",
+            }),
+          );
+        } else {
+          const m4a = await toM4a(original);
+          await r2.send(
+            new PutObjectCommand({
+              Bucket: process.env.R2_BUCKET_NAME,
+              Key: newKey,
+              Body: m4a,
+              ContentType: "audio/mp4",
+            }),
+          );
+        }
+        const audioUrl = `${process.env.R2_PUBLIC_URL}/${newKey}`;
+        await Recording.updateOne({ _id: recording._id }, { $set: { audioUrl } });
+        r2.send(
+          new DeleteObjectCommand({ Bucket: process.env.R2_BUCKET_NAME, Key: oldKey }),
+        ).catch(() => {});
+        return audioUrl;
+      })().finally(() => converting.delete(id));
+      converting.set(id, job);
+    }
+    const audioUrl = await converting.get(id);
+    return res.json({ audioUrl });
+  } catch (err) {
+    console.error("Make recording playable failed:", err);
+    return res
+      .status(500)
+      .json({ message: "Couldn't prepare this recording to play." });
+  }
+});
+
 router.get("/streak", authMiddleware, async (req, res) => {
   try {
     const user = await User.findById(req.userId).select("timeZone");

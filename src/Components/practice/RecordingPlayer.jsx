@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Pause, Play } from "lucide-react";
+import { usePlayableUrl } from "../../lib/playableAudio";
 import "./FeedbackReport.css";
 
 function clock(total) {
@@ -11,11 +12,14 @@ function clock(total) {
 // recording, or the saved R2 URL later). Shared by the analysing screen, the
 // feedback page and saved feedback in the profile.
 export default function RecordingPlayer({
-  src,
+  src: savedSrc,
+  recordingId,
   fallbackSeconds,
   title,
   subtitle,
 }) {
+  // Older webm recordings are swapped for an .m4a copy every browser plays.
+  const { url: src } = usePlayableUrl(recordingId, savedSrc);
   const audioRef = useRef(null);
   const fixingDuration = useRef(false);
   const [playing, setPlaying] = useState(false);

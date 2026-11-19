@@ -7,7 +7,12 @@
 const jwt = require("jsonwebtoken");
 const User = require("../MODELS/User");
 
-const TOKEN_LIFETIME = "7d";
+// Round 10: 30 days, and renewed while the member uses the app (see
+// middleware/auth.js), so active members are never signed out. Before, a
+// sign-in simply ran out 7 days after signing in, even mid-use.
+const TOKEN_LIFETIME = "30d";
+// A token older than this gets a fresh one with the next request.
+const RENEW_AFTER_SECONDS = 24 * 60 * 60;
 
 function signToken(user) {
   return jwt.sign(
@@ -50,7 +55,12 @@ async function verifyToken(token, { full = false } = {}) {
       "SESSION_REVOKED",
     );
   }
-  return { userId: String(userId), user };
+  const ageSeconds = decoded.iat ? Math.floor(Date.now() / 1000) - decoded.iat : 0;
+  return {
+    userId: String(userId),
+    user,
+    shouldRenew: ageSeconds > RENEW_AFTER_SECONDS,
+  };
 }
 
 module.exports = { signToken, verifyToken, SessionError };

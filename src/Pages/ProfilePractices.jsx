@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { makePlayable, needsConverting } from "../lib/playableAudio";
 import {
   BookOpen,
   Check,
@@ -94,6 +95,26 @@ export default function ProfilePractices({
     });
   const shown = filtered.slice(0, visible);
 
+  // Older webm recordings can't play on iPhone Safari: get the .m4a copy of
+  // the ones on screen ready in the background, so a tap plays straight away.
+  const [playable, setPlayable] = useState({});
+  const shownKey = shown.map((r) => r._id).join(",");
+  useEffect(() => {
+    let alive = true;
+    shown
+      .filter((r) => needsConverting(r.audioUrl) && !playable[r._id])
+      .forEach((r) => {
+        makePlayable(r._id, r.audioUrl)
+          .then((url) => alive && setPlayable((m) => ({ ...m, [r._id]: url })))
+          .catch(() => {});
+      });
+    return () => {
+      alive = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [shownKey]);
+  const [playError, setPlayError] = useState(null);
+
   const togglePlay = (r) => {
     if (!r.audioUrl) return;
     if (playingId === r._id) {
@@ -102,14 +123,32 @@ export default function ProfilePractices({
       return;
     }
     audioRef.current?.pause();
-    const audio = new Audio(r.audioUrl);
+    setPlayError(null);
+    // Made inside the tap so iPhones allow it to play.
+    const audio = new Audio();
+    audio.preload = "auto";
     audio.onended = () => setPlayingId(null);
-    audio.onerror = () => setPlayingId(null);
+    audio.onerror = () => {
+      setPlayingId(null);
+      setPlayError(r._id);
+    };
     audioRef.current = audio;
-    audio.play().then(
-      () => setPlayingId(r._id),
-      () => setPlayingId(null),
-    );
+    const start = (url) => {
+      if (audioRef.current !== audio) return undefined;
+      audio.src = url;
+      setPlayingId(r._id);
+      return audio.play();
+    };
+    const url = playable[r._id] || r.audioUrl;
+    const ready = needsConverting(url)
+      ? makePlayable(r._id, url).catch(() => url)
+      : null;
+    (ready ? ready.then(start) : start(url))
+      ?.catch?.(() => {
+        if (audioRef.current !== audio) return;
+        setPlayingId(null);
+        setPlayError(r._id);
+      });
   };
 
   const smallCards = [
@@ -300,6 +339,11 @@ export default function ProfilePractices({
                       </>
                     )}
                   </button>
+                  {playError === r._id && (
+                    <p className="pf-play-error" role="alert">
+                      This recording couldn&apos;t play. Please try again.
+                    </p>
+                  )}
                 </div>
                 {r.audioUrl && (
                   <button

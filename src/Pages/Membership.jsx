@@ -12,8 +12,6 @@ import {
   ReceiptText,
   RefreshCw,
   Sparkles,
-  Users,
-  ChevronRight,
 } from "lucide-react";
 import {
   BILLING_PERIODS,
@@ -105,7 +103,6 @@ export default function Membership() {
   );
   const [team, setTeam] = useState(null); // GET /api/team/me
   const [teamName, setTeamName] = useState("");
-  const teamRef = useRef(null);
   const compareRef = useRef(null);
   const billingRef = useRef(null);
   const totalRef = useRef(null);
@@ -335,7 +332,7 @@ export default function Membership() {
               className="profile-save-button pf-wide-button"
               onClick={() => {
                 setDone(null);
-                requestAnimationFrame(() => scrollTo(teamRef));
+                navigate("/app/team?invite=1");
               }}
             >
               Invite your team
@@ -449,27 +446,6 @@ export default function Membership() {
           Compare plans
         </button>
       </div>
-
-      {/* Your team (round 10) */}
-      {team && (
-        <button
-          type="button"
-          ref={teamRef}
-          className="pf-panel pf-team-link"
-          onClick={() => navigate("/app/team")}
-        >
-          <span className="pf-row-icon">
-            <Users size={18} />
-          </span>
-          <span className="pf-row-text">
-            <strong>My Team</strong>
-            <span>
-              {team.name || team.planName} · {team.members.length} / {team.maxMembers} members
-            </span>
-          </span>
-          <ChevronRight size={18} className="pf-row-chev" />
-        </button>
-      )}
 
       {/* Round 10: Choose your subscription -> Individual / Team plans. */}
       <div ref={compareRef} className="pf-scroll-target">

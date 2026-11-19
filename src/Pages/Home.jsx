@@ -10,6 +10,11 @@ import {
 } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import api from "../api/axios";
+import {
+  makePlayable,
+  needsConverting,
+  usePlayableUrl,
+} from "../lib/playableAudio";
 import StreakPopup from "../Components/StreakPopup";
 import useLiveStreak from "../hooks/useLiveStreak";
 
@@ -402,30 +407,56 @@ function Activity({ recording }) {
   const date = formatPracticeDate(recording.createdAt);
   const audioRef = useRef(null);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [failed, setFailed] = useState(false);
+  // Older webm recordings are swapped for an .m4a copy every browser
+  // (including iPhone Safari) can play. The audio is made on the first tap.
+  const { url: playUrl } = usePlayableUrl(recording._id, recording.audioUrl);
 
-  useEffect(() => {
-    const audio = new Audio(recording.audioUrl);
-    const handleEnded = () => setIsPlaying(false);
-    audio.addEventListener("ended", handleEnded);
-    audioRef.current = audio;
+  useEffect(
+    () => () => {
+      audioRef.current?.pause();
+      audioRef.current = null;
+    },
+    [playUrl],
+  );
 
-    return () => {
-      audio.pause();
-      audio.removeEventListener("ended", handleEnded);
-    };
-  }, [recording.audioUrl]);
-
-  const togglePlayback = async () => {
-    const audio = audioRef.current;
-    if (!audio) return;
-
-    if (audio.paused) {
-      await audio.play();
-      setIsPlaying(true);
-    } else {
-      audio.pause();
-      setIsPlaying(false);
+  const togglePlayback = () => {
+    const current = audioRef.current;
+    if (current && !current.paused) {
+      current.pause();
+      return;
     }
+    let audio = current;
+    if (!audio) {
+      audio = new Audio();
+      audio.preload = "auto";
+      audio.addEventListener("play", () => setIsPlaying(true));
+      audio.addEventListener("pause", () => setIsPlaying(false));
+      audio.addEventListener("ended", () => setIsPlaying(false));
+      audio.addEventListener("error", () => {
+        setIsPlaying(false);
+        setFailed(true);
+      });
+      audioRef.current = audio;
+    }
+    setFailed(false);
+    const start = (url) => {
+      if (audio.src !== url) audio.src = url;
+      return audio.play();
+    };
+    const url = playUrl;
+    if (!needsConverting(url)) {
+      start(url).catch(() => setIsPlaying(false));
+      return;
+    }
+    // Still being prepared: finish, then play.
+    makePlayable(recording._id, url)
+      .catch(() => url)
+      .then(start)
+      .catch(() => {
+        setIsPlaying(false);
+        setFailed(true);
+      });
   };
 
   return (
@@ -436,13 +467,20 @@ function Activity({ recording }) {
         <p>
           {level} · {duration}
         </p>
+        {failed && (
+          <p className="activity-play-error">
+            This recording couldn&apos;t play. Please try again.
+          </p>
+        )}
       </div>
 
       {date && <span className="activity-date">{date}</span>}
 
       <button
+        type="button"
         className="play-button"
         onClick={togglePlayback}
+        disabled={!recording.audioUrl}
         aria-label={isPlaying ? "Pause recording" : "Play recording"}
       >
         {isPlaying ? (

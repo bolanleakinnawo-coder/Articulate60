@@ -1367,3 +1367,34 @@
     font-size: 24px;
   }
 }
+
+/* Round 10, batch 3 (Sheriff, 2026-11-19): coming soon page. The subtitle
+   under Learn is back, centred; "There's a lot to learn…" is 2px bigger
+   and its text 1px smaller; the timer boxes use the same green as the
+   book icon above. */
+.lx-cs-subtitle {
+  margin-top: 6px;
+  text-align: center;
+}
+
+.lx-cs-title {
+  font-size: 24px;
+}
+
+.lx-cs-text {
+  font-size: 13px;
+}
+
+.lx-cs-box {
+  background: rgba(100, 103, 66, 0.22);
+}
+
+@media (max-width: 360px) {
+  .lx-cs-title {
+    font-size: 21px;
+  }
+
+  .lx-cs-text {
+    font-size: 12px;
+  }
+}

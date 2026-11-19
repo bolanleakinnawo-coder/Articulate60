@@ -1,4 +1,4 @@
-const { verifyToken } = require("../utils/authToken");
+const { verifyToken, signToken } = require("../utils/authToken");
 
 // Protects any route it's attached to. Expects:
 //   Authorization: Bearer <token>
@@ -13,8 +13,10 @@ module.exports = async function authMiddleware(req, res, next) {
   }
 
   try {
-    const { userId } = await verifyToken(authHeader.split(" ")[1]);
+    const { userId, user, shouldRenew } = await verifyToken(authHeader.split(" ")[1]);
     req.userId = userId;
+    // Keeps active members signed in: the app saves this fresh token.
+    if (shouldRenew) res.set("X-Refreshed-Token", signToken(user));
     next();
   } catch (err) {
     if (err.code) {

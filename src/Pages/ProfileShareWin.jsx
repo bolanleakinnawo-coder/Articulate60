@@ -55,7 +55,12 @@ export default function ProfileShareWin({ user, onBack }) {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    if (!text.trim()) return;
+    // Round 10: the button is always active; an empty win gets a prompt.
+    if (!text.trim()) {
+      setMessage("");
+      setError("Type your win first, then tap Share my win.");
+      return;
+    }
     setError("");
     setMessage("");
     setIsSubmitting(true);
@@ -129,7 +134,7 @@ export default function ProfileShareWin({ user, onBack }) {
         <button
           type="submit"
           className="pf-win-submit"
-          disabled={!text.trim() || isSubmitting}
+          disabled={isSubmitting}
         >
           {isSubmitting ? "Sharing..." : "Share my win"}
         </button>
@@ -203,7 +208,9 @@ export default function ProfileShareWin({ user, onBack }) {
 
 function displayNameFor(user) {
   const name = (user?.username || user?.fullName || "").trim();
-  return name.length >= 2 ? name.slice(0, 40) : "Loquiex member";
+  return name.length >= 2
+    ? (name.charAt(0).toUpperCase() + name.slice(1)).slice(0, 40)
+    : "Loquiex member";
 }
 
 // "Today · 10:30 am", "Yesterday · 4:15 pm", "3 Nov · 9:00 am"

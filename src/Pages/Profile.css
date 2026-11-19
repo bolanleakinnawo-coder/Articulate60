@@ -3894,3 +3894,11 @@
   flex: 0 0 auto;
   color: var(--text-secondary);
 }
+
+/* Round 10 batch 3: shown if a recording can't play. */
+.pf-play-error {
+  margin: 8px 0 0;
+  color: #f0b4ad;
+  font-size: 12px;
+  line-height: 1.4;
+}

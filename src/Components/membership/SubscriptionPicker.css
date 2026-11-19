@@ -441,3 +441,116 @@
   opacity: 0.7;
   cursor: default;
 }
+
+/* Round 10, batch 3 (Sheriff, 2026-11-19): smaller type on Individual
+   Plans and Team Plans, and "Choose your subscription" without the box
+   around it, with slightly smaller fonts. */
+.sp-choose-panel {
+  padding: 4px 0 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+}
+
+.sp-choose-panel .sp-title {
+  font-size: 19px;
+}
+
+.sp-choose-panel .sp-sub {
+  font-size: 13px;
+}
+
+.sp-type-name {
+  font-size: 15.5px;
+}
+
+.sp-type-name svg {
+  width: 20px;
+  height: 20px;
+}
+
+.sp-type-text {
+  font-size: 13px;
+}
+
+.sp-choose-panel .sp-continue {
+  min-height: 44px;
+  font-size: 14px;
+}
+
+.sp-panel:not(.sp-choose-panel) .sp-title {
+  font-size: 19px;
+}
+
+.sp-panel:not(.sp-choose-panel) .sp-sub {
+  font-size: 13px;
+}
+
+.sp-back {
+  font-size: 11px;
+}
+
+.sp-how-title,
+.sp-section-title {
+  font-size: 15px;
+}
+
+.sp-how-item strong {
+  font-size: 14px;
+}
+
+.sp-how-item > span > span {
+  font-size: 12.5px;
+}
+
+.sp-how-item svg {
+  width: 18px;
+  height: 18px;
+}
+
+.sp-plan-name {
+  font-size: 15.5px;
+}
+
+.sp-badge,
+.sp-chip-muted {
+  font-size: 11px;
+}
+
+.sp-price {
+  font-size: 24px;
+}
+
+.sp-price-usd {
+  font-size: 13px;
+}
+
+.sp-per-person,
+.sp-foot {
+  font-size: 12px;
+}
+
+.sp-features li {
+  font-size: 13px;
+}
+
+.sp-features svg {
+  width: 16px;
+  height: 16px;
+}
+
+.sp-choose {
+  min-height: 44px;
+  font-size: 14px;
+}
+
+@media (max-width: 380px) {
+  .sp-panel:not(.sp-choose-panel) .sp-title,
+  .sp-choose-panel .sp-title {
+    font-size: 18px;
+  }
+
+  .sp-price {
+    font-size: 22px;
+  }
+}

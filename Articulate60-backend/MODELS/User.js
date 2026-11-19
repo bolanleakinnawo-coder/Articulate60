@@ -20,6 +20,13 @@ const userSchema = new mongoose.Schema(
         "Username can only contain letters, numbers, and underscores.",
       ],
     },
+    // The username exactly as the member typed it (capital letters kept),
+    // for showing. `username` stays lowercase for sign-in and uniqueness.
+    displayUsername: {
+      type: String,
+      trim: true,
+      default: "",
+    },
     email: {
       type: String,
       required: true,

@@ -19,6 +19,7 @@ import {
   BellRing,
   CalendarCheck,
   CalendarDays,
+  Check,
   ChevronDown,
   Hand,
   Info,
@@ -50,6 +51,7 @@ import {
   refreshPlanFromServer,
 } from "../data/plans";
 import { CATEGORIES, getRandomPrompt } from "../data/prompts";
+import groupTogetherArt from "../assets/group-practice-together.webp";
 import {
   CODE_LENGTH,
   lookupCode,
@@ -314,8 +316,10 @@ function DailyCallTime({ usage }) {
 // Today's call time as a ring beside the practice picker: "1h / 30m" inside,
 // "Call time left" and an info button underneath. The ring shows the share
 // of today's time that is left.
-function CallTimeRing({ usage }) {
-  const [open, setOpen] = useState(false);
+// "CALL TIME LEFT" beside the practice option, in the same style as the
+// Solo tab's "FEEDBACK  11 left" (Sheriff, round 10). Real numbers from
+// GET /api/group/usage. Tapping it shows the details underneath.
+function CallTimeMeter({ usage, infoOpen, onToggleInfo }) {
   if (!usage?.loaded) return null;
   const unlimited = usage.total === null;
   const total = Number(usage.total) || 0;
@@ -323,69 +327,123 @@ function CallTimeRing({ usage }) {
     ? null
     : Math.max(0, Math.floor(Number(usage.left) || 0));
   const usedUp = !unlimited && left === 0;
-  const low = !unlimited && !usedUp && left <= 15;
   const share = unlimited ? 1 : total > 0 ? left / total : 0;
-  const hours = unlimited ? 0 : Math.floor(left / 60);
-  const minutes = unlimited ? 0 : left % 60;
-  const R = 44;
-  const C = 2 * Math.PI * R;
-  const label = unlimited
-    ? "Unlimited call time"
-    : usedUp
-      ? "Resets at midnight"
-      : "Call time left";
-  const detail = unlimited
-    ? `Infinity has unlimited call time. ${formatCallTime(usage.usedToday || 0)} used today.`
-    : `Your plan gives you ${formatCallTime(total)} of call time a day. ${formatCallTime(Number(usage.usedToday) || 0)} used today. It resets at midnight.`;
   return (
-    <div
-      className={`cts cts-ring ${usedUp ? "is-out" : ""} ${low ? "is-low" : ""}`}
-      role="status"
-      aria-label={
-        unlimited ? label : `${formatCallTime(left)} call time left today`
-      }
-    >
-      <span className="cts-dial" aria-hidden="true">
-        <svg viewBox="0 0 100 100">
-          <circle className="cts-track" cx="50" cy="50" r={R} />
-          <circle
-            className="cts-fill"
-            cx="50"
-            cy="50"
-            r={R}
-            strokeDasharray={C}
-            strokeDashoffset={C * (1 - share)}
-          />
-        </svg>
-        <span className="cts-dial-text">
+    <div className={`ai-meter gpt-time-meter ${usedUp ? "is-empty" : ""}`}>
+      <p className="eyebrow ai-meter-label">CALL TIME LEFT</p>
+      <button
+        type="button"
+        className="ai-meter-box"
+        onClick={onToggleInfo}
+        aria-expanded={infoOpen}
+        aria-label={
+          unlimited
+            ? "Unlimited call time"
+            : `${formatCallTime(left)} call time left today`
+        }
+      >
+        <span className="ai-meter-value">
           {unlimited ? (
-            <InfinityIcon size={18} />
-          ) : hours > 0 ? (
             <>
-              <strong>{hours}h</strong>
-              {minutes > 0 && <span>{minutes}m</span>}
+              <InfinityIcon size={16} strokeWidth={2} aria-hidden="true" />
+              Unlimited
             </>
           ) : (
-            <strong>{minutes}m</strong>
+            formatCallTime(left)
           )}
+          <Info
+            size={13}
+            strokeWidth={2}
+            className="ai-meter-info-icon"
+            aria-hidden="true"
+          />
         </span>
-      </span>
-      <span className="cts-ring-label">
-        {label}
-        <button
-          type="button"
-          className="cts-info"
-          aria-label="About today's call time"
-          aria-expanded={open}
-          onClick={() => setOpen((v) => !v)}
-        >
-          <Info size={15} aria-hidden="true" />
-        </button>
-      </span>
+        {unlimited ? (
+          <span className="ai-meter-note">Infinity plan</span>
+        ) : usedUp ? (
+          <span className="ai-meter-note">Resets at midnight</span>
+        ) : (
+          <span className="ai-meter-bar" aria-hidden="true">
+            <span style={{ width: `${Math.round(share * 100)}%` }} />
+          </span>
+        )}
+      </button>
+    </div>
+  );
+}
+
+function callTimeDetail(usage) {
+  if (!usage?.loaded) return "";
+  if (usage.total === null)
+    return `Infinity has unlimited call time. ${formatCallTime(usage.usedToday || 0)} used today.`;
+  return `Your plan gives you ${formatCallTime(usage.total)} of call time a day. ${formatCallTime(Number(usage.usedToday) || 0)} used today. It resets at midnight.`;
+}
+
+// "Practice option" picker, built like the Solo tab's level picker.
+function PracticeOptionPicker({ value, onChange, disabled }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+  useEffect(() => {
+    if (!open) return undefined;
+    const close = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+    };
+    document.addEventListener("pointerdown", close);
+    return () => document.removeEventListener("pointerdown", close);
+  }, [open]);
+  const chosen = PRACTICE_OPTIONS.find((o) => o.id === value);
+  return (
+    <div className="level-dropdown" ref={ref}>
+      <button
+        type="button"
+        className={`level-dropdown-trigger ${open ? "open" : ""}`}
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        aria-haspopup="listbox"
+        tabIndex={disabled ? -1 : undefined}
+      >
+        <span className="level-dropdown-trigger-text">
+          <span className="level-dropdown-label">OPTION</span>
+          <span className="level-dropdown-title">
+            {chosen?.label || "Choose how you want to practise"}
+          </span>
+        </span>
+        <ChevronDown
+          size={20}
+          strokeWidth={2}
+          className={`level-dropdown-chevron ${open ? "open" : ""}`}
+        />
+      </button>
       {open && (
-        <span className="cts-pop" role="note">
-          {detail}
-        </span>
+        <div className="level-dropdown-list" role="listbox">
+          {PRACTICE_OPTIONS.map((o, i) => (
+            <button
+              key={o.id}
+              type="button"
+              role="option"
+              aria-selected={value === o.id}
+              className={`level-dropdown-item ${value === o.id ? "selected" : ""}`}
+              onClick={() => {
+                onChange(o.id);
+                setOpen(false);
+              }}
+            >
+              <span className="level-dropdown-item-number">
+                {String(i + 1).padStart(2, "0")}
+              </span>
+              <span className="level-dropdown-item-text">
+                <span className="level-dropdown-item-title">{o.label}</span>
+              </span>
+              {value === o.id && (
+                <Check
+                  size={16}
+                  strokeWidth={2.5}
+                  className="level-dropdown-item-check"
+                />
+              )}
+            </button>
+          ))}
+        </div>
       )}
     </div>
   );
@@ -572,16 +630,6 @@ const PRACTICE_OPTIONS = [
   { id: "team", label: "Practice as a team" },
 ];
 
-// The two speakers in the Group tab illustration.
-const VOICES = [
-  {
-    name: "Jasmine",
-    quote: "I think the way we ask questions changes everything.",
-  },
-  { name: "David", quote: "That's interesting. I'd look at it another way..." },
-];
-const WAVE_BARS = [6, 12, 9, 18, 9, 14, 7, 16];
-
 // Rooms shown under "Find a practice" before "View all".
 const ROOMS_PREVIEW = 3;
 
@@ -724,6 +772,7 @@ export function GroupPracticeTab() {
   const [planned, setPlanned] = useState({ upcoming: [], mine: [] });
   const [busyId, setBusyId] = useState(null);
   const [option, setOption] = useState("");
+  const [timeInfoOpen, setTimeInfoOpen] = useState(false);
   // Round 10: the member's team, for "Practice as a team".
   const [myTeam, setMyTeam] = useState(null);
   useEffect(() => {
@@ -849,64 +898,48 @@ export function GroupPracticeTab() {
   const lobby = (
     <div className="gpt" aria-hidden={allowed ? undefined : true}>
       <div className="practice-panel-intro gpt-intro">
-        <h2 className="practice-panel-title">Are you ready to speak out?</h2>
+        <h2 className="practice-panel-title">Practice Together</h2>
         <p className="practice-panel-sub">
           Get comfortable expressing your thoughts with others.
         </p>
       </div>
 
-      <div className="gpt-choose-row">
-        <label className="gpt-select">
-          <span className="gpt-select-label">Practice option</span>
-          <select
-            className="gpt-select-input"
+      <div className="gpt-choose-row practice-level-row has-ai">
+        <div className="practice-level-col">
+          <p className="eyebrow practice-level-label">PRACTICE OPTION</p>
+          <PracticeOptionPicker
             value={option}
-            onChange={(e) => setOption(e.target.value)}
-            tabIndex={allowed ? undefined : -1}
-          >
-            <option value="" disabled>
-              Choose how you want to practise
-            </option>
-            {PRACTICE_OPTIONS.map((o) => (
-              <option key={o.id} value={o.id}>
-                {o.label}
-              </option>
-            ))}
-          </select>
-          <ChevronDown
-            size={18}
-            className="gpt-select-icon"
-            aria-hidden="true"
+            onChange={setOption}
+            disabled={!allowed}
           />
-        </label>
-        {allowed && <CallTimeRing usage={usage} />}
+        </div>
+        {allowed && (
+          <CallTimeMeter
+            usage={usage}
+            infoOpen={timeInfoOpen}
+            onToggleInfo={() => setTimeInfoOpen((v) => !v)}
+          />
+        )}
       </div>
+      {allowed && timeInfoOpen && (
+        <p className="ai-meter-info gpt-time-info">{callTimeDetail(usage)}</p>
+      )}
 
       <div className="gpt-voices">
         <p className="gpt-voices-lead">
           Different voices, different perspectives.
         </p>
-        <div className="gpt-voices-grid" aria-hidden="true">
-          {VOICES.map((v, index) => (
-            <div className={`gpt-voice gpt-voice-${index + 1}`} key={v.name}>
-              <div className="gpt-voice-head">
-                <span className="gpt-voice-avatar">{v.name[0]}</span>
-                <span className="gpt-voice-who">
-                  <strong>{v.name}</strong>
-                  <span>
-                    <Mic size={10} /> Speaking
-                  </span>
-                </span>
-              </div>
-              <span className="gpt-wave">
-                {WAVE_BARS.map((height, i) => (
-                  <i key={i} style={{ "--h": `${height}px`, "--i": i }} />
-                ))}
-              </span>
-              <p className="gpt-voice-quote">&ldquo;{v.quote}&rdquo;</p>
-            </div>
-          ))}
-        </div>
+        {/* Sheriff's illustration (round 10), in place of Jasmine and David. */}
+        <img
+          className="gpt-voices-art"
+          src={groupTogetherArt}
+          alt=""
+          aria-hidden="true"
+          width="1000"
+          height="471"
+          loading="lazy"
+          decoding="async"
+        />
         <p className="gpt-voices-foot">
           There&apos;s more than one way to see it.
         </p>

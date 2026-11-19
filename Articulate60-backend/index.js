@@ -56,7 +56,8 @@ const port = process.env.PORT || 3001;
 // authenticated uploads and streak requests receive the required headers.
 // Render puts one proxy in front of the app; needed for per-IP rate limits.
 app.set("trust proxy", 1);
-app.use(cors());
+// The app reads X-Refreshed-Token to stay signed in (middleware/auth.js).
+app.use(cors({ exposedHeaders: ["X-Refreshed-Token"] }));
 
 // Paystack webhook needs the exact raw bytes to check its signature, so it is
 // mounted BEFORE express.json().

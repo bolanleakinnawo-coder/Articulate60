@@ -319,6 +319,7 @@ export default function FeedbackReport({
   report,
   topic,
   audioUrl,
+  recordingId,
   durationSeconds,
   onTryAgain,
   onDone,
@@ -1006,6 +1007,7 @@ export default function FeedbackReport({
             </p>
             <RecordingPlayer
               src={playbackUrl}
+              recordingId={recordingId || report?._id || report?.recordingId}
               fallbackSeconds={recordingSeconds}
             />
           </section>

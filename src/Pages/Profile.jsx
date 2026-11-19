@@ -42,6 +42,7 @@ import "./Profile.css";
 const PROFILE_TAB_KEY = "loquiex.profileTab";
 import { disablePush } from "../lib/push";
 import { disconnectRealtime } from "../lib/realtime";
+import { getMyTeam } from "../lib/team";
 
 // Profile home: a summary card, then "Your Loquiex", "Your membership" and
 // "Account & preferences" lists. Every row opens its own page.
@@ -241,6 +242,18 @@ export default function Profile({ user }) {
     };
   }, [view]);
 
+  // Round 10 (Sheriff): team members get "My Team" first in Activity.
+  const [myTeam, setMyTeam] = useState(null);
+  useEffect(() => {
+    let alive = true;
+    getMyTeam()
+      .then((t) => alive && setMyTeam(t))
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, []);
+
   // The plan, its dates and the currency last paid in, from the server.
   useEffect(() => {
     let alive = true;
@@ -340,6 +353,7 @@ export default function Profile({ user }) {
           }}
           topic={r.topic}
           audioUrl={r.audioUrl}
+          recordingId={r._id}
           durationSeconds={r.durationSeconds}
           recordedAt={r.createdAt}
           onTryAgain={() =>
@@ -740,6 +754,16 @@ export default function Profile({ user }) {
   // long page: Activity, Membership and Account.
   const tabs = {
     activity: [
+      ...(myTeam
+        ? [
+            {
+              icon: Users,
+              title: "My Team",
+              text: `${myTeam.name || myTeam.planName} · ${myTeam.members.length} / ${myTeam.maxMembers} members`,
+              onClick: () => navigate("/app/team"),
+            },
+          ]
+        : []),
       {
         icon: BarChart3,
         title: "Your Stats",

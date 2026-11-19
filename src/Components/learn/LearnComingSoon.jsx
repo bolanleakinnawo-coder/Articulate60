@@ -22,7 +22,9 @@ export default function LearnComingSoon({ onLaunch }) {
     if (left <= 0) onLaunch();
   }, [left, onLaunch]);
 
-  const username = getStoredUser()?.username;
+  // Their username as they typed it, always starting with a capital letter.
+  const typed = (getStoredUser()?.username || "").trim();
+  const username = typed ? typed.charAt(0).toUpperCase() + typed.slice(1) : "";
   const t = splitTimeLeft(left);
   const launchDay = new Date(LAUNCH_MS).toLocaleDateString("en-GB", {
     day: "numeric",
@@ -33,6 +35,9 @@ export default function LearnComingSoon({ onLaunch }) {
     <div className="learn-content lx-page">
       <header className="learn-header">
         <h1 className="learn-title">Learn</h1>
+        <p className="learn-subtitle lx-cs-subtitle">
+          Build the skills to communicate better.
+        </p>
       </header>
 
       <section className="lx-cs" aria-labelledby="lx-cs-title">
