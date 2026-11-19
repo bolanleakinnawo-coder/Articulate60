@@ -228,13 +228,24 @@ async function removeMember(team, userId) {
   return updated;
 }
 
-// Account deletion: a member leaves; an admin's team is closed and every
-// member keeps the plan until the date already paid for.
+// Account deletion: a member leaves. Round 12 (Sheriff): when the Team
+// Admin deletes their account the team ends and every member moves to Free
+// at once (their own individual plan, if any, is untouched).
 async function onAccountDeleted(userId) {
   const team = await teamOf(userId);
   if (!team) return;
   if (String(team.admin) === String(userId)) {
-    await User.updateMany({ team: team._id }, { $set: { team: null } });
+    await User.updateMany(
+      { team: team._id },
+      {
+        $set: {
+          team: null,
+          teamPlan: null,
+          teamPlanStartedAt: null,
+          teamPlanExpiresAt: null,
+        },
+      },
+    );
     await Team.deleteOne({ _id: team._id });
   } else {
     await Team.updateOne({ _id: team._id }, { $pull: { members: { user: userId } } });

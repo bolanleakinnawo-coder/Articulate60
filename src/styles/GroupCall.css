@@ -4017,3 +4017,271 @@
     width: 56px;
   }
 }
+
+/* ======================================================================
+   Round 13 (Sheriff, 2026-11-19): Group tab.
+   1. Call time left: a clock and the time on top, "Call time left" with an
+      info icon underneath (Sheriff's reference).
+   2. Find a practice: All / Upcoming / Live / Team tabs (Team only for team
+      members) in place of the All / Open seats / Nearly full buttons, and a
+      small seat status line on each live call.
+   3. A planned practice past its start time: "Waiting for host to start".
+   ====================================================================== */
+.gpt-time-left {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  padding-left: 12px;
+  border-left: 1px solid var(--border);
+}
+
+.gpt-time-left-box {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--text-primary);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.gpt-time-left-value {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.gpt-time-left-value svg,
+.gpt-time-left-label svg {
+  flex: 0 0 auto;
+  color: var(--olive-bright);
+}
+
+.gpt-time-left-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-secondary);
+  font-size: 12.5px;
+  white-space: nowrap;
+}
+
+.gpt-time-left.is-empty .gpt-time-left-value {
+  color: var(--text-secondary);
+}
+
+.gpt-time-left-box:focus-visible {
+  outline: 2px solid var(--olive-bright);
+  outline-offset: 4px;
+  border-radius: 6px;
+}
+
+.gpt-list-tabs {
+  display: grid;
+  gap: 4px;
+  width: 100%;
+  margin: 2px 0 14px;
+  padding: 4px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--bg-secondary);
+  box-sizing: border-box;
+}
+
+.gpt-list-tabs.has-3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.gpt-list-tabs.has-4 {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.gpt-list-tabs .pf-tab {
+  min-width: 0;
+  padding: 9px 4px;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-secondary);
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
+}
+
+.gpt-list-tabs .pf-tab:hover {
+  color: var(--text-primary);
+}
+
+.gpt-list-tabs .pf-tab.is-active {
+  background: var(--olive-primary);
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.gpt-list-tabs .pf-tab:focus-visible {
+  outline: 2px solid var(--olive-bright);
+  outline-offset: 2px;
+}
+
+.gpt-list-group {
+  margin: 0 0 8px;
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.gpt-list-group:not(:first-child) {
+  margin-top: 16px;
+}
+
+.gpt-list-panel .gpt-rooms {
+  display: grid;
+  gap: 12px;
+}
+
+.gpt-list-panel .gpt-room {
+  background: var(--bg-secondary);
+}
+
+.gpt-room .gpt-room-status {
+  margin: 2px 0 0;
+  color: var(--olive-bright);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.gpt-room .gpt-room-status.is-near {
+  color: #e8a33d;
+}
+
+.gpt-room .gpt-room-status.is-full {
+  color: var(--text-secondary);
+}
+
+.gpt-room-join.gpt-waiting,
+.gpt-room-join.gpt-waiting:disabled {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  opacity: 1;
+  cursor: default;
+}
+
+@media (max-width: 360px) {
+  .gpt-time-left-value {
+    font-size: 14.5px;
+  }
+
+  .gpt-list-tabs .pf-tab {
+    font-size: 12.5px;
+  }
+}
+
+/* Round 13: room for "1hr 30mins" beside "Choose how you want to practise"
+   on one line (390px phones and up, and 375px); under 370px the picker
+   text may wrap. */
+.gpt-choose-row.practice-level-row {
+  gap: 8px;
+}
+
+.gpt-choose-row .level-dropdown-trigger {
+  gap: 4px;
+  padding: 7px 8px 7px 12px;
+}
+
+.gpt-choose-row .level-dropdown-title {
+  font-size: 12.5px;
+}
+
+.gpt-choose-row .level-dropdown-trigger svg {
+  width: 16px;
+  height: 16px;
+}
+
+.gpt-time-left {
+  padding-left: 10px;
+}
+
+.gpt-time-left-value {
+  gap: 5px;
+  font-size: 15px;
+}
+
+.gpt-time-left-value svg {
+  width: 15px;
+  height: 15px;
+}
+
+@media (max-width: 385px) {
+  .gpt-choose-row.practice-level-row {
+    gap: 6px;
+  }
+
+  .gpt-choose-row .level-dropdown-trigger {
+    padding: 7px 6px 7px 10px;
+  }
+
+  .gpt-choose-row .level-dropdown-title {
+    font-size: 12px;
+  }
+
+  .gpt-time-left {
+    padding-left: 8px;
+  }
+
+  .gpt-time-left-value {
+    gap: 4px;
+    font-size: 13.5px;
+  }
+
+  .gpt-time-left-value svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .gpt-time-left-label {
+    gap: 4px;
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 370px) {
+  .gpt-choose-row .level-dropdown-title {
+    white-space: normal;
+  }
+}
+
+/* Round 13 (Sheriff): the All / Upcoming / Live / Team tabs a bit smaller. */
+.gpt-list-tabs {
+  gap: 3px;
+  padding: 3px;
+  margin-bottom: 12px;
+}
+
+.gpt-list-tabs .pf-tab {
+  padding: 6px 4px;
+  font-size: 12.5px;
+}
+
+@media (max-width: 360px) {
+  .gpt-list-tabs .pf-tab {
+    font-size: 12px;
+  }
+}

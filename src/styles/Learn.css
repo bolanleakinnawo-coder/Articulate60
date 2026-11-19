@@ -1484,3 +1484,24 @@
     font-size: 22px;
   }
 }
+
+/* Round 12 (Sheriff, 2026-11-19): no card around the coming soon content,
+   centred on the page, and each timer box has the same background as the
+   Share a Win question box (olive wash over the card colour). */
+.lx-cs.lx-cs-card {
+  padding: 0 4px;
+  border: 0;
+  border-radius: 0;
+  background: none;
+}
+
+.lx-cs-card .lx-cs-label {
+  color: #c4c69a;
+}
+
+.lx-cs-card .lx-cs-box {
+  border: 1px solid var(--border);
+  background:
+    linear-gradient(135deg, rgba(100, 103, 66, 0.28), rgba(100, 103, 66, 0.06) 70%),
+    var(--bg-card);
+}

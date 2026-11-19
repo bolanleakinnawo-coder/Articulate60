@@ -490,6 +490,9 @@ function registerGroupHandlers(socket) {
       const joined = addToRoom(socket, room, access.user, access.summary);
       ack?.({ ok: true, ...joined, usage: usagePayload(access.summary) });
       if (team) notifyTeam(team, room, access.user, userId);
+      // Round 13 (Sheriff): a planned practice that has started tells the
+      // people who asked to be reminded, so "Remind me" becomes "Join now".
+      else if (planned) notifyReminded(planned, room, access.user, userId);
     } catch (err) {
       console.error("group:create", err);
       fail(ack, "error");
@@ -691,6 +694,43 @@ function notifyTeam(team, room, host, hostId) {
       ),
     )
     .catch((err) => console.error("Team practice push failed:", err.message));
+}
+
+// Round 13: tells the people who tapped "Remind me" on a planned practice
+// that the host has started it. No auto-cancel if the host is late.
+function notifyReminded(planned, room, host, hostId) {
+  const hostName = host.fullName || host.username || "The host";
+  const url = `/app/group-practice/join/${room.code}`;
+  const others = (planned.reminders || [])
+    .map((id) => String(id))
+    .filter((id) => id !== String(hostId));
+  if (!others.length) return;
+  const { emitToUser } = require("./realtime");
+  const { pushReady, sendPushToUser } = require("./push");
+  for (const id of others) {
+    try {
+      emitToUser(id, "group:planned-started", { code: room.code, hostName, url });
+    } catch (err) {
+      console.error("Planned practice notice failed:", err.message);
+    }
+  }
+  if (!pushReady()) return;
+  User.find({ _id: { $in: others } }, { pushSubscriptions: 1 })
+    .then((users) =>
+      Promise.all(
+        users.map((u) =>
+          sendPushToUser(u, {
+            title: `${hostName} started the practice`,
+            body: "Join now in Group Practice.",
+            url,
+            tag: `planned-practice-${room.code}`,
+            kind: "group-scheduled",
+            action: "Join now",
+          }),
+        ),
+      ),
+    )
+    .catch((err) => console.error("Planned practice push failed:", err.message));
 }
 
 // The team's practice that is on right now, if any (for My Team).
