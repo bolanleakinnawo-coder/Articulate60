@@ -12,8 +12,11 @@ export async function getInvite(code) {
   return data;
 }
 
-export async function joinTeam(code) {
-  const { data } = await api.post("/api/team/join", { code });
+// endIndividualPlan: the member agreed to the "Joining a team" warning
+// (round 11). Without it, the server answers 409 ENDS_INDIVIDUAL_PLAN when
+// they still have an individual plan.
+export async function joinTeam(code, { endIndividualPlan = false } = {}) {
+  const { data } = await api.post("/api/team/join", { code, endIndividualPlan });
   return data.team;
 }
 

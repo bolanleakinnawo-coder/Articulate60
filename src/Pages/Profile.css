@@ -3902,3 +3902,43 @@
   font-size: 12px;
   line-height: 1.4;
 }
+
+/* Round 11: upgrade summary on Billing preferences (credit for unused days). */
+.pf-upgrade-sum {
+  display: grid;
+  gap: 8px;
+  margin: 16px 0 0;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: rgba(100, 103, 66, 0.14);
+}
+
+.pf-upgrade-sum p {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.pf-upgrade-sum p span:last-child,
+.pf-upgrade-sum strong {
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.pf-upgrade-sum .pf-upgrade-pay {
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.pf-upgrade-sum .pf-upgrade-pay strong {
+  font-size: 16px;
+  font-weight: 700;
+}

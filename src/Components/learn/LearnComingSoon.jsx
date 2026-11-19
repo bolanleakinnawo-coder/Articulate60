@@ -40,9 +40,12 @@ export default function LearnComingSoon({ onLaunch }) {
         </p>
       </header>
 
-      <section className="lx-cs" aria-labelledby="lx-cs-title">
+      {/* Round 11 (Sheriff's pick, option 2): one soft card, centred in the
+          space under the heading, with seconds on the timer. */}
+      <div className="lx-cs-stage">
+      <section className="lx-cs lx-cs-card" aria-labelledby="lx-cs-title">
         <span className="lx-cs-icon" aria-hidden="true">
-          <BookOpen size={34} />
+          <BookOpen size={26} />
         </span>
         <span className="lx-cs-pill">Coming soon</span>
         <h2 id="lx-cs-title" className="lx-cs-title">
@@ -54,12 +57,14 @@ export default function LearnComingSoon({ onLaunch }) {
           resources you can learn from and put into practice.
         </p>
 
+        <hr className="lx-cs-divider" />
         <p className="lx-cs-label">Launching in</p>
         <div className="lx-cs-timer" role="timer" aria-label={`Launching on ${launchDay}`}>
           {[
             [t.days, "Days"],
             [t.hours, "Hours"],
             [t.minutes, "Mins"],
+            [t.seconds, "Secs"],
           ].map(([value, label]) => (
             <div className="lx-cs-box" key={label}>
               <strong>{pad(value)}</strong>
@@ -68,6 +73,7 @@ export default function LearnComingSoon({ onLaunch }) {
           ))}
         </div>
       </section>
+      </div>
     </div>
   );
 }

@@ -8,7 +8,7 @@
 const crypto = require("crypto");
 const Team = require("../MODELS/Team");
 const User = require("../MODELS/User");
-const { TEAM_PLANS, TEAM_MAX_MEMBERS, addMonths } = require("../utils/plans");
+const { TEAM_PLANS, TEAM_MAX_MEMBERS, addMonths, ownPlanIdOf } = require("../utils/plans");
 
 const CODE_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
 const CODE_RE = /^[A-HJ-NP-Z2-9]{6}$/;
@@ -63,6 +63,20 @@ async function clearMember(userId, teamId) {
   );
 }
 
+// Round 11 (Sheriff): joining or starting a team ends the member's own
+// individual plan at once, with no credit ("Joining a team" warning).
+async function endIndividualPlan(userId, now = new Date()) {
+  await User.updateOne(
+    { _id: userId, planExpiresAt: { $gt: now } },
+    { $set: { planExpiresAt: now, planCancelledAt: now, planEndedForTeamAt: now } },
+  );
+}
+
+async function hasActiveOwnPlan(userId, now = new Date()) {
+  const me = await User.findById(userId, { plan: 1, planExpiresAt: 1 }).lean();
+  return ownPlanIdOf(me, now) !== "free";
+}
+
 // The team this user belongs to (as admin or member), or null.
 function teamOf(userId) {
   return Team.findOne({ "members.user": userId });
@@ -112,6 +126,7 @@ async function applyTeamPayment(payment) {
         throw err;
       }
       await syncMembers(team);
+      if (payment.endsIndividualPlan) await endIndividualPlan(payment.user);
       return { startsAt, expiresAt };
     }
 
@@ -139,6 +154,7 @@ async function applyTeamPayment(payment) {
     );
     if (updated) {
       await syncMembers(updated);
+      if (payment.endsIndividualPlan) await endIndividualPlan(payment.user);
       return { startsAt, expiresAt };
     }
   }
@@ -147,7 +163,8 @@ async function applyTeamPayment(payment) {
 
 // Adds userId to the team with this invite code.
 // Returns { team } or { error, message }.
-async function joinTeam(userId, rawCode) {
+// confirmEndPlan: the member agreed to the "Joining a team" warning.
+async function joinTeam(userId, rawCode, { confirmEndPlan = false } = {}) {
   const code = String(rawCode || "").trim().toUpperCase();
   if (!CODE_RE.test(code))
     return { error: 404, message: "That invite link isn't valid." };
@@ -170,6 +187,15 @@ async function joinTeam(userId, rawCode) {
           : "You're already in a team. Leave it first to join this one.",
     };
   }
+  const endsPlan = await hasActiveOwnPlan(userId);
+  if (endsPlan && !confirmEndPlan) {
+    return {
+      error: 409,
+      code: "ENDS_INDIVIDUAL_PLAN",
+      message:
+        "Your individual subscription will end immediately when you join this team. Any unused days and allowances will be forfeited, as individual and team allowances cannot be combined.",
+    };
+  }
   const me = await User.findById(userId, { email: 1 }).lean();
   const updated = await Team.findOneAndUpdate(
     {
@@ -187,6 +213,7 @@ async function joinTeam(userId, rawCode) {
   if (!updated)
     return { error: 409, message: "This team is full. It has 5 members already." };
   await syncMembers(updated);
+  if (endsPlan) await endIndividualPlan(userId);
   return { team: updated };
 }
 

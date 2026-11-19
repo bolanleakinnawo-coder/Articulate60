@@ -6,7 +6,7 @@ const Payment = require("../MODELS/Payment");
 const User = require("../MODELS/User");
 const paystack = require("./paystack");
 const LibraryItem = require("../MODELS/LibraryItem");
-const { planIdOf, addMonths } = require("../utils/plans");
+const { ownPlanIdOf, addMonths } = require("../utils/plans");
 const { PRODUCTS } = require("../utils/learn");
 const { TEAM_PLANS } = require("../utils/plans");
 const { applyTeamPayment } = require("./team");
@@ -81,6 +81,9 @@ async function settlePayment(payment) {
         appliedAt: payment.appliedAt || new Date(),
         ...(applied?.expiresAt ? { planStartsAt: applied.startsAt, planExpiresAt: applied.expiresAt } : {}),
         ...(duplicate ? { possibleDuplicate: true, duplicateOf: duplicate } : {}),
+        ...(applied?.staleCredit
+          ? { possibleDuplicate: true, duplicateOf: duplicate || "upgrade credit already used" }
+          : {}),
       },
     },
     { returnDocument: "after" },
@@ -201,7 +204,12 @@ function mismatch(payment, tx) {
 }
 
 // Gives the plan to the member once per reference. Paying again for the plan
-// you already have adds the time on; a different plan starts today.
+// you already have adds the time on; a different plan (an upgrade, with or
+// without credit) starts today with a fresh period.
+// Round 11: an upgrade's credit was worked out from the plan the member had
+// at checkout. If that plan changed before this payment landed (e.g. two
+// upgrade payments), the credit was already used: the plan is still given
+// (the money was taken) and Admin > Payments flags it to check.
 // Optimistic update: retries if another payment changed the plan meanwhile.
 async function applyToUser(payment) {
   const ref = payment.reference;
@@ -218,8 +226,13 @@ async function applyToUser(payment) {
     if (user.appliedPaymentRefs?.includes(ref)) return null;
 
     const now = new Date();
-    const current = planIdOf(user, now);
+    const current = ownPlanIdOf(user, now);
     const extend = current === payment.planId;
+    const staleCredit =
+      payment.creditMinor > 0 &&
+      (current !== payment.upgradeFromPlanId ||
+        new Date(user.planExpiresAt || 0).getTime() !==
+          new Date(payment.upgradeFromExpiresAt || 0).getTime());
     const startsAt = extend ? user.planStartedAt || now : now;
     const expiresAt = addMonths(extend ? user.planExpiresAt : now, payment.months);
 
@@ -236,11 +249,15 @@ async function applyToUser(payment) {
           planExpiresAt: expiresAt,
           planPeriodId: payment.periodId,
           planCancelledAt: null,
+          planEndedForTeamAt: null,
         },
         $push: { appliedPaymentRefs: ref },
       },
     );
-    if (result.modifiedCount === 1) return { startsAt, expiresAt };
+    if (result.modifiedCount === 1) {
+      if (staleCredit) console.warn(`Payment ${ref}: upgrade credit was already used. Check Admin > Payments.`);
+      return { startsAt, expiresAt, staleCredit };
+    }
   }
   throw new Error(`Could not apply payment ${ref} (busy).`);
 }

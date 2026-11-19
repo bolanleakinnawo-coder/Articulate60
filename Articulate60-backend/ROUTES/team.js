@@ -2,7 +2,8 @@
 //
 //   GET  /api/team/me                -> { team } (null when not in a team)
 //   GET  /api/team/invite/:code      -> what the invite is for
-//   POST /api/team/join   { code }   -> { team }
+//   POST /api/team/join   { code, endIndividualPlan }   -> { team }
+//                         409 ENDS_INDIVIDUAL_PLAN until the member agrees.
 //   POST /api/team/leave             -> { team: null }  (members, not the admin)
 //   POST /api/team/remove { userId } -> { team }        (Team Admin only)
 //   POST /api/team/code              -> { team }        (Team Admin: new invite link; the old one stops working)
@@ -148,6 +149,9 @@ router.get("/invite/:code", publicInviteLimiter, async (req, res) => {
       maxMembers: TEAM_MAX_MEMBERS,
       alreadyMember: Boolean(current && String(current._id) === String(team._id)),
       inOtherTeam: Boolean(current && String(current._id) !== String(team._id)),
+      // Round 11: name the other team, so the member knows which one it is.
+      otherTeamName:
+        current && String(current._id) !== String(team._id) ? current.name || "" : "",
     });
   } catch (err) {
     console.error(err);
@@ -157,8 +161,13 @@ router.get("/invite/:code", publicInviteLimiter, async (req, res) => {
 
 router.post("/join", authMiddleware, inviteLimiter, async (req, res) => {
   try {
-    const result = await joinTeam(req.userId, req.body?.code);
-    if (result.error) return res.status(result.error).json({ message: result.message });
+    const result = await joinTeam(req.userId, req.body?.code, {
+      confirmEndPlan: req.body?.endIndividualPlan === true,
+    });
+    if (result.error)
+      return res
+        .status(result.error)
+        .json({ message: result.message, ...(result.code ? { code: result.code } : {}) });
     res.json({ team: await publicTeam(result.team, req.userId) });
   } catch (err) {
     console.error(err);

@@ -1,0 +1,90 @@
+/* "Joining a team" warning (round 11). Same look as the Cancel plan dialog
+   on Manage Membership, in the Home tab colours. */
+.jt-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.65);
+}
+
+.jt-dialog {
+  width: min(100%, 420px);
+  padding: 22px;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: var(--bg-card);
+}
+
+.jt-dialog h2 {
+  margin: 0 0 10px;
+  color: var(--text-primary);
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.jt-dialog p {
+  margin: 0 0 12px;
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.jt-dialog .jt-ask {
+  margin-bottom: 18px;
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.jt-actions {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 10px;
+}
+
+.jt-actions button {
+  width: 100%;
+  min-height: 46px;
+  border-radius: 10px;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.jt-continue {
+  border: 1px solid var(--olive-primary);
+  background: var(--olive-primary);
+  color: var(--text-primary);
+}
+
+.jt-continue:hover:not(:disabled) {
+  background: var(--olive-bright);
+}
+
+.jt-cancel {
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-primary);
+}
+
+.jt-actions button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+@media (min-width: 520px) {
+  .jt-actions {
+    flex-direction: row;
+    justify-content: flex-end;
+  }
+
+  .jt-actions button {
+    width: auto;
+    min-width: 130px;
+    padding: 0 18px;
+  }
+}

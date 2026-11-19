@@ -189,6 +189,23 @@ function aiDailyLimit(user, now = new Date()) {
 
 // What the app shows on Manage Membership.
 function subscriptionOf(user, now = new Date()) {
+  return { ...subscriptionBase(user, now), ownPlan: ownPlanOf(user, now) };
+}
+
+// The member's own individual plan while it's active (null otherwise).
+// Round 11: the app shows the "Joining a team" warning when this is set.
+function ownPlanOf(user, now = new Date()) {
+  const id = ownPlanIdOf(user, now);
+  if (id === "free") return null;
+  return {
+    planId: id,
+    expiresAt: user.planExpiresAt,
+    periodId: BILLING_PERIODS[user.planPeriodId] ? user.planPeriodId : "monthly",
+    daysLeft: wholeDaysLeft(user.planExpiresAt, now),
+  };
+}
+
+function subscriptionBase(user, now = new Date()) {
   const planId = planIdOf(user, now);
   const hasTeam = Boolean(user?.team) && teamPlanIdOf(user, now) !== "free";
   if (planId === "free") {
@@ -240,6 +257,69 @@ function addMonths(date, months) {
   return d;
 }
 
+// ---- PLAN CHANGES (round 11, Sheriff 2026-11-19) -------------------------
+// Upgrade (a higher individual plan while one is active): the value of the
+// unused days on the current plan comes off the new price. Value of a day =
+// what the member paid per month for the current plan (after any billing
+// period discount) / 30. The new plan starts at once with a fresh period.
+// Downgrade (a lower plan while a higher one is active): not sold until the
+// current plan ends, so nothing they paid for is lost.
+// Smallest amount Paystack will charge, in minor units.
+const MIN_CHARGE_MINOR = { NGN: 10000, USD: 100 };
+
+function wholeDaysLeft(expiresAt, now = new Date()) {
+  const ms = new Date(expiresAt).getTime() - now.getTime();
+  // Counted like the membership card's "19 days left" (a part day counts).
+  return ms > 0 ? Math.ceil(ms / DAY_MS) : 0;
+}
+
+// What this member pays for planId + periodId right now.
+// Returns null for an unknown plan, period or currency, otherwise
+//   { kind: "new" | "renew" | "upgrade" | "downgrade" | "team",
+//     totalMinor, creditMinor, amountMinor, daysLeft,
+//     fromPlanId, fromExpiresAt, tooMuchCredit }
+function checkoutQuote(user, planId, periodId, currency = "NGN", now = new Date()) {
+  const totalMinor = priceMinorFor(planId, periodId, currency);
+  if (!totalMinor) return null;
+  const quote = {
+    kind: TEAM_PLANS[planId] ? "team" : "new",
+    totalMinor,
+    creditMinor: 0,
+    amountMinor: totalMinor,
+    daysLeft: 0,
+    fromPlanId: null,
+    fromExpiresAt: null,
+    tooMuchCredit: false,
+  };
+  const own = ownPlanIdOf(user, now);
+  if (own === "free") return quote;
+  quote.fromPlanId = own;
+  quote.fromExpiresAt = new Date(user.planExpiresAt);
+  quote.daysLeft = wholeDaysLeft(user.planExpiresAt, now);
+  if (TEAM_PLANS[planId]) return quote; // the individual plan ends, no credit
+  if (own === planId) return { ...quote, kind: "renew" };
+  if (PLAN_RANK[planId] < PLAN_RANK[own]) return { ...quote, kind: "downgrade" };
+
+  const period = BILLING_PERIODS[user.planPeriodId] || BILLING_PERIODS.monthly;
+  const paidMonthly = (PRICES[currency]?.[own] || 0) * (1 - period.discount / 100);
+  // Whole naira (cents for dollars), so the amounts read cleanly.
+  // Never more than what was paid for the current period.
+  const credit = Math.min(
+    (paidMonthly * quote.daysLeft) / 30,
+    paidMonthly * period.months,
+  );
+  const creditMinor =
+    currency === "NGN" ? Math.round(credit) * 100 : Math.round(credit * 100);
+  const amountMinor = totalMinor - creditMinor;
+  return {
+    ...quote,
+    kind: "upgrade",
+    creditMinor,
+    amountMinor,
+    tooMuchCredit: amountMinor < (MIN_CHARGE_MINOR[currency] || 0),
+  };
+}
+
 // Fields to read whenever plan access is checked.
 const PLAN_FIELDS = {
   plan: 1,
@@ -278,4 +358,6 @@ module.exports = {
   aiDailyLimit,
   subscriptionOf,
   addMonths,
+  checkoutQuote,
+  wholeDaysLeft,
 };

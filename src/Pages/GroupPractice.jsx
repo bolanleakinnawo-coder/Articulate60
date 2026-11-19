@@ -403,7 +403,7 @@ function PracticeOptionPicker({ value, onChange, disabled }) {
         tabIndex={disabled ? -1 : undefined}
       >
         <span className="level-dropdown-trigger-text">
-          <span className="level-dropdown-label">OPTION</span>
+          {/* Round 11 (Sheriff): no "OPTION" label, just the choice. */}
           <span className="level-dropdown-title">
             {chosen?.label || "Choose how you want to practise"}
           </span>
@@ -688,16 +688,22 @@ function RoomCard({ room, onJoin }) {
 }
 
 // A practice planned for later.
-function PlannedCard({ item, onRemind, onStart, onCancel, busy }) {
+function PlannedCard({ item, onRemind, onStart, onCancel, onJoin, busy }) {
   return (
     <article className="gpt-room gpt-planned">
       <div className="gpt-room-top">
-        <span className="gpt-badge gpt-badge-soon">
-          <CalendarDays size={13} aria-hidden="true" />
-          {formatWhen(item.startsAt)}
-        </span>
+        {item.isTeam && item.liveRoomId ? (
+          <span className="gpt-badge">
+            <span className="gpc-live-dot" aria-hidden="true" /> Team Call live
+          </span>
+        ) : (
+          <span className="gpt-badge gpt-badge-soon">
+            <CalendarDays size={13} aria-hidden="true" />
+            {formatWhen(item.startsAt)}
+          </span>
+        )}
         <span className="gpt-seats">
-          {item.private ? "Private" : "Public"} ·{" "}
+          {item.isTeam ? "Team" : item.private ? "Private" : "Public"} ·{" "}
           {item.unlimited || !item.max
             ? "Unlimited seats"
             : `${item.max} seats`}
@@ -737,6 +743,13 @@ function PlannedCard({ item, onRemind, onStart, onCancel, busy }) {
         </>
       ) : (
         <div className="gpt-room-foot">
+          {/* Round 11: a team practice that has started can be joined here. */}
+          {item.isTeam && item.liveRoomId && onJoin ? (
+            <button type="button" className="gpt-room-join" onClick={() => onJoin(item)}>
+              <Users size={16} aria-hidden="true" />
+              Join now
+            </button>
+          ) : (
           <button
             type="button"
             className="gpt-room-join"
@@ -751,6 +764,7 @@ function PlannedCard({ item, onRemind, onStart, onCancel, busy }) {
             )}
             {item.reminded ? "Reminder set" : "Remind me"}
           </button>
+          )}
         </div>
       )}
     </article>
@@ -769,7 +783,7 @@ export function GroupPracticeTab() {
   const [rooms, setRooms] = useState([]);
   const [connection, setConnection] = useState("connecting");
   const [filter, setFilter] = useState("all");
-  const [planned, setPlanned] = useState({ upcoming: [], mine: [] });
+  const [planned, setPlanned] = useState({ upcoming: [], mine: [], team: [] });
   const [busyId, setBusyId] = useState(null);
   const [option, setOption] = useState("");
   const [timeInfoOpen, setTimeInfoOpen] = useState(false);
@@ -813,6 +827,7 @@ export function GroupPracticeTab() {
         ? isNearlyFull(room)
         : true,
   );
+  const teamPlanned = planned.team || [];
   const upcoming = planned.upcoming.filter(
     (item) => !item.isHost && !item.liveRoomId,
   );
@@ -848,6 +863,7 @@ export function GroupPracticeTab() {
       setPlanned((p) => ({
         ...p,
         upcoming: p.upcoming.map((x) => (x.id === updated.id ? updated : x)),
+        team: (p.team || []).map((x) => (x.id === updated.id ? updated : x)),
       }));
       plannedChanged();
       setReminderNote(updated.reminded ? reminderHelp(pushState) : "");
@@ -875,6 +891,7 @@ export function GroupPracticeTab() {
     setBusyId(null);
     if (ok) {
       setPlanned((p) => ({
+        ...p,
         upcoming: p.upcoming.filter((x) => x.id !== item.id),
         mine: p.mine.filter((x) => x.id !== item.id),
       }));
@@ -961,6 +978,60 @@ export function GroupPracticeTab() {
         </button>
       </div>
 
+      {/* Round 11 (Sheriff): the team's calls on the main Group tab, so
+          members don't have to open "Practice as a team" to find them. Only
+          members of the team get these from the server. */}
+      {(myTeam?.liveRoom || teamPlanned.length > 0) && (
+        <section aria-labelledby="gpt-team-title" className="gpt-section">
+          <h3 className="gpt-section-title" id="gpt-team-title">
+            Your team&apos;s calls
+          </h3>
+          <p className="gpt-section-sub">
+            {myTeam?.name
+              ? `Practices planned for ${myTeam.name}.`
+              : "Practices planned for your team."}
+          </p>
+          <div className="gpt-rooms">
+            {myTeam?.liveRoom && !teamPlanned.some((x) => x.liveRoomId) && (
+              <article className="gpt-room">
+                <div className="gpt-room-top">
+                  <span className="gpt-badge">
+                    <span className="gpc-live-dot" aria-hidden="true" /> Team Call live
+                  </span>
+                </div>
+                <h4 className="gpt-room-title">Your team is practising now</h4>
+                <p className="gpt-room-meta">
+                  {myTeam.liveRoom.hostName
+                    ? `${myTeam.liveRoom.hostName} started it.`
+                    : "A team member started it."}
+                </p>
+                <div className="gpt-room-foot">
+                  <button
+                    type="button"
+                    className="gpt-room-join"
+                    onClick={() =>
+                      allowed ? navigate(`${JOIN}/${myTeam.liveRoom.code}`) : locked()
+                    }
+                  >
+                    <Users size={16} aria-hidden="true" />
+                    Join now
+                  </button>
+                </div>
+              </article>
+            )}
+            {teamPlanned.map((item) => (
+              <PlannedCard
+                key={item.id}
+                item={item}
+                busy={busyId === item.id}
+                onRemind={remind}
+                onJoin={(it) => (allowed ? navigate(`${JOIN}/${it.code}`) : locked())}
+              />
+            ))}
+          </div>
+        </section>
+      )}
+
       {planned.mine.length > 0 && (
         <section aria-labelledby="gpt-mine-title" className="gpt-section">
           <h3 className="gpt-section-title" id="gpt-mine-title">
@@ -984,14 +1055,16 @@ export function GroupPracticeTab() {
         </section>
       )}
 
-      <section aria-labelledby="gpt-find-title" className="gpt-section">
+      {/* Round 11 (Sheriff's reference): one rounded card with the title,
+          filters and an empty state panel. */}
+      <section aria-labelledby="gpt-find-title" className="gpt-section gpt-find-card">
         <div className="gpt-find-head">
           <div>
             <h3 className="gpt-section-title" id="gpt-find-title">
               Find a practice
             </h3>
             <p className="gpt-section-sub">
-              Join an available speaking session.
+              Join a session and practise with others.
             </p>
           </div>
           {shown.length > ROOMS_PREVIEW && (
@@ -1045,18 +1118,28 @@ export function GroupPracticeTab() {
             </span>
             <strong>
               {rooms.length === 0
-                ? "No public practices yet"
+                ? "No sessions available right now"
                 : filter === "open"
                   ? "Every practice is full"
                   : "Nothing nearly full"}
             </strong>
             <span>
               {rooms.length === 0
-                ? "Start a practice and others can join."
+                ? "Why not start one? Others can join when you're ready."
                 : filter === "open"
                   ? "Start your own, or check back in a moment."
                   : "Try All to see every live practice."}
             </span>
+            {rooms.length === 0 && (
+              <button
+                type="button"
+                className="gpt-empty-start"
+                onClick={() => (allowed ? navigate(START) : locked())}
+                tabIndex={allowed ? undefined : -1}
+              >
+                Start a practice <ArrowRight size={15} aria-hidden="true" />
+              </button>
+            )}
           </div>
         ) : (
           <div className="gpt-rooms">

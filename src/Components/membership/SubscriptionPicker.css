@@ -554,3 +554,41 @@
     font-size: 22px;
   }
 }
+
+
+/* Round 11: upgrade credit on each plan card. */
+.sp-credit {
+  display: grid;
+  gap: 6px;
+  margin: 12px 0 0;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: rgba(100, 103, 66, 0.14);
+}
+
+.sp-credit p {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.sp-credit strong {
+  color: var(--text-primary);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.sp-credit .sp-credit-pay {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.sp-credit .sp-credit-pay strong {
+  font-weight: 700;
+}

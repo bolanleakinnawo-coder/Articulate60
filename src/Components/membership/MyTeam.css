@@ -523,3 +523,29 @@
 .mt-join-page .mt-page {
   padding: 0;
 }
+
+/* Round 11 (Sheriff, 2026-11-19): "Your team plan" card on the brand olive
+   green (like the Loquiex Membership card), with a thin line between the
+   price and Members / Invitations pending / Your role. */
+.mt-plan {
+  border: 1px solid rgba(121, 119, 78, 0.45);
+  background:
+    linear-gradient(135deg, rgba(100, 103, 66, 0.55), rgba(100, 103, 66, 0.22) 75%),
+    var(--bg-card);
+}
+
+.mt-plan .mt-label {
+  color: rgba(241, 236, 222, 0.75);
+}
+
+.mt-plan .mt-plan-price span,
+.mt-plan .mt-rows-flat dt {
+  color: rgba(241, 236, 222, 0.75);
+}
+
+.mt-plan .mt-rows-flat {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(241, 236, 222, 0.16);
+  border-radius: 0;
+}

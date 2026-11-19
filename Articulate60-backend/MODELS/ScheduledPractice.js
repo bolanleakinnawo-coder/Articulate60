@@ -32,6 +32,10 @@ const scheduledPracticeSchema = new mongoose.Schema(
       index: true,
     },
     roomId: { type: String, default: "" },
+    // Round 11: a team practice planned by a team member ("Practice as a
+    // team", later). Every member of the team sees it on the Group tab.
+    team: { type: mongoose.Schema.Types.ObjectId, ref: "Team", default: null, index: true },
+    teamName: { type: String, default: "" },
   },
   { timestamps: true },
 );

@@ -8,6 +8,7 @@ const { resolveTimeZone } = require("../utils/timeZone");
 const { summarise } = require("../utils/groupUsage");
 const crypto = require("crypto");
 const ScheduledPractice = require("../MODELS/ScheduledPractice");
+const Team = require("../MODELS/Team");
 const { hasGroupPractice, limitsFor } = require("../utils/plans");
 const {
   publicScheduled,
@@ -140,10 +141,18 @@ function stillListed() {
   };
 }
 
-// GET /api/group/scheduled — public upcoming practices + the member's own.
+// The member's active team (or null).
+async function activeTeamOf(userId) {
+  const team = await Team.findOne({ "members.user": userId }).lean();
+  return team && team.expiresAt && new Date(team.expiresAt) > new Date() ? team : null;
+}
+
+// GET /api/group/scheduled — public upcoming practices + the member's own
+// + (round 11) practices planned for the member's team by other members.
 router.get("/scheduled", authMiddleware, async (req, res) => {
   try {
-    const [publicDocs, mine] = await Promise.all([
+    const team = await activeTeamOf(req.userId);
+    const [publicDocs, mine, teamDocs] = await Promise.all([
       ScheduledPractice.find({ ...stillListed(), private: false })
         .sort({ startsAt: 1 })
         .limit(50)
@@ -151,11 +160,21 @@ router.get("/scheduled", authMiddleware, async (req, res) => {
       ScheduledPractice.find({ ...stillListed(), host: req.userId })
         .sort({ startsAt: 1 })
         .lean(),
+      team
+        ? ScheduledPractice.find({
+            ...stillListed(),
+            team: team._id,
+            host: { $ne: req.userId },
+          })
+            .sort({ startsAt: 1 })
+            .lean()
+        : [],
     ]);
     const toApp = (d) => publicScheduled(d, req.userId);
     res.json({
       upcoming: publicDocs.map(toApp),
       mine: mine.map(toApp),
+      team: teamDocs.map(toApp),
     });
   } catch (err) {
     console.error(err);
@@ -223,6 +242,8 @@ router.post("/scheduled", authMiddleware, async (req, res) => {
           limitsFor(user).maxSeats || 6,
           Math.max(2, Math.floor(Number(body.max)) || 4),
         );
+    // Round 11: "Practice as a team" planned for later: private to the team.
+    const team = body.team === true ? await activeTeamOf(req.userId) : null;
     const doc = await ScheduledPractice.create({
       host: req.userId,
       hostName: user.fullName || user.username || "Member",
@@ -231,10 +252,12 @@ router.post("/scheduled", authMiddleware, async (req, res) => {
       categoryId: clean(body.categoryId, 60),
       categoryTitle: clean(body.categoryTitle, 80),
       prompt: clean(body.prompt, 500),
-      private: body.private === true,
+      private: team ? true : body.private === true,
       max,
       code: await freeCode(),
       startsAt,
+      team: team ? team._id : null,
+      teamName: team ? team.name || "" : "",
     });
     res.status(201).json({ scheduled: publicScheduled(doc, req.userId) });
   } catch (err) {

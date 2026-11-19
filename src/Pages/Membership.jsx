@@ -20,7 +20,9 @@ import {
   PLANS,
   TEAM_PLANS,
   formatMoney,
+  getCheckoutQuote,
   getPlan,
+  ownActivePlan,
   getStoredUser,
   cancelPlan,
   getSubscription,
@@ -37,6 +39,7 @@ import {
 import { preloadPaystack } from "../lib/paystackPopup";
 import MembershipCard from "../Components/MembershipCard";
 import SubscriptionPicker from "../Components/membership/SubscriptionPicker";
+import JoiningTeamDialog from "../Components/membership/JoiningTeamDialog";
 import { getMyTeam } from "../lib/team";
 import "./Profile.css";
 
@@ -101,6 +104,12 @@ export default function Membership() {
         ? "individual"
         : "choose",
   );
+  // Round 11: "upgrade" when the member tapped Upgrade (Individual or Team
+  // first, then only higher plans, with the credit for unused days).
+  const [mode, setMode] = useState(null);
+  const [quotes, setQuotes] = useState({}); // planId -> server quote (monthly)
+  const [quoteState, setQuoteState] = useState(null); // { key, quote }
+  const [teamWarn, setTeamWarn] = useState(false); // "Joining a team"
   const [team, setTeam] = useState(null); // GET /api/team/me
   const [teamName, setTeamName] = useState("");
   const compareRef = useRef(null);
@@ -133,6 +142,52 @@ export default function Membership() {
   const total = (p, period) => priceFor(p, period, payCurrency, prices);
   const reasonText =
     typeof REASONS[reason] === "function" ? REASONS[reason]() : REASONS[reason];
+
+  const own = ownActivePlan(user);
+  const ownPlanId = own?.planId || null;
+  const ownPlanName = PLANS.find((p) => p.id === ownPlanId)?.name || "";
+
+  // Round 11: the credit on each plan card while upgrading.
+  useEffect(() => {
+    if (view !== "individual" || mode !== "upgrade" || !ownPlanId) return undefined;
+    let alive = true;
+    const start = PAID_PLANS.findIndex((p) => p.id === ownPlanId) + 1;
+    Promise.all(
+      PAID_PLANS.slice(start).map((p) =>
+        getCheckoutQuote(p.id, "monthly", payCurrency)
+          .then((q) => [p.id, q])
+          .catch(() => [p.id, null]),
+      ),
+    ).then((list) => alive && setQuotes(Object.fromEntries(list)));
+    return () => {
+      alive = false;
+    };
+  }, [view, mode, ownPlanId, payCurrency]);
+
+  // Round 11: what the selected plan and period cost right now, with any
+  // credit for unused days taken off (worked out by the server).
+  const quoteKey =
+    selectedIsTeam || !ownPlanId
+      ? null
+      : `${ownPlanId}:${selected.id}:${periodId}:${payCurrency}`;
+  useEffect(() => {
+    if (!quoteKey) return undefined;
+    let alive = true;
+    getCheckoutQuote(selected.id, periodId, payCurrency)
+      .then((q) => alive && setQuoteState({ key: quoteKey, quote: q }))
+      .catch(() => alive && setQuoteState({ key: quoteKey, quote: null }));
+    return () => {
+      alive = false;
+    };
+  }, [quoteKey, selected.id, periodId, payCurrency]);
+  const quote = quoteKey && quoteState?.key === quoteKey ? quoteState.quote : null;
+
+  const upgradeQuote =
+    quote && quote.kind === "upgrade" && quote.currency === payCurrency ? quote : null;
+  const downgradeBlocked = quote?.kind === "downgrade";
+  const creditTooLarge = Boolean(upgradeQuote?.tooMuchCredit);
+  const payAmount = upgradeQuote ? upgradeQuote.amount : total(selected, periodId);
+  const unusedDays = (n) => `${n} unused ${n === 1 ? "day" : "days"}`;
 
   const scrollTo = (ref) =>
     ref.current?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -245,21 +300,33 @@ export default function Membership() {
   }, []);
 
   // Team plans are paid monthly from "Create your team" (round 10).
-  const teamCheckout = async () => {
+  // Round 11: someone with an individual plan sees the "Joining a team"
+  // warning first; Continue ends that plan when the team payment lands.
+  const teamCheckout = async ({ agreed = false } = {}) => {
     if (!teamName.trim() && !team?.name) {
       setPayError("Give your team a name.");
       return;
     }
+    if (!agreed && ownActivePlan()) {
+      setTeamWarn(true);
+      return;
+    }
+    setTeamWarn(false);
     setPayError("");
     setPaying(true);
     try {
       const result = await startCheckout(selected.id, "monthly", "NGN", {
         teamName: teamName.trim() || team?.name || "",
+        endIndividualPlan: agreed,
       });
       setPaying(false);
       check(result.reference, { quiet: result.status !== "success" });
     } catch (err) {
       setPaying(false);
+      if (err.response?.data?.code === "ENDS_INDIVIDUAL_PLAN") {
+        setTeamWarn(true);
+        return;
+      }
       setPayError(
         err.response?.data?.message ||
           "Couldn't open the payment. Check your connection and try again.",
@@ -410,6 +477,7 @@ export default function Membership() {
             type="button"
             className="pf-plan-action is-primary"
             onClick={() => {
+              setMode(null);
               setView("individual");
               setSelectedId(plan.id);
               setPeriodId(sub?.periodId || "monthly");
@@ -425,9 +493,11 @@ export default function Membership() {
             type="button"
             className={`pf-plan-action ${isPaid ? "is-secondary" : "is-primary"}`}
             onClick={() => {
-              setView("individual");
+              // Round 11: Upgrade first asks Individual plan or Team plan.
+              setMode("upgrade");
+              setView("upgrade");
               setSelectedId(upgradeTo.id);
-              scrollTo(compareRef);
+              requestAnimationFrame(() => scrollTo(compareRef));
             }}
           >
             <CircleArrowUp size={14} aria-hidden="true" />
@@ -438,8 +508,10 @@ export default function Membership() {
           type="button"
           className="pf-plan-action is-secondary"
           onClick={() => {
-            setView("choose");
-            scrollTo(compareRef);
+            // Round 11: a real side-by-side comparison.
+            setMode(null);
+            setView("compare");
+            requestAnimationFrame(() => scrollTo(compareRef));
           }}
         >
           <LayoutList size={14} aria-hidden="true" />
@@ -452,13 +524,28 @@ export default function Membership() {
         <SubscriptionPicker
           view={view}
           onView={(v) => {
+            if (v === "choose") setMode(null);
             setView(v);
             requestAnimationFrame(() => scrollTo(compareRef));
           }}
           prices={prices}
           currentPlanId={
-            view === "team" ? teamPlanId : fromTeam ? null : plan.id
+            view === "team"
+              ? teamPlanId
+              : view === "compare"
+                ? plan.id
+                : mode === "upgrade"
+                  ? ownPlanId
+                  : fromTeam
+                    ? null
+                    : plan.id
           }
+          mode={mode}
+          quotes={quotes}
+          onCompareChoose={() => {
+            setView("choose");
+            requestAnimationFrame(() => scrollTo(compareRef));
+          }}
           selectedId={selectedId}
           onChoose={(id) => {
             setSelectedId(id);
@@ -559,11 +646,33 @@ export default function Membership() {
             </button>
           ))}
         </div>
-        <p className="pf-total">
-          {selected.name} ·{" "}
-          {BILLING_PERIODS.find((p) => p.id === periodId).label}:{" "}
-          <strong>{money(total(selected, periodId))}</strong>
-        </p>
+        {upgradeQuote && upgradeQuote.credit > 0 ? (
+          <div className="pf-upgrade-sum" aria-live="polite">
+            <p>
+              <span>
+                {selected.name} ·{" "}
+                {BILLING_PERIODS.find((p) => p.id === periodId).label}
+              </span>
+              <span>{money(upgradeQuote.total)}</span>
+            </p>
+            <p>
+              <span>
+                Credit for {unusedDays(upgradeQuote.daysLeft)} on {ownPlanName}
+              </span>
+              <span>−{money(upgradeQuote.credit)}</span>
+            </p>
+            <p className="pf-upgrade-pay">
+              <span>To pay today</span>
+              <strong>{creditTooLarge ? "—" : money(upgradeQuote.amount)}</strong>
+            </p>
+          </div>
+        ) : (
+          <p className="pf-total">
+            {selected.name} ·{" "}
+            {BILLING_PERIODS.find((p) => p.id === periodId).label}:{" "}
+            <strong>{money(total(selected, periodId))}</strong>
+          </p>
+        )}
         <p className="pf-stats-note pf-total-note">
           {selectedIsTeam
             ? renewing
@@ -573,9 +682,15 @@ export default function Membership() {
                 : "You become the Team Admin and can invite up to four other members as soon as the payment is confirmed."
             : renewing
             ? `Adds ${selectedPeriod.months === 1 ? "1 month" : `${selectedPeriod.months} months`} to your current plan.`
-            : isPaid && !fromTeam
-              ? `${selected.name} starts today and replaces ${plan.name}. Time left on ${plan.name} isn't carried over.`
-              : "Your plan starts as soon as the payment is confirmed."}{" "}
+            : downgradeBlocked
+              ? `You can move to ${selected.name} when ${ownPlanName} ends on ${formatDate(quote.fromExpiresAt)}. Until then you keep everything in ${ownPlanName}.`
+              : creditTooLarge
+                ? `Your ${unusedDays(upgradeQuote.daysLeft)} on ${ownPlanName} are worth more than this. Choose a longer billing period.`
+                : upgradeQuote
+                  ? `${selected.name} starts today and replaces ${ownPlanName}. ${upgradeQuote.credit > 0 ? `The ${unusedDays(upgradeQuote.daysLeft)} on ${ownPlanName} come off the price, and` : "A"} ${upgradeQuote.credit > 0 ? "a " : ""}fresh ${selectedPeriod.months === 1 ? "month" : `${selectedPeriod.months} months`} starts today.`
+                  : isPaid && !fromTeam && ownPlanId
+                    ? `${selected.name} starts today and replaces ${plan.name}.`
+                    : "Your plan starts as soon as the payment is confirmed."}{" "}
           No automatic renewal: you choose when to pay again.
         </p>
         {payError && (
@@ -587,12 +702,12 @@ export default function Membership() {
         <button
           ref={totalRef}
           className="profile-save-button pf-wide-button"
-          disabled={paying}
+          disabled={paying || downgradeBlocked || creditTooLarge}
           onClick={checkout}
         >
           {paying
             ? "Opening Paystack…"
-            : `${renewing ? "Renew" : "Pay"} ${money(total(selected, periodId))} with Paystack`}
+            : `${renewing ? "Renew" : "Pay"} ${money(payAmount)} with Paystack`}
         </button>
         <p className="pf-secure-note">
           <LockKeyhole size={16} />
@@ -712,6 +827,14 @@ export default function Membership() {
           <CircleAlert size={18} />
           <span>{cancelError}</span>
         </p>
+      )}
+
+      {teamWarn && (
+        <JoiningTeamDialog
+          busy={paying}
+          onCancel={() => setTeamWarn(false)}
+          onContinue={() => teamCheckout({ agreed: true })}
+        />
       )}
 
       {confirmCancel && (

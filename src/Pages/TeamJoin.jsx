@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { CircleAlert, CircleCheck, Users } from "lucide-react";
 import { getInvite, joinTeam } from "../lib/team";
-import { refreshPlanFromServer } from "../data/plans";
+import { ownActivePlan, refreshPlanFromServer } from "../data/plans";
+import JoiningTeamDialog from "../Components/membership/JoiningTeamDialog";
 import "../Components/membership/MyTeam.css";
 
 // "You've been invited!" (round 10). Public, so new people can see it before
@@ -13,11 +14,13 @@ export default function TeamJoin() {
   const { code } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
-  const signedIn = Boolean(localStorage.getItem("token"));
+  const hasToken = Boolean(localStorage.getItem("token"));
   const [invite, setInvite] = useState(null);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [joined, setJoined] = useState(false);
+  // Round 11: "Joining a team" warning for members with an individual plan.
+  const [warn, setWarn] = useState(false);
 
   useEffect(() => {
     let alive = true;
@@ -32,21 +35,35 @@ export default function TeamJoin() {
     };
   }, [code]);
 
+  // Round 11: the server says whether this visitor is really signed in (a
+  // saved sign-in may have ended), so the "already in a team" note only
+  // shows for a signed-in member who is in another team.
+  const signedIn = invite ? Boolean(invite.signedIn) : hasToken;
   const back = { from: { pathname: location.pathname } };
 
-  const accept = async () => {
+  const accept = async ({ agreed = false } = {}) => {
     if (!signedIn) {
       navigate("/register", { state: back });
+      return;
+    }
+    if (!agreed && ownActivePlan()) {
+      setWarn(true);
       return;
     }
     setBusy(true);
     setError("");
     try {
-      await joinTeam(code);
+      await joinTeam(code, { endIndividualPlan: agreed });
       await refreshPlanFromServer();
+      setWarn(false);
       setJoined(true);
     } catch (err) {
-      setError(err.response?.data?.message || "Couldn't join the team. Please try again.");
+      if (err.response?.data?.code === "ENDS_INDIVIDUAL_PLAN") {
+        setWarn(true); // the server knows about a plan this device didn't
+      } else {
+        setWarn(false);
+        setError(err.response?.data?.message || "Couldn't join the team. Please try again.");
+      }
     } finally {
       setBusy(false);
     }
@@ -58,8 +75,10 @@ export default function TeamJoin() {
   if (invite && !joined && !invite.alreadyMember) {
     if (!invite.active)
       blocked = "This team's plan has ended. Ask your Team Admin to renew it, then open the link again.";
-    else if (invite.inOtherTeam)
-      blocked = "You're already in a team. Leave it from My Team first to join this one.";
+    else if (signedIn && invite.inOtherTeam)
+      blocked = invite.otherTeamName
+        ? `You're already in ${invite.otherTeamName}. Leave it from My Team first to join this one.`
+        : "You're already in a team. Leave it from My Team first to join this one.";
     else if (full) blocked = "This team is full. It has 5 members already.";
   }
 
@@ -128,13 +147,21 @@ export default function TeamJoin() {
                 {blocked}
               </p>
             ) : (
-              <button type="button" className="mt-primary" disabled={busy} onClick={accept}>
+              <button type="button" className="mt-primary" disabled={busy} onClick={() => accept()}>
                 {busy ? "Joining…" : "Accept invitation"}
               </button>
             )}
             {error && (
               <p className="mt-error" role="alert">
                 {error}
+              </p>
+            )}
+            {!signedIn && (
+              <p className="mt-signin">
+                Haven&apos;t registered?{" "}
+                <button type="button" onClick={() => navigate("/register", { state: back })}>
+                  Sign up now
+                </button>
               </p>
             )}
             {!signedIn && (
@@ -148,6 +175,13 @@ export default function TeamJoin() {
           </section>
         )}
       </div>
+      {warn && (
+        <JoiningTeamDialog
+          busy={busy}
+          onCancel={() => setWarn(false)}
+          onContinue={() => accept({ agreed: true })}
+        />
+      )}
     </div>
   );
 }

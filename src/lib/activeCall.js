@@ -74,7 +74,12 @@ export const callActions = {
 export async function fetchScheduled() {
   try {
     const { data } = await api.get("/api/group/scheduled");
-    return { upcoming: data.upcoming || [], mine: data.mine || [] };
+    return {
+      upcoming: data.upcoming || [],
+      mine: data.mine || [],
+      // Round 11: practices planned for the member's team by others.
+      team: data.team || [],
+    };
   } catch {
     return null;
   }

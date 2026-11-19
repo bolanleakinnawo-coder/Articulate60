@@ -388,6 +388,33 @@ export function getSubscription(user = getStoredUser()) {
   };
 }
 
+// Round 11: the member's own individual plan while it's active, even when
+// a team plan is the one in use. { planId, expiresAt, daysLeft } or null.
+// Used to show the "Joining a team" warning.
+export function ownActivePlan(user = getStoredUser()) {
+  const own = user?.subscription?.ownPlan;
+  if (own) {
+    if (!own.expiresAt || new Date(own.expiresAt) <= new Date()) return null;
+    return own;
+  }
+  // Saved before round 11 (no ownPlan yet): an own, active paid plan.
+  const sub = getSubscription(user);
+  if (sub && sub.source !== "team" && sub.expiresAt) {
+    return { planId: sub.planId, expiresAt: sub.expiresAt };
+  }
+  return null;
+}
+
+// Round 11: what the member pays for a plan right now, worked out by the
+// server (any upgrade credit for unused days already taken off).
+// { kind, total, credit, amount, daysLeft, fromPlanId, fromExpiresAt, tooMuchCredit }
+export async function getCheckoutQuote(planId, periodId = "monthly", currency = "NGN") {
+  const { data } = await api.get("/api/billing/quote", {
+    params: { planId, periodId, currency },
+  });
+  return data.quote;
+}
+
 // Cancel: the plan stays until it expires (plans never renew on their own).
 export async function cancelPlan() {
   const { data } = await api.post("/api/billing/cancel");

@@ -18,6 +18,17 @@ const paymentSchema = new mongoose.Schema(
     productId: { type: String, default: null },
     // Team plans (round 10): the name given on "Create your team".
     teamName: { type: String, default: "" },
+    // Round 11 upgrade credit: the full price, the credit for unused days on
+    // the plan being replaced, and that plan as it was at checkout. The
+    // amount charged (amountMinor) = fullAmountMinor - creditMinor.
+    fullAmountMinor: { type: Number, default: null },
+    creditMinor: { type: Number, default: 0 },
+    creditDays: { type: Number, default: 0 },
+    upgradeFromPlanId: { type: String, default: null },
+    upgradeFromExpiresAt: { type: Date, default: null },
+    // Round 11 team plans: the payer agreed to the "Joining a team" warning,
+    // so their individual plan ends when this payment is applied.
+    endsIndividualPlan: { type: Boolean, default: false },
     // True when the launch price was charged.
     launchPrice: { type: Boolean, default: false },
     planId: { type: String, required: function () { return this.kind !== "book"; } },

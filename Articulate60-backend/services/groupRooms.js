@@ -122,6 +122,9 @@ function publicScheduled(doc, viewerId) {
     reminderCount: (doc.reminders || []).length,
     liveRoomId: live ? live.id : "",
     seatsTaken: live ? live.members.size : 0,
+    // Round 11: team practices (shown to the team on the Group tab).
+    isTeam: Boolean(doc.team),
+    teamName: doc.teamName || "",
   };
 }
 
@@ -422,6 +425,8 @@ function registerGroupHandlers(socket) {
           private: planned.private,
           max: planned.max === 0 ? "unlimited" : planned.max,
           code: planned.code,
+          // Round 11: a planned team practice opens as a team room.
+          team: Boolean(planned.team),
         };
       }
       const mode = settings.mode === "host" ? "host" : "guided";
@@ -469,7 +474,7 @@ function registerGroupHandlers(socket) {
       // "Practice as a team" (round 10): a private room for the host's team.
       // Team members are told (in the app and by phone notification).
       let team = null;
-      if (settings.team === true && !planned) {
+      if (settings.team === true) {
         const Team = require("../MODELS/Team");
         team = await Team.findOne({ "members.user": userId }).lean();
         if (team && team.expiresAt && new Date(team.expiresAt) > new Date()) {

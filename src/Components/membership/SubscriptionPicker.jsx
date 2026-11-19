@@ -9,13 +9,18 @@ import {
   Wallet,
 } from "lucide-react";
 import { PAID_PLANS, TEAM_MAX_MEMBERS, TEAM_PLANS, formatMoney } from "../../data/plans";
+import PlanComparison from "./PlanComparison";
 import "./SubscriptionPicker.css";
 
 // Round 10 (Sheriff, 2026-11-19): "Choose your subscription", then
 // Individual Plans or Team Plans. Every word is Sheriff's, from the
 // screenshots; the look follows the Loquiex brand (Home tab colours).
 //
-// view: "choose" | "individual" | "team"
+// view: "choose" | "individual" | "team" | "create"
+//       round 11: "upgrade" (Individual plan or Team plan first) | "compare"
+// mode: "upgrade" when the member came from the Upgrade button: Individual
+//       Plans then shows only the plans above theirs, with the credit for
+//       their unused days (quotes, from the server).
 // prices: { NGN: {...}, USD: {...} } monthly prices (server's when known)
 export default function SubscriptionPicker({
   view,
@@ -30,6 +35,10 @@ export default function SubscriptionPicker({
   onPay,
   paying = false,
   payError = "",
+  // Round 11
+  mode = null,
+  quotes = {},
+  onCompareChoose,
 }) {
   const naira = (id) => formatMoney(prices.NGN?.[id] ?? 0, "NGN");
   const dollars = (id) => formatMoney(prices.USD?.[id] ?? 0, "USD");
@@ -93,14 +102,71 @@ export default function SubscriptionPicker({
     );
   }
 
+  if (view === "compare") {
+    return (
+      <PlanComparison
+        prices={prices}
+        currentPlanId={currentPlanId}
+        onChoose={onCompareChoose || (() => onView("choose"))}
+      />
+    );
+  }
+
+  if (view === "upgrade") {
+    return (
+      <section className="sp-panel sp-choose-panel">
+        <h2 className="sp-title sp-title-center">Upgrade your plan</h2>
+        <p className="sp-sub sp-sub-center">What would you like to upgrade to?</p>
+        <div className="sp-types">
+          <article className="sp-type">
+            <p className="sp-type-name">
+              <User size={22} aria-hidden="true" />
+              Individual plan
+            </p>
+            <p className="sp-type-text">
+              A bigger plan for yourself. The unused days on your current plan
+              come off the price.
+            </p>
+            <button type="button" className="sp-continue" onClick={() => onView("individual")}>
+              Continue <ArrowRight size={18} aria-hidden="true" />
+            </button>
+          </article>
+          <article className="sp-type">
+            <p className="sp-type-name">
+              <Users size={22} aria-hidden="true" />
+              Team plan
+            </p>
+            <p className="sp-type-text">
+              One plan for you and up to four other members. You become the
+              Team Admin.
+            </p>
+            <button type="button" className="sp-continue" onClick={() => onView("team")}>
+              Continue <ArrowRight size={18} aria-hidden="true" />
+            </button>
+          </article>
+        </div>
+      </section>
+    );
+  }
+
   if (view === "individual" || view === "team") {
     const team = view === "team";
-    const plans = team ? TEAM_PLANS : PAID_PLANS;
+    const upgrading = mode === "upgrade";
+    const currentIndex = PAID_PLANS.findIndex((p) => p.id === currentPlanId);
+    const plans = team
+      ? TEAM_PLANS
+      : upgrading && currentIndex >= 0
+        ? PAID_PLANS.slice(currentIndex + 1)
+        : PAID_PLANS;
     return (
       <section className="sp-panel">
-        <button type="button" className="sp-back" onClick={() => onView("choose")}>
+        <button
+          type="button"
+          className="sp-back"
+          onClick={() => onView(upgrading ? "upgrade" : "choose")}
+        >
           <ArrowLeft size={16} aria-hidden="true" />
-          Back to subscription type
+          {upgrading ? "Back to upgrade options" : "Back to subscription type"}
         </button>
         <h2 className="sp-title">{team ? "Team Plans" : "Individual Plans"}</h2>
         <p className="sp-sub">
@@ -161,6 +227,7 @@ export default function SubscriptionPicker({
                     when five members split equally.
                   </p>
                 )}
+                {!team && <UpgradeCredit quote={quotes[p.id]} />}
                 <ul className="sp-features">
                   {p.features.map((f) => (
                     <li key={f}>
@@ -182,7 +249,9 @@ export default function SubscriptionPicker({
                     ? "Your current plan"
                     : isSelected
                       ? `${short} selected`
-                      : `Choose ${short}`}
+                      : upgrading && !team && currentIndex >= 0
+                        ? `Upgrade to ${short}`
+                        : `Choose ${short}`}
                 </button>
               </article>
             );
@@ -232,6 +301,26 @@ export default function SubscriptionPicker({
         </article>
       </div>
     </section>
+  );
+}
+
+// Round 11: the credit for unused days on the current plan, on each plan
+// card when upgrading. Amounts come from the server's quote.
+function UpgradeCredit({ quote }) {
+  if (!quote || quote.kind !== "upgrade" || !quote.credit) return null;
+  const money = (n) => formatMoney(n, quote.currency);
+  const days = `${quote.daysLeft} unused ${quote.daysLeft === 1 ? "day" : "days"}`;
+  return (
+    <div className="sp-credit">
+      <p>
+        <span>Credit for {days}</span>
+        <strong>−{money(quote.credit)}</strong>
+      </p>
+      <p className="sp-credit-pay">
+        <span>You pay today</span>
+        <strong>{money(quote.amount)}</strong>
+      </p>
+    </div>
   );
 }
 

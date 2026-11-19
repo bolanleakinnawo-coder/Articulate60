@@ -49,7 +49,7 @@ export const FAQS = [
     id: "limits",
     question: "What happens when I reach my usage limits?",
     answer:
-      "Your daily AI feedback limit and your daily group call time reset at 12 a.m. in your own time zone. Your monthly allowance resets a month after the day you paid (for example, pay on 7 Nov and it resets on 7 Dec), and starts again when you renew. It doesn't reset on the 1st of the month. You can keep practising on your own in the meantime, because personal practice is unlimited.",
+      "Daily AI feedback and group call limits reset at 12 a.m. in your local time zone and your monthly allowance resets on your next billing date. Personal speaking practice is unlimited, so you can keep practising even after reaching your limits.",
   },
   {
     id: "group",

@@ -7,6 +7,7 @@
 // is never reminded twice.
 const ScheduledPractice = require("../MODELS/ScheduledPractice");
 const User = require("../MODELS/User");
+const Team = require("../MODELS/Team");
 const { pushReady, sendPushToUser } = require("./push");
 const { emitToUser } = require("./realtime");
 
@@ -44,7 +45,13 @@ async function remindDue(now = new Date()) {
     );
     const when = minutes <= 0 ? "now" : `in ${minutes} min`;
     const title = titleOf(doc);
-    const recipients = [doc.host, ...(doc.reminders || [])].map(String);
+    // Round 11: a team practice reminds the whole team.
+    let teamIds = [];
+    if (doc.team) {
+      const team = await Team.findById(doc.team, { members: 1 }).lean();
+      teamIds = (team?.members || []).map((m) => m.user);
+    }
+    const recipients = [doc.host, ...(doc.reminders || []), ...teamIds].map(String);
     const unique = [...new Set(recipients)];
     const users = await User.find({ _id: { $in: unique } })
       .select("pushSubscriptions")

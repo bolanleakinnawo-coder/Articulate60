@@ -2,6 +2,8 @@
 //
 //   POST /api/billing/checkout   { planId, periodId, currency, popup }
 //                                -> { accessCode, authorizationUrl, reference }
+//   GET  /api/billing/quote?planId&periodId&currency
+//                                -> { kind, total, credit, amount, daysLeft, ... }
 //   POST /api/billing/verify     { reference }         -> { status, subscription }
 //   POST /api/billing/sync                             -> { applied, subscription }
 //   GET  /api/billing/me                               -> { subscription, payments }
@@ -29,8 +31,8 @@ const {
   TEAM_PLANS,
   PRICES,
   enabledCurrencies,
-  priceMinorFor,
   subscriptionOf,
+  checkoutQuote,
 } = require("../utils/plans");
 
 const router = express.Router();
@@ -87,12 +89,71 @@ function publicPayment(p) {
     planId: p.planId,
     periodId: p.periodId,
     amount: p.amountMinor / 100,
+    credit: (p.creditMinor || 0) / 100,
     currency: p.currency,
     paidAt: p.paidAt,
     planExpiresAt: p.planExpiresAt,
     createdAt: p.createdAt,
   };
 }
+
+const QUOTE_FIELDS = { plan: 1, planExpiresAt: 1, planPeriodId: 1, email: 1 };
+
+// Words for the app (amounts in whole naira / dollars).
+function publicQuote(q, currency) {
+  return {
+    kind: q.kind,
+    currency,
+    total: q.totalMinor / 100,
+    credit: q.creditMinor / 100,
+    amount: q.amountMinor / 100,
+    daysLeft: q.daysLeft,
+    fromPlanId: q.fromPlanId,
+    fromExpiresAt: q.fromExpiresAt,
+    tooMuchCredit: q.tooMuchCredit,
+  };
+}
+
+// The "Joining a team" warning (Sheriff's words, round 11). The app shows it
+// before this is ever sent; this is the server's own check.
+const ENDS_INDIVIDUAL_PLAN = {
+  code: "ENDS_INDIVIDUAL_PLAN",
+  message:
+    "Your individual subscription will end immediately when you join this team. Any unused days and allowances will be forfeited, as individual and team allowances cannot be combined.",
+};
+
+function downgradeMessage(q) {
+  const date = new Date(q.fromExpiresAt).toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+  return `You can move to a lower plan when your current plan ends on ${date}.`;
+}
+
+// GET /api/billing/quote — what the member would pay, including any upgrade
+// credit, so the app can show it before Paystack opens.
+router.get("/quote", authMiddleware, async (req, res) => {
+  const planId = String(req.query?.planId || "");
+  const periodId = String(req.query?.periodId || "monthly");
+  const currency = String(req.query?.currency || "NGN").toUpperCase();
+  if (!PURCHASABLE_PLAN_IDS.includes(planId) || !BILLING_PERIODS[periodId]) {
+    return res.status(400).json({ message: "Choose a plan and billing period." });
+  }
+  if (!enabledCurrencies().includes(currency)) {
+    return res.status(400).json({ message: "That currency isn't available." });
+  }
+  try {
+    const user = await User.findById(req.userId, QUOTE_FIELDS);
+    if (!user) return res.status(404).json({ message: "User not found." });
+    const q = checkoutQuote(user, planId, periodId, currency);
+    if (!q) return res.status(400).json({ message: "Choose a plan and billing period." });
+    res.json({ quote: publicQuote(q, currency) });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Couldn't work out the price. Please try again." });
+  }
+});
 
 // POST /api/billing/checkout
 router.post("/checkout", authMiddleware, checkoutLimiter, async (req, res) => {
@@ -109,15 +170,28 @@ router.post("/checkout", authMiddleware, checkoutLimiter, async (req, res) => {
   if (!enabledCurrencies().includes(currency)) {
     return res.status(400).json({ message: "That currency isn't available." });
   }
-  const amountMinor = priceMinorFor(planId, periodId, currency);
-  if (!amountMinor)
-    return res
-      .status(400)
-      .json({ message: "Choose a plan and billing period." });
-
   try {
-    const user = await User.findById(req.userId, { email: 1 });
+    const user = await User.findById(req.userId, QUOTE_FIELDS);
     if (!user) return res.status(404).json({ message: "User not found." });
+    // Round 11: the price, less any upgrade credit, worked out here only.
+    const quote = checkoutQuote(user, planId, periodId, currency);
+    if (!quote)
+      return res.status(400).json({ message: "Choose a plan and billing period." });
+    if (quote.kind === "downgrade") {
+      return res.status(409).json({ code: "DOWNGRADE_LATER", message: downgradeMessage(quote) });
+    }
+    if (quote.tooMuchCredit) {
+      return res.status(409).json({
+        code: "CREDIT_TOO_LARGE",
+        message:
+          "Your unused days are worth more than this. Choose a longer billing period.",
+      });
+    }
+    const endsIndividualPlan = Boolean(TEAM_PLANS[planId] && quote.fromPlanId);
+    if (endsIndividualPlan && req.body?.endIndividualPlan !== true) {
+      return res.status(409).json(ENDS_INDIVIDUAL_PLAN);
+    }
+    const amountMinor = quote.amountMinor;
     // Team plans: a member of someone else's team leaves it before starting
     // their own team.
     if (TEAM_PLANS[planId]) {
@@ -140,6 +214,12 @@ router.post("/checkout", authMiddleware, checkoutLimiter, async (req, res) => {
       months: BILLING_PERIODS[periodId].months,
       amountMinor,
       currency,
+      fullAmountMinor: quote.totalMinor,
+      creditMinor: quote.creditMinor,
+      creditDays: quote.kind === "upgrade" ? quote.daysLeft : 0,
+      upgradeFromPlanId: quote.kind === "upgrade" ? quote.fromPlanId : null,
+      upgradeFromExpiresAt: quote.kind === "upgrade" ? quote.fromExpiresAt : null,
+      endsIndividualPlan,
       teamName: TEAM_PLANS[planId]
         ? String(req.body?.teamName || "").trim().slice(0, 60)
         : "",
@@ -170,6 +250,7 @@ router.post("/checkout", authMiddleware, checkoutLimiter, async (req, res) => {
       accessCode: tx.access_code,
       authorizationUrl: tx.authorization_url,
       amount: amountMinor / 100,
+      credit: quote.creditMinor / 100,
       currency,
       mode: payment.mode,
     });

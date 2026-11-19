@@ -112,6 +112,9 @@ const userSchema = new mongoose.Schema(
     // only records the choice: they keep the plan until planExpiresAt.
     // Cleared by the next successful payment.
     planCancelledAt: { type: Date, default: null },
+    // Round 11: when the individual plan was ended because the member joined
+    // or started a team (no credit, as the "Joining a team" warning says).
+    planEndedForTeamAt: { type: Date, default: null },
     // --- Team plan (set ONLY by services/team.js). A member of a team gets
     // the team's plan while teamPlanExpiresAt is in the future. The Team
     // Admin is a member too. See MODELS/Team.js and utils/plans.js planIdOf().
