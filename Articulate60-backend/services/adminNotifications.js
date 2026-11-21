@@ -266,10 +266,12 @@ async function deliver(doc) {
     await Promise.all(
       users.map(async (user) => {
         const body = doc.message.replace(/\{name\}/g, firstName(user));
+        // Round 15 (Sheriff): only what the admin typed. The phone already
+        // shows the app name, so no extra "Loquiex" title.
         const payload = {
           kind: "admin",
-          title: "Loquiex",
-          body,
+          title: body,
+          body: "",
           url: group?.url || "/app/home",
           action: "Open",
           tag: `admin-${doc._id}`,

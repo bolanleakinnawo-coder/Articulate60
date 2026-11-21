@@ -92,13 +92,17 @@ export default function AdminNotifications() {
             ? `Sent to ${n.recipients} ${n.recipients === 1 ? "member" : "members"}.`
             : "Could not send the notification.",
       );
-      setMessage("");
-      setAt("");
-      setLater(false);
       load();
     } catch (err) {
       setNote(err.response?.data?.message || "Could not send the notification.");
+      load();
     } finally {
+      // Round 15 (Sheriff): the form is cleared once you press Send.
+      setMessage("");
+      setGroup("");
+      setCount(null);
+      setAt("");
+      setLater(false);
       setBusy(false);
     }
   };

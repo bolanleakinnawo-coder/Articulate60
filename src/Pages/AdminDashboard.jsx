@@ -274,9 +274,6 @@ export function AdminGroupAnalytics() {
           <Stat label="Planned practices" value={g.planned} note="Scheduled this month" />
         </div>
       )}
-      {g && (
-        <p className="adm-foot">Sessions are counted from round 14 onwards.</p>
-      )}
     </Shell>
   );
 }

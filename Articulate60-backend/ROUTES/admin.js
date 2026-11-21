@@ -507,7 +507,7 @@ router.get("/dashboard", async (req, res) => {
     for (const r of featureRows) {
       const name = r._id.wotd
         ? "Word of the day"
-        : FEATURE_NAMES[r._id.feature] || "Not recorded (before round 14)";
+        : FEATURE_NAMES[r._id.feature] || "Other";
       featureTotals[name] = (featureTotals[name] || 0) + r.count;
     }
     const features = Object.entries(featureTotals)
