@@ -4,6 +4,7 @@ import {
   BILLING_PERIODS,
   aiTrialDaysLeft,
   aiTrialEndsAt,
+  AI_TRIAL,
   formatMoney,
   getPlan,
   getSubscription,
@@ -70,7 +71,8 @@ export default function MembershipCard({
     label = "AI feedback trial ends";
     date = formatDay(ends);
     daysText = `${days} day${days === 1 ? "" : "s"} left`;
-    const created = user?.createdAt ? new Date(user.createdAt) : null;
+    // Round 14: the trial runs 3 days from when it was started.
+    const created = new Date(ends.getTime() - AI_TRIAL.days * 24 * 60 * 60 * 1000);
     if (created && ends > created) {
       pct = clampPct(
         ((ends.getTime() - now) / (ends.getTime() - created.getTime())) *

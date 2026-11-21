@@ -14,6 +14,7 @@ const {
   canUseAiFeedback,
   aiDailyLimit,
   aiTrialEndsAt,
+  canStartAiTrial,
   planIdOf,
 } = require("../utils/plans");
 const router = express.Router();
@@ -64,6 +65,7 @@ router.post(
         isWordOfTheDay,
         wentWell,
         improveNextTime,
+        feature,
       } = req.body;
 
       if (!topic || !level || !durationSeconds) {
@@ -109,6 +111,7 @@ router.post(
         user: req.userId,
         topic,
         category: category || "",
+        feature: ["jar", "yap", "research"].includes(feature) ? feature : "",
         isWordOfTheDay: isWordOfTheDay === "true",
         level: Number(level),
         durationSeconds: Number(durationSeconds),
@@ -490,7 +493,7 @@ async function aiUsedToday(req, user, excludeId = null) {
 router.get("/ai-allowance", authMiddleware, async (req, res) => {
   try {
     const user = await User.findById(req.userId).select(
-      "plan planExpiresAt teamPlan teamPlanExpiresAt createdAt timeZone",
+      "plan planExpiresAt teamPlan teamPlanExpiresAt createdAt timeZone trialByChoice aiTrialStartedAt",
     );
     if (!user) return res.status(404).json({ message: "User not found." });
 
@@ -514,6 +517,8 @@ router.get("/ai-allowance", authMiddleware, async (req, res) => {
       trialDaysLeft: onTrial
         ? Math.max(1, Math.ceil((trialEnds.getTime() - now.getTime()) / 86400000))
         : 0,
+      // Round 14: free member who can still choose to start the free trial.
+      trialAvailable: !paid && canStartAiTrial(user),
     });
   } catch (err) {
     console.error("AI allowance failed:", err.message);
@@ -540,7 +545,7 @@ router.post(
       }
 
       const user = await User.findById(req.userId).select(
-        "plan planExpiresAt teamPlan teamPlanExpiresAt createdAt timeZone",
+        "plan planExpiresAt teamPlan teamPlanExpiresAt createdAt timeZone trialByChoice aiTrialStartedAt",
       );
 
       // Finished results can always be read again.

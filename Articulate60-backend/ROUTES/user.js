@@ -276,9 +276,15 @@ router.post("/signup", signupLimiter, handleProfilePhotoUpload, async (req, res)
       marketingOptIn: marketingOptIn === "true",
       marketingOptInAt:
         marketingOptIn === "true" ? new Date() : null,
+      // Round 14: the free trial starts only when the member chooses it.
+      trialByChoice: true,
     });
 
     const token = generateToken(newUser);
+    // Round 14: the automatic Welcome email.
+    require("../services/autoEmails")
+      .sendAutoEmail("welcome", newUser._id)
+      .catch(() => {});
 
     res.status(201).json({
       message: "Account created successfully!",

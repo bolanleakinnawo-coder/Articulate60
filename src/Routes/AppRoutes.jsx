@@ -15,6 +15,14 @@ import AdminSubscribers from "../Pages/AdminSubscribers";
 import AdminPayments from "../Pages/AdminPayments";
 import AdminProductNotifications from "../Pages/AdminProductNotifications";
 import AdminLayout from "../Components/layout/AdminLayout";
+import AdminNotifications from "../Pages/AdminNotifications";
+import AdminEmails from "../Pages/AdminEmails";
+import {
+  AdminGroupAnalytics,
+  AdminLearnAnalytics,
+  AdminPracticeAnalytics,
+  AdminSubscriptions,
+} from "../Pages/AdminDashboard";
 import Registration from "../Pages/Registration";
 import Login from "../Pages/Login";
 import ForgotPassword from "../Pages/ForgotPassword";
@@ -68,6 +76,13 @@ export default function AppRoutes() {
         <Route path="testimonials" element={<AdminTestimonials />} />
         <Route path="subscribers" element={<AdminSubscribers />} />
         <Route path="payments" element={<AdminPayments />} />
+        {/* Round 14 (Sheriff): dashboard sections. */}
+        <Route path="practice" element={<AdminPracticeAnalytics />} />
+        <Route path="learn-analytics" element={<AdminLearnAnalytics />} />
+        <Route path="group-practice" element={<AdminGroupAnalytics />} />
+        <Route path="subscriptions" element={<AdminSubscriptions />} />
+        <Route path="notifications" element={<AdminNotifications />} />
+        <Route path="emails" element={<AdminEmails />} />
         <Route
           path="product-notifications"
           element={<AdminProductNotifications />}

@@ -115,6 +115,12 @@ const userSchema = new mongoose.Schema(
     // Round 11: when the individual plan was ended because the member joined
     // or started a team (no credit, as the "Joining a team" warning says).
     planEndedForTeamAt: { type: Date, default: null },
+    // Round 14 (Sheriff): the 3-day free trial is no longer automatic. New
+    // accounts get trialByChoice: true and start the trial themselves
+    // (aiTrialStartedAt). Accounts made before round 14 have neither field,
+    // and their trial ran from the sign-up date as before.
+    trialByChoice: { type: Boolean },
+    aiTrialStartedAt: { type: Date },
     // --- Team plan (set ONLY by services/team.js). A member of a team gets
     // the team's plan while teamPlanExpiresAt is in the future. The Team
     // Admin is a member too. See MODELS/Team.js and utils/plans.js planIdOf().
@@ -158,6 +164,8 @@ const userSchema = new mongoose.Schema(
     },
     // Last local day (YYYY-MM-DD) each reminder was sent, so none repeats.
     reminderLog: { type: Map, of: String, default: {} },
+    // Round 14: automatic emails already sent (key -> when), so none repeats.
+    emailLog: { type: Map, of: Date, default: {} },
   },
   { timestamps: true },
 );

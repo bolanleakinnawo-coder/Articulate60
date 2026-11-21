@@ -71,7 +71,7 @@ async function publicTeam(team, viewerId) {
   const byId = new Map(users.map((u) => [String(u._id), u]));
   let liveRoom = null;
   try {
-    liveRoom = require("../services/groupRooms").teamLiveRoom(team._id);
+    liveRoom = require("../services/groupRooms").teamLiveRoom(team._id, viewerId);
   } catch {
     liveRoom = null;
   }

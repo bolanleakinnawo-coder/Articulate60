@@ -28,7 +28,13 @@ async function settlePayment(payment) {
         { _id: payment._id, status: "pending" },
         { $set: { status: next } },
         { returnDocument: "after" },
-      ).then((p) => p || Payment.findById(payment._id));
+      ).then((p) => {
+        // Round 14: the automatic "Payment failed" email.
+        if (p && next === "failed") {
+          require("./autoEmails").paymentFailed(p).catch(() => {});
+        }
+        return p || Payment.findById(payment._id);
+      });
     }
     return payment; // still in progress ("ongoing", "pending", ...)
   }
@@ -69,7 +75,15 @@ async function settlePayment(payment) {
       { returnDocument: "after" },
     );
   }
-  if (!payment.appliedAt) tellMember(payment);
+  if (!payment.appliedAt) {
+    tellMember(payment);
+    // Round 14: the automatic "Payment successful" (receipt) and
+    // "Subscription confirmation" emails, once per payment.
+    Payment.findById(payment._id)
+      .lean()
+      .then((p) => p && require("./autoEmails").paymentSucceeded(p))
+      .catch((err) => console.error("Payment email failed:", err.message));
+  }
   const duplicate = await findDuplicateOf(payment);
   if (duplicate) {
     console.warn(`Payment ${payment.reference} looks like a duplicate of ${duplicate}: check Admin > Payments.`);

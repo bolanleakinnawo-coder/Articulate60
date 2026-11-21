@@ -139,6 +139,32 @@ function isCodeLive(code) {
 function deleteRoom(room) {
   rooms.delete(room.id);
   if (codes.get(room.code) === room.id) codes.delete(room.code);
+  logSession(room);
+}
+
+// Round 14: one row per call for Admin > Group Practice. A host re-joining
+// an empty room re-opens it (see addToRoom), so the row is written a moment
+// later and only if the room is really gone.
+function logSession(room) {
+  setTimeout(() => {
+    if (rooms.get(room.id) === room || room.logged) return;
+    room.logged = true;
+    const participants = [...(room.participants || [])];
+    if (!participants.length) return;
+    const GroupSession = require("../MODELS/GroupSession");
+    GroupSession.create({
+      roomId: room.id,
+      hostId: room.ownerId || null,
+      mode: room.mode || "guided",
+      private: Boolean(room.private),
+      team: Boolean(room.teamId),
+      planned: Boolean(room.scheduledId),
+      startedAt: new Date(room.createdAt || Date.now()),
+      endedAt: new Date(),
+      participants,
+      peakMembers: room.peak || participants.length,
+    }).catch((err) => console.error("Group session log failed:", err.message));
+  }, 3000).unref?.();
 }
 
 // Slows down anyone trying to guess codes: 10 wrong codes per 10 minutes.
@@ -329,6 +355,10 @@ function addToRoom(socket, room, user, summary) {
   const others = [...room.members.values()].map(publicMember);
   room.members.set(userId, member);
   memberships.set(userId, { roomId: room.id, socketId: socket.id });
+  // Round 14: who took part, for Admin > Group Practice.
+  if (!room.participants) room.participants = new Set();
+  room.participants.add(String(userId));
+  room.peak = Math.max(room.peak || 0, room.members.size);
   // The member who started the call gets hosting back when they return,
   // even after it was handed to someone else (Sheriff, 2026-11-10).
   if ((keepHost || room.ownerId === userId) && room.hostId !== userId) {
@@ -734,11 +764,16 @@ function notifyReminded(planned, room, host, hostId) {
 }
 
 // The team's practice that is on right now, if any (for My Team).
-function teamLiveRoom(teamId) {
+function teamLiveRoom(teamId, viewerId) {
   for (const room of rooms.values()) {
     if (room.teamId && room.teamId === String(teamId) && room.members.size > 0) {
       const host = room.members.get(room.hostId);
       return {
+        // Round 14: the starter (or anyone already in it) goes back into
+        // this call instead of joining it again by code.
+        id: room.id,
+        isStarter: String(room.ownerId) === String(viewerId || ""),
+        isInCall: room.members.has(String(viewerId || "")),
         code: room.code,
         hostName: host?.name || "",
         members: room.members.size,

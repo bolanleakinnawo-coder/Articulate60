@@ -34,6 +34,7 @@ const {
   subscriptionOf,
   checkoutQuote,
 } = require("../utils/plans");
+const { trialStarted } = require("../services/autoEmails");
 
 const router = express.Router();
 
@@ -78,6 +79,8 @@ async function subscriptionFor(userId) {
     teamPlanStartedAt: 1,
     teamPlanExpiresAt: 1,
     createdAt: 1,
+    trialByChoice: 1,
+    aiTrialStartedAt: 1,
   });
   return user ? subscriptionOf(user) : null;
 }
@@ -340,6 +343,27 @@ router.get("/me", authMiddleware, async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Couldn't load your membership." });
+  }
+});
+
+// POST /api/billing/start-trial — round 14 (Sheriff): the 3-day free trial
+// is no longer automatic. A new free member starts it themselves, once.
+router.post("/start-trial", authMiddleware, async (req, res) => {
+  try {
+    const now = new Date();
+    const result = await User.updateOne(
+      { _id: req.userId, trialByChoice: true, aiTrialStartedAt: { $exists: false } },
+      { $set: { aiTrialStartedAt: now } },
+    );
+    const subscription = await subscriptionFor(req.userId);
+    if (!subscription) return res.status(404).json({ message: "User not found." });
+    if (result.modifiedCount && subscription.planId === "free") {
+      trialStarted(req.userId, subscription.aiTrialEndsAt).catch(() => {});
+    }
+    res.json({ subscription });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Couldn't start your free trial. Please try again." });
   }
 });
 

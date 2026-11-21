@@ -33,6 +33,9 @@ import {
   refreshPlanFromServer,
   resumePlan,
   startCheckout,
+  startFreeTrial,
+  canStartAiTrial,
+  isOnAiTrial,
   syncPendingPayments,
   verifyPayment,
 } from "../data/plans";
@@ -97,13 +100,36 @@ export default function Membership() {
   const [cancelBusy, setCancelBusy] = useState(false);
   const [cancelError, setCancelError] = useState("");
   // Round 10: "Choose your subscription" -> Individual Plans / Team Plans.
+  // Round 14 (Sheriff): a free-trial member who taps "Get Bloom" is asked
+  // Individual or Team first, like everyone else opening Upgrade.
+  const onFreeTrial = isOnAiTrial(user);
   const [view, setView] = useState(
     reason === "team"
       ? "team"
-      : reason === "group" || reason === "unlimited" || reason === "feedback"
+      : reason === "group" ||
+          reason === "unlimited" ||
+          (reason === "feedback" && !onFreeTrial)
         ? "individual"
         : "choose",
   );
+  // Round 14 (Sheriff): the free trial is no longer automatic.
+  const [trialBusy, setTrialBusy] = useState(false);
+  const [trialError, setTrialError] = useState("");
+  const trialAvailable = canStartAiTrial(user);
+  const doStartTrial = async () => {
+    setTrialBusy(true);
+    setTrialError("");
+    try {
+      await startFreeTrial();
+      setVersion((v) => v + 1);
+    } catch (err) {
+      setTrialError(
+        err.response?.data?.message || "Couldn't start your free trial. Please try again.",
+      );
+    } finally {
+      setTrialBusy(false);
+    }
+  };
   // Round 11: "upgrade" when the member tapped Upgrade (Individual or Team
   // first, then only higher plans, with the credit for unused days).
   const [mode, setMode] = useState(null);
@@ -140,8 +166,13 @@ export default function Membership() {
   const prices = mergePrices(billing?.prices);
   const money = (amount) => formatMoney(amount, payCurrency);
   const total = (p, period) => priceFor(p, period, payCurrency, prices);
+  // Round 14 (Sheriff): no "Unlock AI feedback" line for free-trial members.
   const reasonText =
-    typeof REASONS[reason] === "function" ? REASONS[reason]() : REASONS[reason];
+    reason === "feedback" && onFreeTrial
+      ? ""
+      : typeof REASONS[reason] === "function"
+        ? REASONS[reason]()
+        : REASONS[reason];
 
   const own = ownActivePlan(user);
   const ownPlanId = own?.planId || null;
@@ -224,7 +255,12 @@ export default function Membership() {
     }
   };
 
-  const back = () => (fromProfile ? navigate("/app/profile") : navigate(-1));
+  const back = () =>
+    fromProfile
+      ? navigate("/app/profile")
+      : location.state?.from === "signup"
+        ? navigate("/app/home")
+        : navigate(-1);
 
   // Plan and payments from the server. Any payment that went through but
   // wasn't confirmed yet is applied first.
@@ -472,6 +508,19 @@ export default function Membership() {
       {/* Plan options (round 8 follow-up): one compact row. Cancel plan
           stays on its own at the very end of the page. */}
       <div className="pf-plan-actions pf-plan-actions-compact">
+        {/* Round 14 (Sheriff): new members choose to start the free trial
+            or pick a plan. */}
+        {trialAvailable && (
+          <button
+            type="button"
+            className="pf-plan-action is-primary"
+            disabled={trialBusy}
+            onClick={doStartTrial}
+          >
+            <Sparkles size={14} aria-hidden="true" />
+            {trialBusy ? "Starting..." : "Start free trial"}
+          </button>
+        )}
         {isPaid && !fromTeam && (
           <button
             type="button"
@@ -491,7 +540,7 @@ export default function Membership() {
         {upgradeTo && (
           <button
             type="button"
-            className={`pf-plan-action ${isPaid ? "is-secondary" : "is-primary"}`}
+            className={`pf-plan-action ${isPaid || trialAvailable ? "is-secondary" : "is-primary"}`}
             onClick={() => {
               // Round 11: Upgrade first asks Individual plan or Team plan.
               setMode("upgrade");
@@ -518,6 +567,11 @@ export default function Membership() {
           Compare plans
         </button>
       </div>
+      {trialError && (
+        <p className="pf-pay-error" role="alert">
+          {trialError}
+        </p>
+      )}
 
       {/* Round 10: Choose your subscription -> Individual / Team plans. */}
       <div ref={compareRef} className="pf-scroll-target">

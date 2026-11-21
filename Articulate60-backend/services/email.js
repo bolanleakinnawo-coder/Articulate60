@@ -200,7 +200,28 @@ function teamInviteEmail({ adminName, teamName, planName, url }) {
   };
 }
 
+// Round 14: an email the admin wrote in Admin > Emails. `body` is plain
+// text; a blank line starts a new paragraph. An optional button links to
+// the app.
+function adminTextEmail({ subject, body, button }) {
+  const paragraphs = String(body || "")
+    .split(/\n\s*\n/)
+    .map((p) => p.trim())
+    .filter(Boolean);
+  return {
+    subject,
+    html: layout({
+      heading: subject,
+      paragraphs: paragraphs.map((p) => escapeHtml(p).replace(/\n/g, "<br>")),
+      button,
+      footer: "You're getting this email because you have a Loquiex account.",
+    }),
+    text: `${paragraphs.join("\n\n")}${button ? `\n\n${button.label}: ${button.url}` : ""}`,
+  };
+}
+
 module.exports = {
+  adminTextEmail,
   teamInviteEmail,
   sendEmail,
   isConfigured,

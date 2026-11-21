@@ -157,8 +157,16 @@ const AI_TRIAL_DAYS = 3;
 const AI_TRIAL_PER_DAY = 3;
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-// When this member's free AI trial ends (null if the sign-up date is unknown).
+// When this member's free AI trial ends (null if it hasn't started).
+// Round 14: new accounts start the trial themselves (aiTrialStartedAt);
+// older accounts' trial ran from their sign-up date.
 function aiTrialEndsAt(user) {
+  if (user?.aiTrialStartedAt) {
+    const started = new Date(user.aiTrialStartedAt);
+    if (!Number.isNaN(started.getTime()))
+      return new Date(started.getTime() + AI_TRIAL_DAYS * DAY_MS);
+  }
+  if (user?.trialByChoice) return null;
   const created = user?.createdAt ? new Date(user.createdAt) : null;
   if (!created || Number.isNaN(created.getTime())) return null;
   return new Date(created.getTime() + AI_TRIAL_DAYS * DAY_MS);
@@ -168,6 +176,11 @@ function isOnAiTrial(user, now = new Date()) {
   if (isPaid(user)) return false;
   const ends = aiTrialEndsAt(user);
   return Boolean(ends && ends > now);
+}
+
+// Round 14: a free member who hasn't started their free trial yet.
+function canStartAiTrial(user) {
+  return Boolean(user?.trialByChoice && !user?.aiTrialStartedAt && !isPaid(user));
 }
 
 function canUseAiFeedback(user, now = new Date()) {
@@ -217,6 +230,8 @@ function subscriptionBase(user, now = new Date()) {
       expiresAt: null,
       aiTrialEndsAt: trialEnds,
       onAiTrial: isOnAiTrial(user, now),
+      // Round 14: the member can still choose to start the free trial.
+      aiTrialAvailable: canStartAiTrial(user),
       inTeam: Boolean(user?.team),
     };
   }
@@ -327,6 +342,8 @@ const PLAN_FIELDS = {
   teamPlan: 1,
   teamPlanExpiresAt: 1,
   createdAt: 1,
+  trialByChoice: 1,
+  aiTrialStartedAt: 1,
 };
 
 module.exports = {
@@ -353,6 +370,7 @@ module.exports = {
   AI_TRIAL_PER_DAY,
   aiTrialEndsAt,
   isOnAiTrial,
+  canStartAiTrial,
   canUseAiFeedback,
   AI_FEEDBACK_PER_DAY,
   aiDailyLimit,

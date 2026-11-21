@@ -11,6 +11,10 @@ const recordingSchema = new mongoose.Schema(
     topic: { type: String, required: true },
     category: { type: String, default: "" },
     isWordOfTheDay: { type: Boolean, default: false },
+    // Round 14: which practice feature it came from, for Admin > Practice
+    // Analytics: "jar" (Spin the Jar), "yap" (Yap Mode), "research"
+    // (Research Mode). Empty on practices saved before round 14.
+    feature: { type: String, default: "" },
     level: { type: Number, required: true },
     durationSeconds: { type: Number, required: true },
     audioUrl: { type: String, required: true },

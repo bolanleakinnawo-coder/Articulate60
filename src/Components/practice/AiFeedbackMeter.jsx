@@ -39,7 +39,9 @@ export function AiFeedbackMeter({ allowance, infoOpen, onToggleInfo }) {
         aria-controls="ai-meter-info"
         aria-label={
           locked
-            ? "Feedback locked. Your free trial has ended."
+            ? allowance.trialAvailable
+              ? "Feedback locked. Start your free trial to unlock it."
+              : "Feedback locked. Your free trial has ended."
             : unlimited
               ? "Unlimited feedback"
               : `${left} feedback ${left === 1 ? "session" : "sessions"} left today`
@@ -67,7 +69,10 @@ export function AiFeedbackMeter({ allowance, infoOpen, onToggleInfo }) {
           />
         </span>
         {locked ? (
-          <span className="ai-meter-note">Trial ended</span>
+          <span className="ai-meter-note">
+            {/* Round 14: the free trial now starts only when chosen. */}
+            {allowance.trialAvailable ? "Trial not started" : "Trial ended"}
+          </span>
         ) : unlimited ? (
           <span className="ai-meter-note">
             {used ? `${used} used today` : "Infinity plan"}
@@ -93,7 +98,9 @@ export function AiFeedbackInfo({ allowance }) {
   if (!allowance) return null;
   const { state, limit, left } = allowance;
   let text;
-  if (state === "locked") {
+  if (state === "locked" && allowance.trialAvailable) {
+    text = `Start your 3-day free trial to get feedback, or choose a plan. Bloom gives you ${BLOOM_PER_DAY} a day.`;
+  } else if (state === "locked") {
     text = `Your 3-day free trial of feedback has ended. Bloom gives you ${BLOOM_PER_DAY} a day.`;
   } else if (limit === null) {
     text = "Your plan has unlimited feedback.";
@@ -118,7 +125,13 @@ export function AiFeedbackNudge({ allowance }) {
   let title;
   let body;
   let cta = "Get Bloom";
-  if (state === "locked") {
+  // Round 14 (Sheriff): the free trial is no longer automatic.
+  const startTrial = state === "locked" && allowance.trialAvailable;
+  if (startTrial) {
+    title = "Your 3-day free trial is ready.";
+    body = "Start it, or choose a plan.";
+    cta = "Start free trial";
+  } else if (state === "locked") {
     title = "Your free feedback has ended.";
     body = `Unlock it with Bloom from ${BLOOM_PRICE} a month.`;
     cta = "Unlock";
@@ -142,7 +155,10 @@ export function AiFeedbackNudge({ allowance }) {
         type="button"
         className="ai-nudge-btn"
         onClick={() =>
-          navigate("/app/membership", { state: { reason: "feedback" } })
+          navigate(
+            "/app/membership",
+            startTrial ? undefined : { state: { reason: "feedback" } },
+          )
         }
       >
         {cta}

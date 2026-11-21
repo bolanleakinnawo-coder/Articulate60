@@ -28,8 +28,12 @@ api.interceptors.response.use(
   (response) => {
     // The server renews a sign-in that is more than a day old, so members
     // who keep using Loquiex stay signed in (round 10).
+    // Round 14: only when the reply belongs to the sign-in saved now. A slow
+    // reply to a request sent with an older sign-in (for example from before
+    // a password change) must never overwrite the new one.
     const fresh = response.headers?.["x-refreshed-token"];
-    if (fresh && localStorage.getItem("token")) {
+    const saved = localStorage.getItem("token");
+    if (fresh && saved && sentToken(response.config) === saved) {
       try {
         localStorage.setItem("token", fresh);
       } catch {
@@ -46,10 +50,15 @@ api.interceptors.response.use(
     }
     // The password was reset on another device, or the account was deleted:
     // this sign-in no longer works, so go back to the sign-in page.
+    // Round 14: only when the refused sign-in is the one saved now. A
+    // background check that left with the old sign-in before a password
+    // change must not log out the new one.
+    const saved = localStorage.getItem("token");
     if (
       error.response?.status === 401 &&
       SESSION_ENDED_CODES[code] &&
-      localStorage.getItem("token")
+      saved &&
+      sentToken(error.config) === saved
     ) {
       localStorage.removeItem("token");
       localStorage.removeItem("user");
@@ -58,6 +67,17 @@ api.interceptors.response.use(
     return Promise.reject(error);
   },
 );
+
+// The sign-in a request was sent with ("" when none).
+function sentToken(config) {
+  const headers = config?.headers;
+  const value =
+    (typeof headers?.get === "function" ? headers.get("Authorization") : null) ||
+    headers?.Authorization ||
+    headers?.authorization ||
+    "";
+  return String(value).replace(/^Bearer\s+/i, "");
+}
 
 const SESSION_ENDED_CODES = {
   SESSION_REVOKED: "revoked",

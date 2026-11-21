@@ -601,12 +601,18 @@ function isNearlyFull(room) {
 }
 
 // Round 13 (Sheriff): tabs in Find a practice. Team only for team members.
+// Round 14 (Sheriff): Live comes before Upcoming.
 const LIST_TABS = [
   { id: "all", label: "All" },
-  { id: "upcoming", label: "Upcoming" },
   { id: "live", label: "Live" },
+  { id: "upcoming", label: "Upcoming" },
   { id: "team", label: "Team" },
 ];
+
+// Round 14 (Sheriff): what the person who started a team call (or anyone
+// already in it) sees on its card. Tapping it takes them back into the call
+// instead of joining again, which used to end the call.
+const BACK_TO_CALL_LABEL = "Continue call";
 
 // "Sat 8 Nov, 6:00 pm" in each member's own time zone (the practice is
 // saved as one moment in time, so everyone sees their local clock).
@@ -685,7 +691,7 @@ function RoomCard({ room, onJoin }) {
 }
 
 // A practice planned for later.
-function PlannedCard({ item, onRemind, onStart, onCancel, onJoin, busy, now = 0 }) {
+function PlannedCard({ item, onRemind, onStart, onCancel, onJoin, busy, now = 0, inCall = false }) {
   return (
     <article className="gpt-room gpt-planned">
       <div className="gpt-room-top">
@@ -744,7 +750,7 @@ function PlannedCard({ item, onRemind, onStart, onCancel, onJoin, busy, now = 0 
           {item.liveRoomId && onJoin ? (
             <button type="button" className="gpt-room-join" onClick={() => onJoin(item)}>
               <Users size={16} aria-hidden="true" />
-              Join now
+              {inCall ? BACK_TO_CALL_LABEL : "Join now"}
             </button>
           ) : !item.liveRoomId && new Date(item.startsAt).getTime() <= now ? (
             /* Round 13 (Sheriff): past the start time and not started yet.
@@ -786,7 +792,8 @@ export function GroupPracticeTab() {
     allowed && usage.loaded && usage.total !== null && usage.left <= 0;
   const [rooms, setRooms] = useState([]);
   const [connection, setConnection] = useState("connecting");
-  const [listTab, setListTab] = useState("all"); // all | upcoming | live | team
+  const [listTab, setListTab] = useState("all"); // all | live | upcoming | team
+  const activeCallSnap = useActiveCall();
   // Round 13: the clock for "Waiting for host to start" (checked every 15s).
   const [clockNow, setClockNow] = useState(() => Date.now());
   useEffect(() => {
@@ -921,6 +928,14 @@ export function GroupPracticeTab() {
     myTeam?.liveRoom && !teamPlanned.some((x) => x.liveRoomId),
   );
   const teamCount = teamPlanned.length + (showTeamLive ? 1 : 0);
+  // Round 14: already in this team call (or started it)? Go back into it.
+  const activeRoomId = activeCallSnap?.status !== "ended" ? activeCallSnap?.room?.id : "";
+  const backToTeamCall = Boolean(
+    myTeam?.liveRoom?.id &&
+      (myTeam.liveRoom.isStarter ||
+        myTeam.liveRoom.isInCall ||
+        activeRoomId === myTeam.liveRoom.id),
+  );
   const teamList = (
     <div className="gpt-rooms">
       {showTeamLive && (
@@ -940,12 +955,14 @@ export function GroupPracticeTab() {
             <button
               type="button"
               className="gpt-room-join"
-              onClick={() =>
-                allowed ? navigate(`${JOIN}/${myTeam.liveRoom.code}`) : locked()
-              }
+              onClick={() => {
+                if (!allowed) return locked();
+                if (backToTeamCall) return navigate(`${CALL}/${myTeam.liveRoom.id}`);
+                return navigate(`${JOIN}/${myTeam.liveRoom.code}`);
+              }}
             >
               <Users size={16} aria-hidden="true" />
-              Join now
+              {backToTeamCall ? BACK_TO_CALL_LABEL : "Join now"}
             </button>
           </div>
         </article>
@@ -957,13 +974,39 @@ export function GroupPracticeTab() {
           busy={busyId === item.id}
           now={clockNow}
           onRemind={remind}
-          onJoin={(it) => (allowed ? navigate(`${JOIN}/${it.code}`) : locked())}
+          onJoin={(it) => {
+            if (!allowed) return locked();
+            // Round 14: already in this call? Go back into it.
+            if (it.liveRoomId && activeRoomId === it.liveRoomId)
+              return navigate(`${CALL}/${it.liveRoomId}`);
+            return navigate(`${JOIN}/${it.code}`);
+          }}
+          inCall={Boolean(item.liveRoomId && activeRoomId === item.liveRoomId)}
         />
       ))}
     </div>
   );
+  // Round 14: the host's own started private practice isn't in the public
+  // live list, so it shows here (with Return to call) while it's live.
+  const mineLivePrivate = planned.mine.filter(
+    (item) =>
+      item.liveRoomId &&
+      !item.isTeam &&
+      item.private &&
+      !rooms.some((r) => r.id === item.liveRoomId),
+  );
+  const liveCount = rooms.length + mineLivePrivate.length;
   const liveList = (
     <div className="gpt-rooms">
+      {mineLivePrivate.map((item) => (
+        <PlannedCard
+          key={item.id}
+          item={item}
+          busy={busyId === item.id}
+          onStart={startPlanned}
+          onCancel={cancelPlanned}
+        />
+      ))}
       {(showAllRooms ? rooms : rooms.slice(0, ROOMS_PREVIEW)).map((room) => (
         <RoomCard key={room.id} room={room} onJoin={joinRoom} />
       ))}
@@ -971,10 +1014,13 @@ export function GroupPracticeTab() {
   );
   // Round 13 (Sheriff): your own planned practices sit first in Upcoming
   // (with Start now), then other people's.
-  const upcomingCount = planned.mine.length + upcoming.length;
+  // Round 14 (Sheriff): a planned practice that has started shows under Live
+  // only (never Upcoming), and is gone once the call ends.
+  const mineUpcoming = planned.mine.filter((item) => !item.liveRoomId);
+  const upcomingCount = mineUpcoming.length + upcoming.length;
   const upcomingList = (
     <div className="gpt-rooms">
-      {planned.mine.map((item) => (
+      {mineUpcoming.map((item) => (
         <PlannedCard
           key={item.id}
           item={item}
@@ -1138,7 +1184,7 @@ export function GroupPracticeTab() {
               {connection !== "connected" ? (
                 connectionNote
               ) : (
-                rooms.length > 0 && (
+                liveCount > 0 && (
                   <>
                     <p className="gpt-list-group">Live calls</p>
                     {liveList}
@@ -1152,7 +1198,7 @@ export function GroupPracticeTab() {
                 </>
               )}
               {connection === "connected" &&
-                rooms.length === 0 &&
+                liveCount === 0 &&
                 upcomingCount === 0 &&
                 !(inTeam && teamCount > 0) && (
                   <div className="gpc-empty gpt-empty">
@@ -1177,7 +1223,7 @@ export function GroupPracticeTab() {
           {listTab === "live" &&
             (connection !== "connected" ? (
               connectionNote
-            ) : rooms.length > 0 ? (
+            ) : liveCount > 0 ? (
               liveList
             ) : (
               <div className="gpc-empty gpt-empty">

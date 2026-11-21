@@ -4285,3 +4285,48 @@
     font-size: 12px;
   }
 }
+
+/* ======================================================================
+   Round 14 (Sheriff, 2026-11-21): Group tab.
+   1. Find a practice: each call card fills the row, one card per row.
+   2. The Group Practice illustration has no background (the picture is
+      now transparent), so the edge fade it needed is gone.
+   4. The call room topic line is a little bigger.
+   7. Find a practice has no outer box; it fills the screen width.
+   ====================================================================== */
+.gpt-find-card .gpt-rooms,
+.gpt-rooms {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+@media (min-width: 760px) {
+  .gpt-find-card .gpt-rooms,
+  .gpt-rooms {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (min-width: 1200px) {
+  .gpt-find-card .gpt-rooms,
+  .gpt-rooms {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.gpt-voices-art {
+  -webkit-mask-image: none;
+  mask-image: none;
+  border-radius: 0;
+}
+
+.gpc-title-call,
+.gpc-call .gpc-call-head .gpc-title {
+  font-size: 17px;
+}
+
+.gpt-find-card {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+}

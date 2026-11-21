@@ -170,11 +170,15 @@ router.get("/scheduled", authMiddleware, async (req, res) => {
             .lean()
         : [],
     ]);
+    // Round 14 (Sheriff): a planned practice that has started and then
+    // ended is no longer listed anywhere.
     const toApp = (d) => publicScheduled(d, req.userId);
+    const listApp = (docs) =>
+      docs.map(toApp).filter((item, i) => docs[i].status !== "started" || item.liveRoomId);
     res.json({
-      upcoming: publicDocs.map(toApp),
-      mine: mine.map(toApp),
-      team: teamDocs.map(toApp),
+      upcoming: listApp(publicDocs),
+      mine: listApp(mine),
+      team: listApp(teamDocs),
     });
   } catch (err) {
     console.error(err);

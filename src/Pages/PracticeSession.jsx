@@ -490,6 +490,8 @@ function PracticeSessionAttempt() {
       formData.append("level", level);
       formData.append("durationSeconds", String(actualDurationSeconds));
       formData.append("isWordOfTheDay", String(isWordOfTheDay));
+      // Round 14: for Admin > Practice Analytics (popular practice feature).
+      formData.append("feature", isResearch ? "research" : isYap ? "yap" : "jar");
 
       const res = await api.post("/api/practice/complete", formData, {
         headers: { "Content-Type": "multipart/form-data" },

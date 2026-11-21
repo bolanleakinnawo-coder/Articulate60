@@ -99,6 +99,10 @@ initRealtime(server);
 if (setupPush()) startReminderJob();
 // Reminders for planned group practices (in-app always, phone when push is on).
 startScheduledPracticeJob();
+// Round 14: automatic emails on trial and plan end dates, and admin
+// notifications the admin scheduled for later.
+require("./services/autoEmails").startAutoEmailJob();
+require("./services/adminNotifications").startScheduledNotificationJob();
 // Applies paid Paystack payments every few minutes even if a webhook is missed.
 require("./services/billing").startPendingPaymentSweep();
 

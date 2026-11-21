@@ -7,18 +7,15 @@
 const jwt = require("jsonwebtoken");
 const User = require("../MODELS/User");
 
-// Round 10: 30 days, and renewed while the member uses the app (see
-// middleware/auth.js), so active members are never signed out. Before, a
-// sign-in simply ran out 7 days after signing in, even mid-use.
-const TOKEN_LIFETIME = "30d";
-// A token older than this gets a fresh one with the next request.
-const RENEW_AFTER_SECONDS = 24 * 60 * 60;
-
+// Round 14: a sign-in never runs out. Members stay signed in until they
+// log out themselves (or the password is changed/reset, or the account is
+// deleted, which still sign out every device through tokenVersion).
+// Older sign-ins made with a 30-day end date keep working too, and are
+// swapped once for one without an end date (see middleware/auth.js).
 function signToken(user) {
   return jwt.sign(
     { id: String(user._id), tv: user.tokenVersion || 0 },
     process.env.JWT_SECRET,
-    { expiresIn: TOKEN_LIFETIME },
   );
 }
 
@@ -35,7 +32,7 @@ class SessionError extends Error {
 async function verifyToken(token, { full = false } = {}) {
   let decoded;
   try {
-    decoded = jwt.verify(token, process.env.JWT_SECRET);
+    decoded = jwt.verify(token, process.env.JWT_SECRET, { ignoreExpiration: true });
   } catch {
     throw new SessionError("Invalid or expired session.", "SESSION_EXPIRED");
   }
@@ -55,11 +52,11 @@ async function verifyToken(token, { full = false } = {}) {
       "SESSION_REVOKED",
     );
   }
-  const ageSeconds = decoded.iat ? Math.floor(Date.now() / 1000) - decoded.iat : 0;
   return {
     userId: String(userId),
     user,
-    shouldRenew: ageSeconds > RENEW_AFTER_SECONDS,
+    // An older sign-in with an end date is swapped for one without.
+    shouldRenew: Boolean(decoded.exp),
   };
 }
 

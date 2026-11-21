@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import api from "../api/axios";
+import { OverviewStats } from "./AdminDashboard";
 import "./Admin.css";
 
 export default function AdminOverview() {
@@ -48,6 +49,10 @@ export default function AdminOverview() {
       </header>
 
 
+
+      {/* Round 14 (Sheriff): total, active and paying members, new
+          registrations and revenue. */}
+      <OverviewStats />
 
       {error && (
         <p className="admin-overview-error" role="alert">

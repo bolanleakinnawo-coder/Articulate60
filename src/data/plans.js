@@ -155,10 +155,19 @@ export const AI_TRIAL = { days: 3, perDay: 3 };
 export function aiTrialEndsAt(user = getStoredUser()) {
   const raw = user?.subscription?.aiTrialEndsAt;
   if (raw) return new Date(raw);
+  // Round 14: the trial is no longer automatic. The server says when it
+  // hasn't been started (or there's none), so don't guess from sign-up.
+  if (user?.subscription && "aiTrialEndsAt" in user.subscription) return null;
   if (!user?.createdAt) return null;
   const created = new Date(user.createdAt);
   if (Number.isNaN(created.getTime())) return null;
   return new Date(created.getTime() + AI_TRIAL.days * 24 * 60 * 60 * 1000);
+}
+
+// Round 14 (Sheriff): a free member who can still choose to start the
+// 3-day free trial.
+export function canStartAiTrial(user = getStoredUser()) {
+  return getPlanId(user) === "free" && Boolean(user?.subscription?.aiTrialAvailable);
 }
 
 export function isOnAiTrial(user = getStoredUser()) {
@@ -418,6 +427,14 @@ export async function getCheckoutQuote(planId, periodId = "monthly", currency = 
 // Cancel: the plan stays until it expires (plans never renew on their own).
 export async function cancelPlan() {
   const { data } = await api.post("/api/billing/cancel");
+  saveStoredUser({ plan: data.subscription.planId, subscription: data.subscription });
+  return data.subscription;
+}
+
+// Round 14 (Sheriff): the 3-day free trial starts only when the member
+// chooses it.
+export async function startFreeTrial() {
+  const { data } = await api.post("/api/billing/start-trial");
   saveStoredUser({ plan: data.subscription.planId, subscription: data.subscription });
   return data.subscription;
 }

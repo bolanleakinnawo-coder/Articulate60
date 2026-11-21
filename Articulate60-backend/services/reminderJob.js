@@ -78,6 +78,13 @@ async function claim(userId, slot, today) {
 }
 
 async function runReminders(now = new Date()) {
+  // Round 14 (Sheriff): the admin sends all of these by hand from
+  // Admin > Notifications (inactivity, streak about to expire...), so the
+  // automatic streak reminders are off. AUTO_STREAK_REMINDERS=on on Render
+  // turns them back on.
+  if (String(process.env.AUTO_STREAK_REMINDERS || "").toLowerCase() !== "on") {
+    return { checked: 0, sent: 0, off: true };
+  }
   if (!pushReady()) return { checked: 0, sent: 0 };
   let checked = 0;
   let sent = 0;

@@ -1,7 +1,7 @@
 // Admin: upload each book's PDF, see copies sold, and tell everyone who
 // tapped "Notify me" when something launches.
 import { useCallback, useEffect, useState } from "react";
-import { BookOpen, Megaphone, Upload } from "lucide-react";
+import { BookOpen, Megaphone, Trash2, Upload } from "lucide-react";
 import api from "../api/axios";
 import "./Admin.css";
 
@@ -40,6 +40,22 @@ export default function AdminLearnBooks() {
       load();
     } catch (e) {
       setMessage(e.response?.data?.message || "Upload failed.");
+    } finally {
+      setBusy("");
+    }
+  };
+
+  // Round 14 (Sheriff): delete an uploaded PDF (then upload it again).
+  const remove = async (book) => {
+    if (!window.confirm(`Delete the PDF for "${book.title}"? Owners keep the book and can read it again after you upload a new PDF.`)) return;
+    setBusy(book.id);
+    setMessage("");
+    try {
+      await api.delete(`/api/admin/learn/books/${book.id}/file`);
+      setMessage("PDF deleted. Upload a new one when it's ready.");
+      load();
+    } catch (e) {
+      setMessage(e.response?.data?.message || "Could not delete the PDF.");
     } finally {
       setBusy("");
     }
@@ -89,17 +105,33 @@ export default function AdminLearnBooks() {
                     : "No PDF yet"}
                 </span>
               </div>
-              <label className="admin-learn-upload">
-                <Upload size={15} aria-hidden="true" />
-                {busy === b.id ? "Uploading…" : b.file ? "Replace PDF" : "Upload PDF"}
-                <input
-                  type="file"
-                  accept="application/pdf"
-                  hidden
-                  disabled={Boolean(busy)}
-                  onChange={(e) => upload(b.id, e.target.files?.[0])}
-                />
-              </label>
+              <div className="admin-learn-actions">
+                <label className="admin-learn-upload">
+                  <Upload size={15} aria-hidden="true" />
+                  {busy === b.id ? "Working…" : b.file ? "Re-upload PDF" : "Upload PDF"}
+                  <input
+                    type="file"
+                    accept="application/pdf"
+                    hidden
+                    disabled={Boolean(busy)}
+                    onChange={(e) => {
+                      upload(b.id, e.target.files?.[0]);
+                      e.target.value = "";
+                    }}
+                  />
+                </label>
+                {b.file && (
+                  <button
+                    type="button"
+                    className="admin-learn-upload admin-learn-delete"
+                    disabled={Boolean(busy)}
+                    onClick={() => remove(b)}
+                  >
+                    <Trash2 size={15} aria-hidden="true" />
+                    Delete PDF
+                  </button>
+                )}
+              </div>
             </article>
           ))}
         </div>

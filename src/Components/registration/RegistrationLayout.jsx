@@ -90,9 +90,13 @@ function RegistrationLayout() {
       localStorage.setItem("user", JSON.stringify(response.data.user));
       // A team invite link opened while signed out comes back here (round 10).
       const from = location.state?.from;
-      const back =
-        from?.pathname?.startsWith("/team/join/") ? from.pathname : "/app/home";
-      navigate(back, { replace: true });
+      // Round 14 (Sheriff): the free trial is no longer automatic. New
+      // members land on Manage Membership to start the trial or pick a plan.
+      if (from?.pathname?.startsWith("/team/join/")) {
+        navigate(from.pathname, { replace: true });
+      } else {
+        navigate("/app/membership", { replace: true, state: { from: "signup" } });
+      }
     } catch (error) {
       console.error(error);
       const message = error.response?.data?.message || "";
